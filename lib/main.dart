@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black87),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Test Commit'),
+      home: const MyHomePage(title: 'Test Commit 11'),
     );
   }
 }
