@@ -38,12 +38,18 @@ dependencies:
   firebase_core: ^2.24.2
   firebase_auth: ^4.16.0
   cloud_firestore: ^4.14.0
+  syncfusion_flutter_calendar: ^23.1.43
+  animated_tree_view: ^2.2.0
+  equatable: ^2.0.5
+  flutter_screenutil: ^5.9.0
+  flutter_bloc: ^8.1.4
+  fluttertoast: ^8.2.4
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  # The "flutter_lints" package below contains a set of recommended lints to
+  # The "flutter_lints" package below conssssstains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
@@ -55,7 +61,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
+  assets:
+     - assets/images/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
