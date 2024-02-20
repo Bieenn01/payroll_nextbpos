@@ -23,5 +23,9 @@ final menuTree = TreeNode.root()
           TreeNode(key: "Technology"),
         ]),
       TreeNode(key: "Settings", data: Icons.settings),
+        TreeNode(
+        key: 'Logout', // Logout menu item
+        data: Icons.logout, // You can use appropriate logout icon here
+      ),
     ],
   );

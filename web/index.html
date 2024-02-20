@@ -55,5 +55,23 @@
       });
     });
   </script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-messaging.js"></script>
+  <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyBaS9eujBHEvyXw9X25wnzjXvlHGeEcPFU",
+      authDomain: "nbsstorage-ba8de.firebaseapp.com",
+      projectId: "nbsstorage-ba8de",
+      storageBucket: "nbsstorage-ba8de.appspot.com",
+      messagingSenderId: "432371963345",
+      appId: "1:432371963345:web:56c12aaf940bd1dfaa7cf0",
+      measurementId: "G-C1FYMXQ0PL"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+  </script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:animated_tree_view/animated_tree_view.dart';
@@ -7,6 +8,7 @@ import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_bl
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_event.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_state.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/menu_navigation.dart';
+import 'package:project_payroll_nextbpo/frontend/loginScreen.dart';
 
 
 class SidebarMenu extends StatelessWidget {
@@ -76,8 +78,18 @@ class SidebarMenu extends StatelessWidget {
                                   );
                                 },
                                 onItemTap: (item) {
-                                  BlocProvider.of<SidebarMenuBloc>(context).add(
-                                      FetchSidebarMenuEvent(menu: item.key));
+                                  if (item.key == 'Logout') {
+                                    FirebaseAuth.instance
+                                        .signOut(); // Sign out the user
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(
+                                          builder: (context) => LoginScreen()),
+                                    ); // Navigate back to the login screen
+                                  } else {
+                                    BlocProvider.of<SidebarMenuBloc>(context)
+                                        .add(FetchSidebarMenuEvent(
+                                            menu: item.key));
+                                  }
                                 },
                                 builder: (context, node) {
                                   final isSelected = state.menu == node.key;
