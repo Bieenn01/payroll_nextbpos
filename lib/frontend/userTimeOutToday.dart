@@ -1,8 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart'; // Import the intl package
+import 'package:intl/intl.dart';
 
 class UserTimedOutToday extends StatefulWidget {
   @override
@@ -35,7 +33,7 @@ class _UserTimedOutTodayState extends State<UserTimedOutToday> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Users Timed In Today'),
+        title: Text('Users Timed Out Today'),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _userRecordsStream,
@@ -52,44 +50,61 @@ class _UserTimedOutTodayState extends State<UserTimedOutToday> {
           }
           if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
             return Center(
-              child: Text('No users timed in today.'),
+              child: Text('No users timed out today.'),
             );
           }
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: [
-                DataColumn(label: Text('User Name')),
-                //DataColumn(label: Text('Time In')),
-                DataColumn(label: Text('Time Out')),
-                DataColumn(label: Text('Department')),
-              ],
-              rows: snapshot.data!.docs.map((DocumentSnapshot document) {
-                Map<String, dynamic> data =
-                    document.data() as Map<String, dynamic>;
-                return DataRow(cells: [
-                  DataCell(Text(data['userName'])),
-                  //DataCell(Text(_formatTimestamp(data['timeIn']))),
-                  DataCell(Text(_formatTimestamp(data['timeOut']))),
-                  DataCell(Text(data['department'])),
-                ]);
-              }).toList(),
-            ),
+
+          return PaginatedDataTable(
+            header: Text(''),
+            columns: [
+              DataColumn(label: Text('User Name')),
+              DataColumn(label: Text('Time Out')),
+              DataColumn(label: Text('Department')),
+            ],
+            source: _UserRecordsDataSource(context, snapshot.data!.docs),
+            rowsPerPage: 5,
           );
         },
       ),
     );
   }
-
-  String _formatTimestamp(dynamic timestamp) {
-    if (timestamp == null) return '-------';
-
-    if (timestamp is Timestamp) {
-      DateTime dateTime = timestamp.toDate();
-      return DateFormat('MMMM dd, yyyy HH:mm:ss').format(dateTime);
-    } else {
-      return timestamp.toString();
-    }
-  }
 }
 
+class _UserRecordsDataSource extends DataTableSource {
+  final BuildContext context;
+  final List<QueryDocumentSnapshot> documents;
+
+  _UserRecordsDataSource(this.context, this.documents);
+
+  @override
+  DataRow getRow(int index) {
+    final Map<String, dynamic> data =
+        documents[index].data() as Map<String, dynamic>;
+
+    return DataRow(cells: [
+      DataCell(Text(data['userName'])),
+      DataCell(Text(_formatTimestamp(data['timeOut']))),
+      DataCell(Text(data['department'])),
+    ]);
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => documents.length;
+
+  @override
+  int get selectedRowCount => 0;
+}
+
+String _formatTimestamp(dynamic timestamp) {
+  if (timestamp == null) return '-------';
+
+  if (timestamp is Timestamp) {
+    DateTime dateTime = timestamp.toDate();
+    return DateFormat('MMMM dd, yyyy HH:mm:ss').format(dateTime);
+  } else {
+    return timestamp.toString();
+  }
+}

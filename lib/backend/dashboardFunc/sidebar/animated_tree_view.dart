@@ -18,7 +18,7 @@ final menuTree = TreeNode.root()
           TreeNode(key: "Special"),
           TreeNode(key: "Regular"),
         ]),
-      TreeNode(key: "Analytics", data: Icons.analytics),
+      TreeNode(key: "Logs", data: Icons.analytics),
       TreeNode(key: "Collection", data: Icons.collections_bookmark)
         ..addAll([
           TreeNode(key: "Framework"),

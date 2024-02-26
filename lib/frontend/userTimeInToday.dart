@@ -1,8 +1,8 @@
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart'; // Import the intl package
+import 'package:intl/intl.dart';
+import 'package:project_payroll_nextbpo/frontend/userTimeOutToday.dart';
 
 class UserTimedInToday extends StatefulWidget {
   @override
@@ -11,6 +11,8 @@ class UserTimedInToday extends StatefulWidget {
 
 class _UserTimedInTodayState extends State<UserTimedInToday> {
   late Stream<QuerySnapshot> _userRecordsStream;
+  final int _rowsPerPage = 5;
+  int _selectedRowIndex = 0;
 
   @override
   void initState() {
@@ -27,8 +29,7 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
         .collection('Records')
         .where('timeIn',
             isGreaterThanOrEqualTo: startOfDay, isLessThan: endOfDay)
-        .orderBy('timeIn',
-            descending: true) // Sort by timeIn in descending order
+        .orderBy('timeIn', descending: true)
         .snapshots();
   }
 
@@ -37,6 +38,19 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Users Timed In Today'),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserTimedOutToday(),
+                ),
+              );
+            },
+            child: Text('TimeOut'),
+          )
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _userRecordsStream,
@@ -56,25 +70,24 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
               child: Text('No users timed in today.'),
             );
           }
+
           return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SingleChildScrollView(
-              child: DataTable(
-                columns: [
-                  DataColumn(label: Text('User Name')),
-                  DataColumn(label: Text('Time In')),
-                  DataColumn(label: Text('Department')),
-                ],
-                rows: snapshot.data!.docs.map((DocumentSnapshot document) {
-                  Map<String, dynamic> data =
-                      document.data() as Map<String, dynamic>;
-                  return DataRow(cells: [
-                    DataCell(Text(data['userName'])),
-                    DataCell(Text(_formatTimestamp(data['timeIn']))),
-                    DataCell(Text(data['department'])),
-                  ]);
-                }).toList(),
-              ),
+            scrollDirection: Axis.vertical,
+            child: PaginatedDataTable(
+              header: Text(''),
+              rowsPerPage: _rowsPerPage,
+              onSelectAll: (isSelected) {},
+              source: _UserRecordsDataSource(snapshot.data!.docs),
+              columns: [
+                DataColumn(label: Text('User Name')),
+                DataColumn(label: Text('Time In')),
+                DataColumn(label: Text('Department')),
+              ],
+              onPageChanged: (newPage) {
+                setState(() {
+                  _selectedRowIndex = newPage * _rowsPerPage;
+                });
+              },
             ),
           );
         },
@@ -85,14 +98,51 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
   String _formatTimestamp(dynamic timestamp) {
     if (timestamp == null) return '-------';
 
-    // Check if timestamp is already a Timestamp object
     if (timestamp is Timestamp) {
       DateTime dateTime = timestamp.toDate();
       return DateFormat('MMMM dd, yyyy HH:mm:ss').format(dateTime);
     } else {
-      // If not a Timestamp object, assume it's a String and return as is
       return timestamp.toString();
     }
   }
 }
 
+class _UserRecordsDataSource extends DataTableSource {
+  final List<DocumentSnapshot> _userRecords;
+
+  _UserRecordsDataSource(this._userRecords);
+
+  @override
+  DataRow? getRow(int index) {
+    if (index >= _userRecords.length) {
+      return null;
+    }
+    final record = _userRecords[index];
+    final data = record.data() as Map<String, dynamic>;
+    return DataRow(cells: [
+      DataCell(Text(data['userName'])),
+      DataCell(Text(_formatTimestamp(data['timeIn']))),
+      DataCell(Text(data['department'])),
+    ]);
+  }
+
+  @override
+  int get rowCount => _userRecords.length;
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get selectedRowCount => 0;
+
+  String _formatTimestamp(dynamic timestamp) {
+    if (timestamp == null) return '-------';
+
+    if (timestamp is Timestamp) {
+      DateTime dateTime = timestamp.toDate();
+      return DateFormat('MMMM dd, yyyy HH:mm:ss').format(dateTime);
+    } else {
+      return timestamp.toString();
+    }
+  }
+}

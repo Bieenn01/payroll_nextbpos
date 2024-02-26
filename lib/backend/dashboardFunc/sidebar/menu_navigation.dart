@@ -3,6 +3,7 @@ import 'package:project_payroll_nextbpo/backend/dashboardFunc/main_calendar.dart
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/check_in_out_logs.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/mobileHomeScreen.dart';
+import 'package:project_payroll_nextbpo/frontend/userTimeInToday.dart';
 
 class ScreensView extends StatelessWidget {
   final String menu;
@@ -36,6 +37,9 @@ class ScreensView extends StatelessWidget {
             ),
           ),
         );
+        break;
+        case 'Logs':
+        page = buildLogsPage();
         break;
       case 'Add Account':
         page = buildAddAccountPage();
@@ -88,6 +92,20 @@ class ScreensView extends StatelessWidget {
               ],
             ),
           ),
+          SizedBox(height: 20),
+          Expanded(
+            child: UserTimedInToday(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildLogsPage() {
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           SizedBox(height: 20),
           Expanded(
             child: Logs(),
