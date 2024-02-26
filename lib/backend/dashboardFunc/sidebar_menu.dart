@@ -8,7 +8,8 @@ import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_bl
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_event.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_state.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/menu_navigation.dart';
-import 'package:project_payroll_nextbpo/frontend/loginScreen.dart';
+import 'package:project_payroll_nextbpo/frontend/login.dart';
+
 
 
 class SidebarMenu extends StatelessWidget {
@@ -51,7 +52,7 @@ class SidebarMenu extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: const [
                                   Text(
-                                    "SidebarMenu",
+                                    "NextBpoSolutions",
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 20,
@@ -83,7 +84,7 @@ class SidebarMenu extends StatelessWidget {
                                         .signOut(); // Sign out the user
                                     Navigator.of(context).pushReplacement(
                                       MaterialPageRoute(
-                                          builder: (context) => LoginScreen()),
+                                          builder: (context) =>  Login()),
                                     ); // Navigate back to the login screen
                                   } else {
                                     BlocProvider.of<SidebarMenuBloc>(context)

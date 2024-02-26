@@ -5,16 +5,18 @@ final menuTree = TreeNode.root()
   ..addAll(
     [
       TreeNode(key: "Dashboard", data: Icons.dashboard),
-      TreeNode(key: "Documentation", data: Icons.description)
+      TreeNode(key: "Overtime", data: Icons.access_time_filled_outlined)
         ..addAll([
-          TreeNode(key: "Dart"),
-          TreeNode(key: "Flutter"),
+          TreeNode(key: "Regular (OT)"),
+          TreeNode(key: "Rest day"),
+          TreeNode(key: "Special Holiday (SH)"),
+          TreeNode(key: "Regular Holiday (RH)"),
+          TreeNode(key: "SH/Rest day"),
         ]),
-      TreeNode(key: "Plugins", data: Icons.cable)
+      TreeNode(key: "Holiday", data: Icons.calendar_month_outlined)
         ..addAll([
-          TreeNode(key: "Animated Tree View"),
-          TreeNode(key: "Flutter BLoC"),
-          TreeNode(key: "Material"),
+          TreeNode(key: "Special"),
+          TreeNode(key: "Regular"),
         ]),
       TreeNode(key: "Analytics", data: Icons.analytics),
       TreeNode(key: "Collection", data: Icons.collections_bookmark)
@@ -23,7 +25,12 @@ final menuTree = TreeNode.root()
           TreeNode(key: "Technology"),
         ]),
       TreeNode(key: "Settings", data: Icons.settings),
-        TreeNode(
+            TreeNode(
+        key: 'Add Account', // Logout menu item
+        data:
+            Icons.person_add_alt_1, // You can use appropriate logout icon here
+      ),
+      TreeNode(
         key: 'Logout', // Logout menu item
         data: Icons.logout, // You can use appropriate logout icon here
       ),
