@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 
 class UserDetails extends StatefulWidget {
   @override
@@ -18,6 +19,15 @@ class _UserDetailsState extends State<UserDetails> {
   Future<QuerySnapshot> _fetchUsers() {
     // Fetch users from Firestore collection 'User'
     return FirebaseFirestore.instance.collection('User').get();
+  }
+
+  Future<void> _resetPassword(String email) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      print('Password reset email sent to $email');
+    } catch (e) {
+      print('Failed to send password reset email: $e');
+    }
   }
 
   @override
@@ -57,9 +67,19 @@ class _UserDetailsState extends State<UserDetails> {
                       ElevatedButton(
                         onPressed: () {
                           // Implement action for the user
-                          print('Action button pressed for ${data['fname']}');
+                          if (data['email'] == 'kaizarscore12@gmail.com') {
+                            _resetPassword(data['email']);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Password reset not applicable for this user.',
+                                ),
+                              ),
+                            );
+                          }
                         },
-                        child: Text('Action'),
+                        child: Text('Reset Password'),
                       ),
                     ),
                   ]);

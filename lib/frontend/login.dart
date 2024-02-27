@@ -116,41 +116,50 @@ class _LoginState extends State<Login> {
       ),
     );
   }
-
 login(BuildContext context) async {
-    try {
-      UserCredential userCredential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(
-              email: emailController.text, password: passwordController.text);
+  try {
+    UserCredential userCredential = await FirebaseAuth.instance
+        .signInWithEmailAndPassword(
+            email: emailController.text, password: passwordController.text);
 
-      // Get the user from the userCredential
-      User? user = userCredential.user;
+    // Get the user from the userCredential
+    User? user = userCredential.user;
 
-      if (user != null) {
+    if (user != null) {
+      // Check if the user is active
+      DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user.uid)
+          .get();
+
+      bool isActive = snapshot.exists && snapshot.get('isActive');
+
+      if (isActive) {
         // Navigate to the PovDashboard with only the userID
         Navigator.of(context).pushReplacement(MaterialPageRoute(
           builder: (context) => PovDashboard(userId: user.uid),
         ));
-      }
-    } on FirebaseAuthException catch (e) {
-      // Handle authentication exceptions
-      if (e.code == 'user-not-found') {
-        showToast("No user found with that email.");
-      } else if (e.code == 'wrong-password') {
-        showToast("Wrong password provided for that user.");
-      } else if (e.code == 'invalid-email') {
-        showToast("Invalid email provided.");
-      } else if (e.code == 'user-disabled') {
-        showToast("User account has been disabled.");
       } else {
-        showToast("An error occurred: ${e.message}");
+        // User is not active
+        showToast("User account is not activated.");
       }
-    } on Exception catch (e) {
-      // Handle other exceptions
-      showToast("An error occurred: $e");
     }
+  } on FirebaseAuthException catch (e) {
+    // Handle authentication exceptions
+    if (e.code == 'user-not-found') {
+      showToast("No user found with that email.");
+    } else if (e.code == 'wrong-password') {
+      showToast("Wrong password provided for that user.");
+    } else if (e.code == 'invalid-email') {
+      showToast("Invalid email provided.");
+    } else if (e.code == 'user-disabled') {
+      showToast("User account has been disabled.");
+    } else {
+      showToast("An error occurred: ${e.message}");
+    }
+  } on Exception catch (e) {
+    // Handle other exceptions
+    showToast("An error occurred: $e");
   }
-  Future<void> getToken() async {
-    // You can perform additional actions with the token if needed
-  }
+}
 }
