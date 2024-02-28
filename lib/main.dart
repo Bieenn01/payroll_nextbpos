@@ -9,7 +9,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_dashboard.dart';
 import 'package:project_payroll_nextbpo/frontend/login.dart';
-import 'package:project_payroll_nextbpo/test.dart';
 
 import 'firebase_options.dart';
 
@@ -91,7 +90,7 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-@override
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -103,9 +102,11 @@ class _MyAppState extends State<MyApp> {
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              return const PovDashboard(userId: '',);
+              return const PovDashboard(
+                userId: '',
+              );
             } else {
-              return  Login();
+              return Login();
             }
           }),
     );
