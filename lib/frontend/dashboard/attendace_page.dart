@@ -2,19 +2,36 @@ import 'dart:ui';
 
 import 'package:date_field/date_field.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:intl/intl.dart';
 
-class RestSpecialOvertimePage extends StatefulWidget {
-  const RestSpecialOvertimePage({super.key});
+class AttendacePage extends StatefulWidget {
+  const AttendacePage({super.key});
 
   @override
-  State<RestSpecialOvertimePage> createState() =>
-      _RestSpecialOvertimePageState();
+  State<AttendacePage> createState() => _AttendacePageState();
 }
 
-class _RestSpecialOvertimePageState extends State<RestSpecialOvertimePage> {
+class _AttendacePageState extends State<AttendacePage> {
+  late Stream<QuerySnapshot> _userRecordsStream;
+  TextEditingController _searchController = TextEditingController();
+  String _selectedDepartment = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserRecords();
+  }
+
+  void _fetchUserRecords() {
+    _userRecordsStream = FirebaseFirestore.instance
+        .collection('Records')
+        .orderBy('timeIn', descending: true)
+        .snapshots();
+  }
+
   int _documentLimit = 8;
   int _currentPage = 0;
   int _rowsPerPage = 8;
@@ -52,7 +69,7 @@ class _RestSpecialOvertimePageState extends State<RestSpecialOvertimePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Rest Day/ Special Holiday Overtime',
+                          'Attendance Overview',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
@@ -171,7 +188,7 @@ class _RestSpecialOvertimePageState extends State<RestSpecialOvertimePage> {
                                     color: Colors.black.withOpacity(0.5)),
                               ),
                               child: TextField(
-                                controller: searchController,
+                                controller: _searchController,
                                 textAlign: TextAlign.start,
                                 decoration: const InputDecoration(
                                   contentPadding: EdgeInsets.only(bottom: 15),
@@ -179,6 +196,9 @@ class _RestSpecialOvertimePageState extends State<RestSpecialOvertimePage> {
                                   border: InputBorder.none,
                                   hintText: 'Search',
                                 ),
+                                onChanged: (value) {
+                                  setState(() {});
+                                },
                               ),
                             ),
                           )
@@ -190,50 +210,93 @@ class _RestSpecialOvertimePageState extends State<RestSpecialOvertimePage> {
                     ),
                     Divider(),
                     Expanded(
-                        child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      child: DataTable(columns: [
-                        ColumnInput('#'),
-                        ColumnInput('ID'),
-                        ColumnInput('Name'),
-                        DataColumn(
-                            label: Center(
-                          child: DropdownButton<String>(
-                            elevation: 8,
-                            underline: Container(),
-                            dropdownColor: Colors.teal.shade100,
-                            items: <String>['IT', 'HR'].map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream: _userRecordsStream,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                          if (snapshot.hasError) {
+                            return Center(
+                              child: Text('Error: ${snapshot.error}'),
+                            );
+                          }
+                          if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
+                            return Center(
+                              child: Text('No user records available.'),
+                            );
+                          }
+
+                          var filteredDocs =
+                              snapshot.data!.docs.where((document) {
+                            String userName =
+                                (document.data() as Map)['userName'];
+                            String query = _searchController.text.toLowerCase();
+                            String department =
+                                (document.data() as Map)['department'] ?? '';
+                            return userName.toLowerCase().contains(query) &&
+                                (_selectedDepartment.isEmpty ||
+                                    department == _selectedDepartment);
+                          }).toList();
+
+                          return ListView.builder(
+                            itemCount: filteredDocs.length,
+                            itemBuilder: (context, index) {
+                              return DataTable(
+                                columns: [
+                                  ColumnInput('Username'),
+                                  ColumnInput('Time in'),
+                                  ColumnInput('Time out'),
+                                  ColumnInput('Department')
+                                ],
+                                rows: filteredDocs
+                                    .map((DocumentSnapshot document) {
+                                  Map<String, dynamic> data =
+                                      document.data() as Map<String, dynamic>;
+                                  return DataRow(cells: [
+                                    DataCell(
+                                      Container(
+                                        width:
+                                            100, // Adjust the width as needed
+                                        child:
+                                            Text(data['userName'] ?? 'Unknown'),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Container(
+                                        width:
+                                            150, // Adjust the width as needed
+                                        child: Text(
+                                            _formatTimestamp(data['timeIn'])),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Container(
+                                        width:
+                                            150, // Adjust the width as needed
+                                        child: Text(
+                                            _formatTimestamp(data['timeOut'])),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Container(
+                                        width:
+                                            100, // Adjust the width as needed
+                                        child: Text(
+                                            data['department'] ?? 'Unknown'),
+                                      ),
+                                    ),
+                                  ]);
+                                }).toList(),
                               );
-                            }).toList(),
-                            onChanged: (value) {},
-                            hint: const Text(
-                              'Department',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 15,
-                                  color: Colors.black),
-                            ),
-                            value: null,
-                          ),
-                        )),
-                        ColumnInput('OT Hrs'),
-                        ColumnInput('OT Pay'),
-                        ColumnInput('Action'),
-                      ], rows: const [
-                        DataRow(cells: [
-                          DataCell(Text('1')),
-                          DataCell(Text('1')),
-                          DataCell(Text('1')),
-                          DataCell(Text('1')),
-                          DataCell(Text('1')),
-                          DataCell(Text('1')),
-                          DataCell(Text('View Logs')),
-                        ])
-                      ]),
-                    ))
+                            },
+                          );
+                        },
+                      ),
+                    )
                   ],
                 ),
               ),
@@ -242,6 +305,17 @@ class _RestSpecialOvertimePageState extends State<RestSpecialOvertimePage> {
         ),
       ),
     );
+  }
+}
+
+String _formatTimestamp(dynamic timestamp) {
+  if (timestamp == null) return '-------';
+
+  if (timestamp is Timestamp) {
+    DateTime dateTime = timestamp.toDate();
+    return DateFormat('MMMM dd, yyyy HH:mm:ss:a').format(dateTime);
+  } else {
+    return timestamp.toString();
   }
 }
 
