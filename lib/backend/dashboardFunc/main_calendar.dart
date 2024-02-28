@@ -18,7 +18,7 @@ class _CalendarPageState extends State<CalendarPage> {
     _loadMeetingsFromFirestore(); // Load meetings from Firestore
     super.initState();
   }
-  
+
   TextEditingController eventNameController = TextEditingController();
   TextEditingController startTimeController = TextEditingController();
   TextEditingController endTimeController = TextEditingController();
@@ -215,10 +215,10 @@ class _CalendarPageState extends State<CalendarPage> {
           child: Text(meeting != null ? 'Update' : 'Add'),
         ),
         if (meeting != null)
-        TextButton(
-          onPressed: () => _showAppointmentDetailsDialog(meeting),
-          child: const Text("View"),
-        )
+          TextButton(
+            onPressed: () => _showAppointmentDetailsDialog(meeting),
+            child: const Text("View"),
+          )
       ],
     );
   }
@@ -236,7 +236,7 @@ class _CalendarPageState extends State<CalendarPage> {
       });
     }
   }
-  
+
   void _saveMeetingToFirestore(Meeting meeting) {
     FirebaseFirestore.instance.collection('meetings').add({
       'eventName': meeting.eventName,

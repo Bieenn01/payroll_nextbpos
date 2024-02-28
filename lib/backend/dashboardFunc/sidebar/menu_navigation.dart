@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/main_calendar.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/check_in_out_logs.dart';
-import 'package:project_payroll_nextbpo/frontend/overtime%20bar/holiday_overtime.dart';
-import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restday_overtime.dart';
-import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restspecial_overtime.dart';
-import 'package:project_payroll_nextbpo/frontend/overtime%20bar/specialh_overtime.dart';
+import 'package:project_payroll_nextbpo/backend/dashboardFunc/overtime%20bar/holiday_overtime.dart';
+import 'package:project_payroll_nextbpo/backend/dashboardFunc/overtime%20bar/restday_overtime.dart';
+import 'package:project_payroll_nextbpo/backend/dashboardFunc/overtime%20bar/restspecial_overtime.dart';
+import 'package:project_payroll_nextbpo/backend/dashboardFunc/overtime%20bar/specialh_overtime.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/top_bar.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/mobileHomeScreen.dart';
 import 'package:project_payroll_nextbpo/frontend/userTimeInToday.dart';
-import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regular_overtime.dart';
+import 'package:project_payroll_nextbpo/backend/dashboardFunc/overtime%20bar/regular_overtime.dart';
 
 class ScreensView extends StatelessWidget {
   final String menu;
@@ -205,15 +205,12 @@ class ScreensView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Add Account",
-            style: TextStyle(
-              color: Color(0xFF171719),
-              fontSize: 22,
-            ),
+          const Flexible(
+            flex: 1,
+            child: TopBar(),
           ),
-          SizedBox(height: 20),
-          Expanded(
+          Flexible(
+            flex: 7,
             child: PovUser(),
           ),
         ],
