@@ -71,10 +71,8 @@ class _UserState extends State<PovUser> {
   String selectedRole = 'Select Role';
   String selectedDep = '--Select--';
   String typeEmployee = 'Type of Employee';
-  
+
   String kaizarscoreEmail = "kaizarscore12@gmail.com";
-
-
 
   @override
   void initState() {
@@ -82,7 +80,7 @@ class _UserState extends State<PovUser> {
 // Fetch users when the widget initializes
   }
 
-Future<QuerySnapshot> _fetchUsersWithPagination(
+  Future<QuerySnapshot> _fetchUsersWithPagination(
       int limit, DocumentSnapshot? startAfterDocument) async {
     Query query = FirebaseFirestore.instance
         .collection('User')
@@ -110,7 +108,7 @@ Future<QuerySnapshot> _fetchUsersWithPagination(
     });
   }
 
-void _previousPage() async {
+  void _previousPage() async {
     // Ensure we don't navigate to a negative page
     if (_currentPage > 0) {
       // Calculate the startAfter document based on the first document of the current page
@@ -254,95 +252,102 @@ void _previousPage() async {
                     ),
                   ),
                 ),
-          Container(
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              FutureBuilder(
-  future: _fetchUsersWithPagination(_documentLimit, _lastVisibleSnapshot),
-  builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return CircularProgressIndicator();
-    }
-    if (snapshot.hasError) {
-      return Text('Error: ${snapshot.error}');
-    }
-    if (snapshot.data!.docs.isEmpty) {
-      return Text('No users found.');
-    }
- return DataTable(
-  columns: [
-    DataColumn(label: Text('#')),
-    DataColumn(label: Text('Name')),
-    DataColumn(label: Text('Username')),
-    DataColumn(label: Text('Type')),
-    DataColumn(label: Text('Department')),
-    DataColumn(label: Text('Shift')),
-    DataColumn(label: Text('Action')),
-    DataColumn(label: Text('Status')), // Added column for Status
-  ],
-  rows: snapshot.data!.docs.map((DocumentSnapshot document) {
-    Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-    DateTime? startShift = data['startShift'] != null ? (data['startShift'] as Timestamp).toDate() : null;
-    String shift = getShiftText(startShift);
-    String userId = document.id; 
-    bool isActive = data['isActive'] ?? false; // Assuming isActive is the boolean field for account status
+                Container(
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        FutureBuilder(
+                          future: _fetchUsersWithPagination(
+                              _documentLimit, _lastVisibleSnapshot),
+                          builder:
+                              (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return CircularProgressIndicator();
+                            }
+                            if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            }
+                            if (snapshot.data!.docs.isEmpty) {
+                              return Text('No users found.');
+                            }
+                            return DataTable(
+                              columns: [
+                                DataColumn(label: Text('#')),
+                                DataColumn(label: Text('Name')),
+                                DataColumn(label: Text('Username')),
+                                DataColumn(label: Text('Type')),
+                                DataColumn(label: Text('Department')),
+                                DataColumn(label: Text('Shift')),
+                                DataColumn(label: Text('Action')),
+                                DataColumn(
+                                    label: Text(
+                                        'Status')), // Added column for Status
+                              ],
+                              rows: snapshot.data!.docs
+                                  .map((DocumentSnapshot document) {
+                                Map<String, dynamic> data =
+                                    document.data()! as Map<String, dynamic>;
+                                DateTime? startShift = data['startShift'] !=
+                                        null
+                                    ? (data['startShift'] as Timestamp).toDate()
+                                    : null;
+                                String shift = getShiftText(startShift);
+                                String userId = document.id;
+                                bool isActive = data['isActive'] ??
+                                    false; // Assuming isActive is the boolean field for account status
 
-    return DataRow(cells: [
-      DataCell(Text(data['employeeId'].toString())),
-      DataCell(Text('${data['fname']} ${data['lname']}')),
-      DataCell(Text(data['username'].toString())),
-      DataCell(Text(data['typeEmployee'].toString())),
-      DataCell(Text(data['department'].toString())),
-      DataCell(Text(shift)),
-      DataCell(
-        ElevatedButton(
-          onPressed: () {
-            editUserDetails(userId, data);
-          },
-          child: Text('Edit'),
-        ),
-      ),
-      DataCell(
-        Switch(
-          value: isActive,
-          onChanged: (value) {
-            updateAccountStatus(userId, value);
-          },
-        ),
-      ),
-    ]);
-  }).toList(),
-);
-
-  },
-),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: _previousPage,
-                    child: Text('Previous'),
+                                return DataRow(cells: [
+                                  DataCell(Text(data['employeeId'].toString())),
+                                  DataCell(Text(
+                                      '${data['fname']} ${data['lname']}')),
+                                  DataCell(Text(data['username'].toString())),
+                                  DataCell(
+                                      Text(data['typeEmployee'].toString())),
+                                  DataCell(Text(data['department'].toString())),
+                                  DataCell(Text(shift)),
+                                  DataCell(
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        editUserDetails(userId, data);
+                                      },
+                                      child: Text('Edit'),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Switch(
+                                      value: isActive,
+                                      onChanged: (value) {
+                                        updateAccountStatus(userId, value);
+                                      },
+                                    ),
+                                  ),
+                                ]);
+                              }).toList(),
+                            );
+                          },
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                              onPressed: _previousPage,
+                              child: Text('Previous'),
+                            ),
+                            SizedBox(width: 20),
+                            ElevatedButton(
+                              onPressed: _nextPage,
+                              child: Text('Next'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  SizedBox(width: 20),
-                  ElevatedButton(
-                    onPressed: _nextPage,
-                    child: Text('Next'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    
- 
-
-
+                ),
               ],
             ),
           ),
@@ -352,123 +357,131 @@ void _previousPage() async {
   }
 
   Future<void> updateAccountStatus(String userId, bool isActive) async {
-  try {
-   
-    CollectionReference users = FirebaseFirestore.instance.collection('User');
+    try {
+      CollectionReference users = FirebaseFirestore.instance.collection('User');
 
-    await users.doc(userId).update({'isActive': isActive});
+      await users.doc(userId).update({'isActive': isActive});
 
-
-              setState(() {});
-    print('Account status updated successfully.');
-  } catch (e) {
- 
-    print('Error updating account status: $e');
-
+      setState(() {});
+      print('Account status updated successfully.');
+    } catch (e) {
+      print('Error updating account status: $e');
+    }
   }
-}
+
   void editUserDetails(String userId, Map<String, dynamic> userData) {
-  TextEditingController firstNameController = TextEditingController(text: userData['fname']);
-  TextEditingController lastNameController = TextEditingController(text: userData['lname']);
-  TextEditingController usernameController = TextEditingController(text: userData['username']);
-  TextEditingController typeEmployeeController = TextEditingController(text: userData['typeEmployee']);
-  TextEditingController departmentController = TextEditingController(text: userData['department']);
-  DateTime? startShift = userData['startShift'] != null ? (userData['startShift'] as Timestamp).toDate() : null;
-  DateTime? endShift = userData['endShift'] != null ? (userData['endShift'] as Timestamp).toDate() : null;
+    TextEditingController firstNameController =
+        TextEditingController(text: userData['fname']);
+    TextEditingController lastNameController =
+        TextEditingController(text: userData['lname']);
+    TextEditingController usernameController =
+        TextEditingController(text: userData['username']);
+    TextEditingController typeEmployeeController =
+        TextEditingController(text: userData['typeEmployee']);
+    TextEditingController departmentController =
+        TextEditingController(text: userData['department']);
+    DateTime? startShift = userData['startShift'] != null
+        ? (userData['startShift'] as Timestamp).toDate()
+        : null;
+    DateTime? endShift = userData['endShift'] != null
+        ? (userData['endShift'] as Timestamp).toDate()
+        : null;
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      DateTime? startselectedShift = startShift;
-      DateTime? endselectedShift = endShift;
-      return AlertDialog(
-        title: Text('Edit User Details'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: firstNameController,
-                decoration: InputDecoration(labelText: 'First Name'),
-              ),
-              TextFormField(
-                controller: lastNameController,
-                decoration: InputDecoration(labelText: 'Last Name'),
-              ),
-              TextFormField(
-                controller: usernameController,
-                decoration: InputDecoration(labelText: 'Username'),
-              ),
-              TextFormField(
-                controller: typeEmployeeController,
-                decoration: InputDecoration(labelText: 'Employee Type'),
-              ),
-              TextFormField(
-                controller: departmentController,
-                decoration: InputDecoration(labelText: 'Department'),
-              ),
-              DateTimeField(
-                decoration: InputDecoration(labelText: 'Start Shift'),
-                initialDate: startselectedShift,
-                mode: DateTimeFieldPickerMode.time,
-                onChanged: (value) {
-                  startselectedShift = value;
-                },
-              ),
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        DateTime? startselectedShift = startShift;
+        DateTime? endselectedShift = endShift;
+        return AlertDialog(
+          title: Text('Edit User Details'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: firstNameController,
+                  decoration: InputDecoration(labelText: 'First Name'),
+                ),
+                TextFormField(
+                  controller: lastNameController,
+                  decoration: InputDecoration(labelText: 'Last Name'),
+                ),
+                TextFormField(
+                  controller: usernameController,
+                  decoration: InputDecoration(labelText: 'Username'),
+                ),
+                TextFormField(
+                  controller: typeEmployeeController,
+                  decoration: InputDecoration(labelText: 'Employee Type'),
+                ),
+                TextFormField(
+                  controller: departmentController,
+                  decoration: InputDecoration(labelText: 'Department'),
+                ),
                 DateTimeField(
-                decoration: InputDecoration(labelText: 'End Shift'),
-                initialDate: endselectedShift,
-                mode: DateTimeFieldPickerMode.time,
-                onChanged: (value) {
-                  endselectedShift = value;
-                },
-              ),
-            ],
+                  decoration: InputDecoration(labelText: 'Start Shift'),
+                  initialDate: startselectedShift,
+                  mode: DateTimeFieldPickerMode.time,
+                  onChanged: (value) {
+                    startselectedShift = value;
+                  },
+                ),
+                DateTimeField(
+                  decoration: InputDecoration(labelText: 'End Shift'),
+                  initialDate: endselectedShift,
+                  mode: DateTimeFieldPickerMode.time,
+                  onChanged: (value) {
+                    endselectedShift = value;
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () async {
-              Map<String, dynamic> updatedUserData = {
-                'fname': firstNameController.text,
-                'lname': lastNameController.text,
-                'username': usernameController.text,
-                'typeEmployee': typeEmployeeController.text,
-                'department': departmentController.text,
-                'startShift': startselectedShift,
-                'endShift': endselectedShift,
-              };
-              await updateUserDetails(userId, updatedUserData); 
-              Navigator.of(context).pop();
+          actions: [
+            ElevatedButton(
+              onPressed: () async {
+                Map<String, dynamic> updatedUserData = {
+                  'fname': firstNameController.text,
+                  'lname': lastNameController.text,
+                  'username': usernameController.text,
+                  'typeEmployee': typeEmployeeController.text,
+                  'department': departmentController.text,
+                  'startShift': startselectedShift,
+                  'endShift': endselectedShift,
+                };
+                await updateUserDetails(userId, updatedUserData);
+                Navigator.of(context).pop();
 
-              setState(() {});
-            },
-            child: Text('Save'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              resetPassword(userData['email']);
-              Navigator.of(context).pop();
-            },
-            child: Text('Reset Password'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-
-Future<void> updateUserDetails(String userId, Map<String, dynamic> updatedUserData) async {
-  try {
-    await FirebaseFirestore.instance.collection('User').doc(userId).update(updatedUserData);
-    print('User details updated successfully!');
-  } catch (error) {
-    print('Error updating user details: $error');
+                setState(() {});
+              },
+              child: Text('Save'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                resetPassword(userData['email']);
+                Navigator.of(context).pop();
+              },
+              child: Text('Reset Password'),
+            ),
+          ],
+        );
+      },
+    );
   }
-}
 
+  Future<void> updateUserDetails(
+      String userId, Map<String, dynamic> updatedUserData) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('User')
+          .doc(userId)
+          .update(updatedUserData);
+      print('User details updated successfully!');
+    } catch (error) {
+      print('Error updating user details: $error');
+    }
+  }
 
   String getShiftText(DateTime? startShift) {
     if (startShift != null) {
@@ -703,7 +716,7 @@ Future<void> updateUserDetails(String userId, Map<String, dynamic> updatedUserDa
                         ),
                       ],
                     ),
-                                        Row(
+                    Row(
                       children: [
                         const SizedBox(
                           width: 10,
@@ -725,7 +738,7 @@ Future<void> updateUserDetails(String userId, Map<String, dynamic> updatedUserDa
                         ),
                       ],
                     ),
-                      Row(
+                    Row(
                       children: [
                         const SizedBox(
                           width: 10,
@@ -847,7 +860,8 @@ Future<void> updateUserDetails(String userId, Map<String, dynamic> updatedUserDa
                       ],
                     ),
                     SizedBox(
-                          height: 15,),
+                      height: 15,
+                    ),
                     ElevatedButton(
                       onPressed: (() {
                         register(context);
@@ -934,10 +948,11 @@ Future<void> updateUserDetails(String userId, Map<String, dynamic> updatedUserDa
       )),
     ]);
   }
-   register(context) async {
+
+  register(context) async {
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
-              email: emailController.text, password: passwordController.text);
+          email: emailController.text, password: passwordController.text);
       // Create the user object with the entered data
       User newUser = User(
         department: selectedDep,
@@ -992,15 +1007,13 @@ Future<void> updateUserDetails(String userId, Map<String, dynamic> updatedUserDa
     }
   }
 
-Future<void> resetPassword(String email) async {
-  try {
-    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-    showToast('Password reset email sent to $email');
-  } catch (e) {
-    print('Error sending password reset email: $e');
-    showToast('Error sending password reset email: $e');
+  Future<void> resetPassword(String email) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      showToast('Password reset email sent to $email');
+    } catch (e) {
+      print('Error sending password reset email: $e');
+      showToast('Error sending password reset email: $e');
+    }
   }
-}
-
-
 }
