@@ -466,7 +466,7 @@ class _UserState extends State<PovUser> {
                   },
                 ),
                 DateTimeField(
-                  decoration: const InputDecoration(labelText: 'End Shift'),
+                  decoration: InputDecoration(labelText: 'End Shift'),
                   initialDate: endselectedShift,
                   mode: DateTimeFieldPickerMode.time,
                   onChanged: (value) {
