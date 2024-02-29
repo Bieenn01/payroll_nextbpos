@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/main_calendar.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/check_in_out_logs.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/attendace_page.dart';
+import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_page.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/holiday_overtime.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restday_overtime.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restspecial_overtime.dart';
@@ -23,7 +24,23 @@ class ScreensView extends StatelessWidget {
     Widget page;
     switch (menu) {
       case 'Dashboard':
-        page = buildDashboardPage(context);
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                flex: 1,
+                child: TopBar(),
+              ),
+              Flexible(
+                flex: 7,
+                child: Dashboard(),
+              ),
+            ],
+          ),
+        );
+        /**buildDashboardPage(context) */
         break;
       case 'Overtime':
         page = const Center(
