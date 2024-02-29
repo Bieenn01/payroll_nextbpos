@@ -30,7 +30,7 @@ class _DashboardState extends State<Dashboard> {
                       flex: 1,
                       child: Container(
                         margin: EdgeInsets.all(8),
-                        padding: EdgeInsets.all(10),
+                        padding: EdgeInsets.all(15),
                         decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(15)),
@@ -45,7 +45,7 @@ class _DashboardState extends State<Dashboard> {
                       flex: 1,
                       child: Container(
                         margin: EdgeInsets.all(8),
-                        padding: EdgeInsets.all(10),
+                        padding: EdgeInsets.all(15),
                         decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(15)),
@@ -60,7 +60,7 @@ class _DashboardState extends State<Dashboard> {
                       flex: 1,
                       child: Container(
                         margin: EdgeInsets.all(8),
-                        padding: EdgeInsets.all(10),
+                        padding: EdgeInsets.all(15),
                         decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(15)),
@@ -75,7 +75,7 @@ class _DashboardState extends State<Dashboard> {
                       flex: 1,
                       child: Container(
                         margin: EdgeInsets.all(8),
-                        padding: EdgeInsets.all(10),
+                        padding: EdgeInsets.all(15),
                         decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(15)),
@@ -115,7 +115,7 @@ class _DashboardState extends State<Dashboard> {
                                       flex: 1,
                                       child: Container(
                                         margin: EdgeInsets.fromLTRB(0, 0, 8, 8),
-                                        padding: EdgeInsets.all(10),
+                                        padding: EdgeInsets.all(15),
                                         decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius:
@@ -128,7 +128,7 @@ class _DashboardState extends State<Dashboard> {
                                       flex: 1,
                                       child: Container(
                                         margin: EdgeInsets.fromLTRB(8, 0, 0, 8),
-                                        padding: EdgeInsets.all(10),
+                                        padding: EdgeInsets.all(15),
                                         decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius:
@@ -169,16 +169,26 @@ class _DashboardState extends State<Dashboard> {
                     Flexible(
                       flex: 1,
                       child: Container(
-                        margin: EdgeInsets.all(8),
+                        margin: EdgeInsets.all(10),
                         padding: EdgeInsets.all(8),
                         decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(15)),
-                        child: GestureDetector(
-                          onTap: () {
-                            _navigateToCalendarPageWithDialog(context);
-                          },
-                          child: CalendarPage(),
+                        child: Column(
+                          children: [
+                            Flexible(
+                              flex: 5,
+                              child: Container(
+                                margin: EdgeInsets.fromLTRB(30, 10, 20, 30),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    _navigateToCalendarPageWithDialog(context);
+                                  },
+                                  child: CalendarPage(),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),

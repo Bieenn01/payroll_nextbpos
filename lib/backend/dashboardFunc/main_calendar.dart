@@ -27,7 +27,10 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Syncfusion Calendar'),
+        title: Text(
+          'Calendar',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: SfCalendar(
         view: CalendarView.month,
