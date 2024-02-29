@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-class RegularOT extends StatefulWidget {
-  const RegularOT({Key? key}) : super(key: key);
+class RegularHolidayOT extends StatefulWidget {
+  const RegularHolidayOT({Key? key}) : super(key: key);
 
   @override
-  State<RegularOT> createState() => _RegularOTState();
+  State<RegularHolidayOT> createState() => _RegularHolidayOT();
 }
 
-class _RegularOTState extends State<RegularOT> {
+class _RegularHolidayOT extends State<RegularHolidayOT> {
   late List<String> _selectedOvertimeTypes;
 
   @override
@@ -22,10 +22,12 @@ class _RegularOTState extends State<RegularOT> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Regular Overtime'),
+        title: Text('Regular Holiday Overtime'),
       ),
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('Overtime').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('RegularHolidayOT')
+            .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) {
             return Center(child: CircularProgressIndicator());
@@ -40,7 +42,7 @@ class _RegularOTState extends State<RegularOT> {
                   DataColumn(label: Text('ID')),
                   DataColumn(label: Text('Name')),
                   DataColumn(label: Text('Department')),
-                  DataColumn(label: Text('Time In')),
+                  DataColumn(label: Text('Time in')),
                   DataColumn(label: Text('Time Out')),
                   DataColumn(label: Text('Overtime Hours')),
                   DataColumn(label: Text('Overtime Minute')),
@@ -52,6 +54,28 @@ class _RegularOTState extends State<RegularOT> {
                   Map<String, dynamic> overtimeData =
                       overtimeDoc.data() as Map<String, dynamic>;
                   _selectedOvertimeTypes.add('Regular');
+                  FutureBuilder<double>(
+                    future: calculateRegularHolidayOT(
+                      overtimeData['userId'],
+                      Duration(
+                        hours: overtimeData['hours_overtime'],
+                        minutes: overtimeData['minute_overtime'],
+                      ),
+                    ),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Text(
+                            'Calculating...'); // Or any loading indicator
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        double overtimePay = snapshot.data ??
+                            0; // Use snapshot.data, default to 0 if null
+                        return Text(overtimePay.toStringAsFixed(2));
+                      }
+                    },
+                  );
+
                   return DataRow(cells: [
                     DataCell(Text(overtimeDoc.id)),
                     DataCell(
@@ -76,7 +100,7 @@ class _RegularOTState extends State<RegularOT> {
                     ),
                     DataCell(
                       Text(overtimeData['overtimePay']?.toString() ??
-                          'Not Available Yet'),
+                          'Not Available'),
                     ),
                     DataCell(
                       DropdownButton<String>(
@@ -93,23 +117,9 @@ class _RegularOTState extends State<RegularOT> {
                           );
                         }).toList(),
                         onChanged: (String? newValue) async {
-                          if (newValue == 'Special Holiday OT') {
-                            await moveRecordToSpecialHolidayOT(overtimeDoc);
-                            await deleteRecordFromOvertime(overtimeDoc);
-                          }
-                          setState(() {
-                            _selectedOvertimeTypes[index] = newValue!;
-                          });
-                          if (newValue == 'Regular Holiday OT') {
-                            await moveRecordToRegularHolidayOT(overtimeDoc);
-                            await deleteRecordFromOvertime(overtimeDoc);
-                          }
-                          setState(() {
-                            _selectedOvertimeTypes[index] = newValue!;
-                          });
-                          if (newValue == 'Rest day OT') {
-                            await moveRecordToRestdayOT(overtimeDoc);
-                            await deleteRecordFromOvertime(overtimeDoc);
+                          if (newValue == 'Regular') {
+                            await moveRecordToRegularOT(overtimeDoc);
+                            await deleteRecordFromSpecialOT(overtimeDoc);
                           }
                           setState(() {
                             _selectedOvertimeTypes[index] = newValue!;
@@ -127,82 +137,37 @@ class _RegularOTState extends State<RegularOT> {
     );
   }
 
-  Future<void> moveRecordToSpecialHolidayOT(
-      DocumentSnapshot overtimeDoc) async {
+  Future<double> calculateRegularHolidayOT(
+    String userId,
+    Duration duration,
+  ) async {
+    final daysInMonth = 22;
+    final overTimeRate = 1.95;
+
+    final daysWorked = duration.inDays;
+    final overtimeHours = duration.inMinutes - 1 - (daysWorked * 8);
+
     try {
-      Map<String, dynamic> overtimeData =
-          Map<String, dynamic>.from(overtimeDoc.data() as Map<String, dynamic>);
+      var userData =
+          await FirebaseFirestore.instance.collection('User').doc(userId).get();
+      double? monthlySalary = userData.data()?['monthly_salary'];
 
-      final monthlySalary = overtimeData['monthly_salary'];
-      final overtimeMinute = overtimeData['minute_overtime'];
-      final overtimeRate = 1.95;
-      final daysInMonth = 22;
+      if (monthlySalary == null) {
+        // Return 0 if monthlySalary is null
+        return 0;
+      }
 
-      // Set overtimePay to null
-      overtimeData['overtimePay'] =
-          (monthlySalary / daysInMonth / 8 * overtimeMinute * overtimeRate);
-      //dri ibutang ang formula para mapasa dayon didto paglahos
-      // Add to SpecialHolidayOT collection
-      await FirebaseFirestore.instance
-          .collection('SpecialHolidayOT')
-          .add(overtimeData);
-    } catch (e) {
-      print('Error moving record to SpecialHolidayOT collection: $e');
-    }
-  }
+      double specialHolidayOTPay = 0;
 
-  Future<void> moveRecordToRegularHolidayOT(
-      DocumentSnapshot overtimeDoc) async {
-    try {
-      Map<String, dynamic> overtimeData =
-          Map<String, dynamic>.from(overtimeDoc.data() as Map<String, dynamic>);
+      if (duration.inMinutes > 1) {
+        specialHolidayOTPay =
+            (monthlySalary / daysInMonth / 8 * overtimeHours * overTimeRate);
+      }
 
-      final monthlySalary = overtimeData['monthly_salary'];
-      final overtimeMinute = overtimeData['minute_overtime'];
-      final overtimeRate = 2.6;
-      final daysInMonth = 22;
-
-      // Set overtimePay to null
-      overtimeData['overtimePay'] =
-          (monthlySalary / daysInMonth / 8 * overtimeMinute * overtimeRate);
-      //dri ibutang ang formula para mapasa dayon didto paglahos
-      // Add to SpecialHolidayOT collection
-      await FirebaseFirestore.instance
-          .collection('RegularHolidayOT')
-          .add(overtimeData);
-    } catch (e) {
-      print('Error moving record to SpecialHolidayOT collection: $e');
-    }
-  }
-
-  Future<void> moveRecordToRestdayOT(DocumentSnapshot overtimeDoc) async {
-    try {
-      Map<String, dynamic> overtimeData =
-          Map<String, dynamic>.from(overtimeDoc.data() as Map<String, dynamic>);
-
-      final monthlySalary = overtimeData['monthly_salary'];
-      final overtimeMinute = overtimeData['minute_overtime'];
-      final overtimeRate = 1.69;
-      final daysInMonth = 22;
-
-      // Set overtimePay to null
-      overtimeData['overtimePay'] =
-          (monthlySalary / daysInMonth / 8 * overtimeMinute * overtimeRate);
-      //dri ibutang ang formula para mapasa dayon didto paglahos
-      // Add to SpecialHolidayOT collection
-      await FirebaseFirestore.instance
-          .collection('RestdayOT')
-          .add(overtimeData);
-    } catch (e) {
-      print('Error moving record to SpecialHolidayOT collection: $e');
-    }
-  }
-
-  Future<void> deleteRecordFromOvertime(DocumentSnapshot overtimeDoc) async {
-    try {
-      await overtimeDoc.reference.delete();
-    } catch (e) {
-      print('Error deleting record from Overtime collection: $e');
+      return specialHolidayOTPay;
+    } catch (error) {
+      print('Error retrieving monthly salary: $error');
+      return 0;
     }
   }
 
@@ -214,6 +179,35 @@ class _RegularOTState extends State<RegularOT> {
       return DateFormat('MMMM dd, yyyy HH:mm:ss').format(dateTime);
     } else {
       return timestamp.toString();
+    }
+  }
+
+  Future<void> moveRecordToRegularOT(DocumentSnapshot overtimeDoc) async {
+    try {
+      Map<String, dynamic> overtimeData =
+          Map<String, dynamic>.from(overtimeDoc.data() as Map<String, dynamic>);
+
+      final monthlySalary = overtimeData['monthly_salary'];
+      final overtimeMinute = overtimeData['minute_overtime'];
+      final overtimeRate = 1.25;
+      final daysInMonth = 22;
+
+      // Set overtimePay to null
+      overtimeData['overtimePay'] =
+          (monthlySalary / daysInMonth / 8 * overtimeMinute * overtimeRate);
+      //dri ibutang ang formula para mapasa dayon didto paglahos
+      // Add to SpecialHolidayOT collection
+      await FirebaseFirestore.instance.collection('Overtime').add(overtimeData);
+    } catch (e) {
+      print('Error moving record to SpecialHolidayOT collection: $e');
+    }
+  }
+
+  Future<void> deleteRecordFromSpecialOT(DocumentSnapshot overtimeDoc) async {
+    try {
+      await overtimeDoc.reference.delete();
+    } catch (e) {
+      print('Error deleting record from Overtime collection: $e');
     }
   }
 }
