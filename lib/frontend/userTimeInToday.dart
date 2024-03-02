@@ -71,23 +71,37 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
             );
           }
 
-          return SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: PaginatedDataTable(
-              header: Text(''),
-              rowsPerPage: _rowsPerPage,
-              onSelectAll: (isSelected) {},
-              source: _UserRecordsDataSource(snapshot.data!.docs),
-              columns: [
-                DataColumn(label: Text('User Name')),
-                DataColumn(label: Text('Time In')),
-                DataColumn(label: Text('Department')),
-              ],
-              onPageChanged: (newPage) {
-                setState(() {
-                  _selectedRowIndex = newPage * _rowsPerPage;
-                });
-              },
+          return Expanded(
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              color: Colors.white,
+              child: PaginatedDataTable(
+                rowsPerPage: _rowsPerPage,
+                onSelectAll: (isSelected) {},
+                source: _UserRecordsDataSource(snapshot.data!.docs),
+                columns: const [
+                  DataColumn(
+                      label: Text(
+                    'Name',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  )),
+                  DataColumn(
+                      label: Text(
+                    'Time-In',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  )),
+                  DataColumn(
+                      label: Text(
+                    'Department',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  )),
+                ],
+                onPageChanged: (newPage) {
+                  setState(() {
+                    _selectedRowIndex = newPage * _rowsPerPage;
+                  });
+                },
+              ),
             ),
           );
         },
@@ -100,7 +114,7 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
 
     if (timestamp is Timestamp) {
       DateTime dateTime = timestamp.toDate();
-      return DateFormat('MMMM dd, yyyy HH:mm:ss').format(dateTime);
+      return DateFormat('HH:mm:ss').format(dateTime);
     } else {
       return timestamp.toString();
     }
@@ -140,7 +154,7 @@ class _UserRecordsDataSource extends DataTableSource {
 
     if (timestamp is Timestamp) {
       DateTime dateTime = timestamp.toDate();
-      return DateFormat('MMMM dd, yyyy HH:mm:ss').format(dateTime);
+      return DateFormat('HH:mm:ss a').format(dateTime);
     } else {
       return timestamp.toString();
     }

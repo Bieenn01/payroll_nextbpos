@@ -8,6 +8,9 @@ Future<void> addRegularHoliOT(
   minute_overtime,
   timeIn,
   timeOut,
+  regular_hours,
+  regular_minute,
+  monthly_salary,
 ) async {
   try {
     final userId = FirebaseAuth.instance.currentUser!.uid;
@@ -22,6 +25,9 @@ Future<void> addRegularHoliOT(
       'minute_overtime': minute_overtime,
       'timeIn': timeIn,
       'userId': userId,
+      'regular_hours': regular_hours,
+      'regular_minute': regular_minute,
+      'monthly_salary': monthly_salary,
       'userName':
           '${userData['fname']} ${userData['mname']} ${userData['lname']}'
     };

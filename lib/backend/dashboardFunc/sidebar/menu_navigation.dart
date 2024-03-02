@@ -1,7 +1,13 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/main_calendar.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/check_in_out_logs.dart';
+import 'package:project_payroll_nextbpo/backend/jsonfiles/specialHolidayOT.dart';
+import 'package:project_payroll_nextbpo/frontend/dashboard/attendace_page.dart';
+import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_page.dart';
+import 'package:project_payroll_nextbpo/frontend/holiday/holiday.dart';
+import 'package:project_payroll_nextbpo/frontend/holiday/specialholiday.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/holiday_overtime.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restday_overtime.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restspecial_overtime.dart';
@@ -22,7 +28,23 @@ class ScreensView extends StatelessWidget {
     Widget page;
     switch (menu) {
       case 'Dashboard':
-        page = buildDashboardPage(context);
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                flex: 1,
+                child: TopBar(),
+              ),
+              Flexible(
+                flex: 7,
+                child: Dashboard(),
+              ),
+            ],
+          ),
+        );
+        /**buildDashboardPage(context) */
         break;
       case 'Overtime':
         page = const Center(
@@ -126,10 +148,85 @@ class ScreensView extends StatelessWidget {
         );
         break;
       case 'Logs':
-        page = buildLogsPage();
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                flex: 1,
+                child: TopBar(),
+              ),
+              Flexible(
+                flex: 7,
+                child: AttendacePage(),
+              ),
+            ],
+          ),
+        );
         break;
       case 'Add Account':
         page = buildAddAccountPage();
+        break;
+      case 'Calendar':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                flex: 1,
+                child: TopBar(),
+              ),
+              Flexible(
+                flex: 7,
+                child: Container(
+                    margin: EdgeInsets.all(15),
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        color: Colors.white),
+                    child: CalendarPage()),
+              ),
+            ],
+          ),
+        );
+        break;
+      case 'Regular':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                flex: 1,
+                child: TopBar(),
+              ),
+              Flexible(
+                flex: 7,
+                child: HolidayPage(),
+              ),
+            ],
+          ),
+        );
+        break;
+      case 'Special':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                flex: 1,
+                child: TopBar(),
+              ),
+              Flexible(
+                flex: 7,
+                child: SpecialholidayPage(),
+              ),
+            ],
+          ),
+        );
         break;
       default:
         page = const Center(
@@ -192,8 +289,7 @@ Widget buildDashboardPage(BuildContext context) {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 20),
-          Expanded(
+          Flexible(
             child: Logs(),
           ),
         ],
@@ -206,15 +302,12 @@ Widget buildDashboardPage(BuildContext context) {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Add Account",
-            style: TextStyle(
-              color: Color(0xFF171719),
-              fontSize: 22,
-            ),
+          const Flexible(
+            flex: 1,
+            child: TopBar(),
           ),
-          SizedBox(height: 20),
-          Expanded(
+          Flexible(
+            flex: 7,
             child: PovUser(),
           ),
         ],

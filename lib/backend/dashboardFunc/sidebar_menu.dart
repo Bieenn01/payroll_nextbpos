@@ -31,13 +31,13 @@ class SidebarMenu extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      color: const Color.fromARGB(255, 207, 188, 168),
+                      color: Colors.white,
                       width: 250,
                       child: Column(
                         children: [
                           // Widget at the top side of the sidebar (preference).
                           Container(
-                            color: Color.fromARGB(255, 231, 183, 135),
+                            color: Colors.white,
                             width: 250,
                             child: const Padding(
                               padding: EdgeInsets.only(
@@ -52,7 +52,7 @@ class SidebarMenu extends StatelessWidget {
                                   Text(
                                     "NextBpoSolutions",
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: Color.fromARGB(255, 4, 123, 109),
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -64,7 +64,7 @@ class SidebarMenu extends StatelessWidget {
                           // Sidebar menu widget
                           Expanded(
                             child: Container(
-                              color: Color.fromARGB(255, 207, 188, 168),
+                              color: Colors.white,
                               child: TreeView.simple(
                                 tree: menuTree,
                                 indentation: const Indentation(width: 0),
@@ -72,7 +72,7 @@ class SidebarMenu extends StatelessWidget {
                                   return ChevronIndicator.rightDown(
                                     alignment: Alignment.centerLeft,
                                     tree: node,
-                                    color: Colors.white,
+                                    color: Colors.black,
                                     icon: Icons.arrow_right,
                                   );
                                 },
@@ -97,10 +97,9 @@ class SidebarMenu extends StatelessWidget {
                                     cursor: SystemMouseCursors.click,
                                     child: Container(
                                       color: node.level >= 2 || isExpanded
-                                          ? const Color(
-                                              0xFF313136) // For coloring the background of child nodes
-                                          : const Color.fromARGB(
-                                              255, 207, 188, 168),
+                                          ? Color.fromARGB(255, 154, 207,
+                                              205) // For coloring the background of child nodes
+                                          : Colors.white,
                                       height:
                                           42, // Padding between one menu and another.
                                       width: 250,
@@ -119,8 +118,11 @@ class SidebarMenu extends StatelessWidget {
                                           decoration: BoxDecoration(
                                             color: isSelected
                                                 ? node.isLeaf
-                                                    ? const Color(
-                                                        0xFF2c45e8) // The color for the active node.
+                                                    ? Color.fromARGB(
+                                                        255,
+                                                        20,
+                                                        161,
+                                                        156) // The color for the active node.
                                                     : null
                                                 : null,
                                             borderRadius:
@@ -141,8 +143,8 @@ class SidebarMenu extends StatelessWidget {
                                                 ? Text(
                                                     node.key,
                                                     style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 14,
+                                                      color: Colors.black,
+                                                      fontSize: 15,
                                                     ),
                                                   )
                                                 : Row(
@@ -150,7 +152,7 @@ class SidebarMenu extends StatelessWidget {
                                                       Icon(
                                                         node.data,
                                                         size: 20,
-                                                        color: Colors.white,
+                                                        color: Colors.black,
                                                       ),
                                                       const SizedBox(
                                                         width: 6,
@@ -158,8 +160,8 @@ class SidebarMenu extends StatelessWidget {
                                                       Text(
                                                         node.key,
                                                         style: const TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 14,
+                                                          color: Colors.black,
+                                                          fontSize: 18,
                                                         ),
                                                       )
                                                     ],

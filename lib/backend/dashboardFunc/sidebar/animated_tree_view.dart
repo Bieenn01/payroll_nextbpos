@@ -15,17 +15,13 @@ final menuTree = TreeNode.root()
         ]),
       TreeNode(key: "Holiday", data: Icons.calendar_month_outlined)
         ..addAll([
-          TreeNode(key: "Special"),
           TreeNode(key: "Regular"),
+          TreeNode(key: "Special"),
         ]),
       TreeNode(key: "Logs", data: Icons.analytics),
-      TreeNode(key: "Collection", data: Icons.collections_bookmark)
-        ..addAll([
-          TreeNode(key: "Framework"),
-          TreeNode(key: "Technology"),
-        ]),
+      TreeNode(key: "Calendar", data: Icons.edit_calendar_outlined),
       TreeNode(key: "Settings", data: Icons.settings),
-            TreeNode(
+      TreeNode(
         key: 'Add Account', // Logout menu item
         data:
             Icons.person_add_alt_1, // You can use appropriate logout icon here
