@@ -16,6 +16,7 @@ Future<void> addUser(
   String tin,
   String taxCode,
   String employeeId,
+  String mobilenum, 
 ) async {
   try {
     // Add user to Firestore collection
@@ -25,6 +26,7 @@ Future<void> addUser(
       'mname': mname,
       'lname': lname,
       'email': email,
+      'mobilenum': mobilenum,
       'startShift': startShift,
       'endShift': endShift,
       'role': role,

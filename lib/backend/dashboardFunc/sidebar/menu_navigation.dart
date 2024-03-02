@@ -11,6 +11,7 @@ import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart'
 import 'package:project_payroll_nextbpo/frontend/mobileHomeScreen.dart';
 import 'package:project_payroll_nextbpo/frontend/userTimeInToday.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regular_overtime.dart';
+import 'package:project_payroll_nextbpo/frontend/userdisplaycurrent.dart';
 
 class ScreensView extends StatelessWidget {
   final String menu;
@@ -143,51 +144,51 @@ class ScreensView extends StatelessWidget {
     }
     return page;
   }
-
-  Widget buildDashboardPage(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Dashboard Page",
-            style: TextStyle(
-              color: Color(0xFF171719),
-              fontSize: 22,
-            ),
-          ),
-          SizedBox(height: 20),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 20,
-                ), // Add spacing between MobileHomeScreen and CalendarPage
-                Expanded(
-                  flex: 2, // Adjust flex factor as needed
-                  child: GestureDetector(
-                    onTap: () {
-                      _navigateToCalendarPageWithDialog(context);
-                    },
-                    child: CalendarPage(),
-                  ),
+Widget buildDashboardPage(BuildContext context) {
+  return 
+  Container( color: Color.fromARGB(0, 250, 249, 249),
+    padding: EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: 20),
+        Expanded(
+          flex: 1, // Adjust the flex value for the Userdisplay widget
+          child: Userdisplay(),
+        ),
+        SizedBox(height: 20),
+        Expanded(
+          flex: 5, // Adjust the flex value for the calendar to make it bigger
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(width: 20),
+              Expanded(
+                flex: 2,
+                child: GestureDetector(
+                  onTap: () {
+                    _navigateToCalendarPageWithDialog(context);
+                  },
+                  child: CalendarPage(),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          SizedBox(height: 20),
-          Expanded(
-            child: UserTimedInToday(),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+        SizedBox(height: 20),
+        Expanded(
+          flex: 2, // Adjust the flex value for the UserTimedInToday widget
+          child: UserTimedInToday(),
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget buildLogsPage() {
     return Container(
+       color: Colors.transparent,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

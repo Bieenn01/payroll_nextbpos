@@ -22,6 +22,7 @@ class User {
   String tin;
   String taxCode;
   String employeeId;
+  String mobilenum;
 
   User({
     required this.department,
@@ -38,6 +39,7 @@ class User {
     required this.tin,
     required this.taxCode,
     required this.employeeId,
+    required this.mobilenum
   });
 }
 
@@ -67,6 +69,7 @@ class _UserState extends State<PovUser> {
   final TextEditingController tinController = TextEditingController();
   final TextEditingController taxCodeController = TextEditingController();
   final TextEditingController employeeIdController = TextEditingController();
+  final TextEditingController mobilenumController = TextEditingController();
 
   String selectedRole = 'Select Role';
   String selectedDep = '--Select--';
@@ -562,6 +565,17 @@ class _UserState extends State<PovUser> {
                             ),
                           ),
                         ),
+                          const SizedBox(
+                          width: 10,
+                        ),
+                         Flexible(
+                          child: TextField(
+                            controller: mobilenumController,
+                            decoration: const InputDecoration(
+                              labelText: 'Mobile Number',
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -969,6 +983,7 @@ class _UserState extends State<PovUser> {
         tin: tinController.text,
         taxCode: taxCodeController.text,
         employeeId: employeeIdController.text,
+        mobilenum: mobilenumController.text,
       );
 
       await addUser(
@@ -986,6 +1001,7 @@ class _UserState extends State<PovUser> {
         newUser.tin,
         newUser.taxCode,
         newUser.employeeId,
+        newUser.mobilenum,
       );
 
       Navigator.pop(context); // Close the dialog or navigate to the next screen
