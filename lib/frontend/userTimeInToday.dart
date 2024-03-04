@@ -37,7 +37,7 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Attendance Overview'),
+        title: Text('Users timed in today'),
         actions: [
           ElevatedButton(
             onPressed: () {

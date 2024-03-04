@@ -4,24 +4,28 @@ import 'package:intl/intl.dart'; // Import the intl package
 
 class Logs extends StatefulWidget {
   @override
-  _Logs createState() => _Logs();
+  _LogsState createState() => _LogsState();
 }
 
-class _Logs extends State<Logs> {
+class _LogsState extends State<Logs> {
   late Stream<QuerySnapshot> _userRecordsStream;
   int index = 0;
+  late int _perPage;
+  late int _currentPage;
+  late int _totalPages;
 
   @override
   void initState() {
     super.initState();
+    _perPage = 5; // Set initial records per page
+    _currentPage = 1;
     _fetchUserRecords();
   }
 
   void _fetchUserRecords() {
     _userRecordsStream = FirebaseFirestore.instance
         .collection('Records')
-        .orderBy('timeIn',
-            descending: true) // Sort by timeIn in descending order
+        .orderBy('timeIn', descending: true)
         .snapshots();
   }
 
@@ -49,29 +53,61 @@ class _Logs extends State<Logs> {
               child: Text('No user records available.'),
             );
           }
-          return DataTable(
-            columns: [
-              DataColumn(label: Text('User Name')),
-              DataColumn(label: Text('Time In')),
-              DataColumn(label: Text('Time Out')),
-              DataColumn(label: Text('Department')),
-            ],
-            rows: snapshot.data!.docs.map((DocumentSnapshot document) {
-              Map<String, dynamic> data =
-                  document.data() as Map<String, dynamic>;
-              Color? rowColor = index % 2 == 0
-                  ? Colors.white
-                  : Colors.grey[200]; // Alternating row colors
-              index++; //
-              return DataRow(
-                  color: MaterialStateColor.resolveWith((states) => rowColor!),
-                  cells: [
+
+          List<DocumentSnapshot> allDocs = snapshot.data!.docs;
+          _totalPages = (allDocs.length / _perPage).ceil();
+          List<DocumentSnapshot> currentPageDocs = allDocs
+              .skip((_currentPage - 1) * _perPage)
+              .take(_perPage)
+              .toList();
+
+          return Column(
+            children: [
+              DataTable(
+                columns: [
+                  DataColumn(label: Text('User Name')),
+                  DataColumn(label: Text('Time In')),
+                  DataColumn(label: Text('Time Out')),
+                  DataColumn(label: Text('Department')),
+                ],
+                rows: currentPageDocs.map((DocumentSnapshot document) {
+                  Map<String, dynamic> data =
+                      document.data() as Map<String, dynamic>;
+                  return DataRow(cells: [
                     DataCell(Text(data['userName'] ?? 'Unknown')),
                     DataCell(Text(_formatTimestamp(data['timeIn']))),
                     DataCell(Text(_formatTimestamp(data['timeOut']))),
                     DataCell(Text(data['department'] ?? 'Unknown')),
                   ]);
-            }).toList(),
+                }).toList(),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.arrow_back),
+                    onPressed: _currentPage == 1
+                        ? null
+                        : () {
+                            setState(() {
+                              _currentPage--;
+                            });
+                          },
+                  ),
+                  Text('Page $_currentPage of $_totalPages'),
+                  IconButton(
+                    icon: Icon(Icons.arrow_forward),
+                    onPressed: _currentPage == _totalPages
+                        ? null
+                        : () {
+                            setState(() {
+                              _currentPage++;
+                            });
+                          },
+                  ),
+                ],
+              ),
+            ],
           );
         },
       ),

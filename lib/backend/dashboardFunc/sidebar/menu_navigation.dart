@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/main_calendar.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/check_in_out_logs.dart';
+import 'package:project_payroll_nextbpo/backend/jsonfiles/regularHolidayOT.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/regularOT.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/restDayOT.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/specialHolidayOT.dart';
@@ -126,7 +127,7 @@ class ScreensView extends StatelessWidget {
               ),
               Flexible(
                 flex: 7,
-                child: RHolidayOvertimePage(),
+                child: RegularHolidayOT(),
               ),
             ],
           ),
@@ -151,7 +152,7 @@ class ScreensView extends StatelessWidget {
         );
         break;
       case 'Logs':
-        page = Container(
+        page = Container( 
           color: Colors.teal.shade700,
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
