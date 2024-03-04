@@ -97,7 +97,7 @@ class _MyAppState extends State<MyApp> {
       // scrollBehavior: const MaterialScrollBehavior().copyWith(
       //   dragDevices: {PointerDeviceKind.mouse},
       // ),
-      title: 'SK ADMIN',
+      title: 'NPBOs Payroll',
       home: StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {

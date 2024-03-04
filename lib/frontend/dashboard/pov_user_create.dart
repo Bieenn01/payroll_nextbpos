@@ -152,243 +152,257 @@ class _UserState extends State<PovUser> {
     );
 
     return Scaffold(
-      body: Container(
-        color: Colors.teal.shade700,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(15),
-              margin: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Row(
-                    children: [
-                      Text(
-                        "Account List",
-                        style: TextStyle(
-                            fontSize: 25, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Container(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+      body: SingleChildScrollView(
+        child: Container(
+          color: Colors.teal.shade700,
+          padding: EdgeInsets.all(15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
                       children: [
-                        Flexible(
-                          child: Container(
-                            width: MediaQuery.of(context).size.width > 600
-                                ? 300
-                                : 50,
-                            height: 30,
-                            margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                            padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: Colors.black.withOpacity(0.5)),
-                            ),
-                            child: const TextField(
-                              textAlign: TextAlign.start,
-                              decoration: InputDecoration(
-                                contentPadding: EdgeInsets.only(bottom: 15),
-                                prefixIcon: Icon(Icons.search),
-                                border: InputBorder.none,
-                                hintText: 'Search',
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        Flexible(
-                          child: Container(
-                            height: 30,
-                            width: 100,
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                    color:
-                                        Colors.teal.shade900.withOpacity(0.5)),
-                                borderRadius: BorderRadius.circular(8)),
-                            child: ElevatedButton(
-                              onPressed: (() {
-                                print(MediaQuery.of(context).size.width);
-                                createAccount(context);
-                              }),
-                              style: styleFrom,
-                              child: const Text(
-                                "+ Add New",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w400,
-                                    letterSpacing: 1,
-                                    color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        Flexible(
-                          child: Container(
-                            height: 30,
-                            width: 100,
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                    color:
-                                        Colors.teal.shade900.withOpacity(0.5)),
-                                borderRadius: BorderRadius.circular(8)),
-                            child: ElevatedButton(
-                                onPressed: (() {}),
-                                style: styleFrom,
-                                child: const Row(
-                                  children: [
-                                    Icon(Icons.cloud_download_outlined),
-                                    Text(
-                                      "  Export",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.w400,
-                                          letterSpacing: 1,
-                                          color: Colors.white),
-                                    ),
-                                  ],
-                                )),
+                        Padding(
+                          padding: const EdgeInsets.all(15.0),
+                          child: Text(
+                            "Account List",
+                            style: TextStyle(
+                                fontSize: 25, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Divider(),
-                  FutureBuilder(
-                    future: _fetchUsersWithPagination(
-                        _documentLimit, _lastVisibleSnapshot),
-                    builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Container(
-                            width: 50,
-                            height: 100,
-                            child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      }
-                      if (snapshot.data!.docs.isEmpty) {
-                        return Text('No users found.');
-                      }
-                      return DataTable(
-                        columns: const [
-                          DataColumn(
-                              label: Text('#',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(
-                              label: Text('ID',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(
-                              label: Text('Name',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(
-                              label: Text('Username',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(
-                              label: Text('Type',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(
-                              label: Text('Department',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(
-                              label: Text('Shift',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(
-                              label: Text('Action',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(
-                              label: Text('Status',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold))),
-                          // Added column for Status
-                        ],
-                        rows: snapshot.data!.docs
-                            .map((DocumentSnapshot document) {
-                          Map<String, dynamic> data =
-                              document.data()! as Map<String, dynamic>;
-                          DateTime? startShift = data['startShift'] != null
-                              ? (data['startShift'] as Timestamp).toDate()
-                              : null;
-                          String shift = getShiftText(startShift);
-                          String userId = document.id;
-                          bool isActive = data['isActive'] ??
-                              false; // Assuming isActive is the boolean field for account status
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Flexible(
+                            child: Container(
+                              height: 30,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Colors.black.withOpacity(0.5),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 5.0),
+                                    child: Icon(Icons.search),
+                                  ),
+                                  Expanded(
+                                    child: TextField(
+                                      textAlign: TextAlign.start,
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.only(
+                                            bottom: 15, left: 5),
+                                        border: InputBorder.none,
+                                        hintText: 'Search',
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 5),
 
-                          return DataRow(cells: [
-                            DataCell(Text('1')),
-                            DataCell(Text(data['employeeId'].toString())),
-                            DataCell(Text('${data['fname']} ${data['lname']}')),
-                            DataCell(Text(data['username'].toString())),
-                            DataCell(Text(data['typeEmployee'].toString())),
-                            DataCell(Text(data['department'].toString())),
-                            DataCell(Text(shift)),
-                            DataCell(
-                              ElevatedButton(
-                                onPressed: () {
-                                  editUserDetails(userId, data);
-                                },
-                                child: Text('Edit'),
+                            Container(
+                              height: 30,
+                              decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: Colors.teal.shade900
+                                          .withOpacity(0.5)),
+                                  borderRadius: BorderRadius.circular(8)),
+                              child: ElevatedButton(
+                                onPressed: (() {
+                                  print(MediaQuery.of(context).size.width);
+                                  createAccount(context);
+                                }),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.teal,
+                                ),
+                                child: Text(
+                                  "+ Add New",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      letterSpacing: 1,
+                                      color: Colors.white),
+                                ),
                               ),
                             ),
-                            DataCell(
-                              Switch(
-                                value: isActive,
-                                onChanged: (value) {
-                                  updateAccountStatus(userId, value);
-                                },
-                              ),
+
+                          SizedBox(width: 5),
+                          
+                            Container(
+                              height: 30,
+                              decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: Colors.teal.shade900
+                                          .withOpacity(0.5)),
+                                  borderRadius: BorderRadius.circular(8)),
+                              child: ElevatedButton(
+                                  onPressed: (() {}),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.cloud_download_outlined),
+                                      Text(
+                                        "  Export",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w400,
+                                            letterSpacing: 1,
+                                            color: Colors.white),
+                                      ),
+                                    ],
+                                  )),
                             ),
-                          ]);
-                        }).toList(),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  const Divider(),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: _previousPage,
-                        child: Text('Previous'),
+
+                        ],
                       ),
-                      const SizedBox(width: 20),
-                      ElevatedButton(
-                        onPressed: _nextPage,
-                        child: Text('Next'),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                    SizedBox(height: 10),
+                    Divider(),
+                    FutureBuilder(
+                      future: _fetchUsersWithPagination(
+                          _documentLimit, _lastVisibleSnapshot),
+                      builder:
+                          (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Container(
+                              width: 50,
+                              height: 100,
+                              child: CircularProgressIndicator());
+                        }
+                        if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        }
+                        if (snapshot.data!.docs.isEmpty) {
+                          return Text('No users found.');
+                        }
+                        return SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: DataTable(
+                            columns: const [
+                              DataColumn(
+                                  label: Text('#',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('ID',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Name',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Username',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Type',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Department',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Shift',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Action',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              DataColumn(
+                                  label: Text('Status',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
+                              // Added column for Status
+                            ],
+                            rows: snapshot.data!.docs
+                                .map((DocumentSnapshot document) {
+                              Map<String, dynamic> data =
+                                  document.data()! as Map<String, dynamic>;
+                              DateTime? startShift = data['startShift'] != null
+                                  ? (data['startShift'] as Timestamp).toDate()
+                                  : null;
+                              String shift = getShiftText(startShift);
+                              String userId = document.id;
+                              bool isActive = data['isActive'] ??
+                                  false; // Assuming isActive is the boolean field for account status
+
+                              return DataRow(cells: [
+                                DataCell(Text('1')),
+                                DataCell(Text(data['employeeId'].toString())),
+                                DataCell(
+                                    Text('${data['fname']} ${data['lname']}')),
+                                DataCell(Text(data['username'].toString())),
+                                DataCell(Text(data['typeEmployee'].toString())),
+                                DataCell(Text(data['department'].toString())),
+                                DataCell(Text(shift)),
+                                DataCell(
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      editUserDetails(userId, data);
+                                    },
+                                    child: Text('Edit'),
+                                  ),
+                                ),
+                                DataCell(
+                                  Switch(
+                                    value: isActive,
+                                    onChanged: (value) {
+                                      updateAccountStatus(userId, value);
+                                    },
+                                  ),
+                                ),
+                              ]);
+                            }).toList(),
+                          ),
+                        );
+                      },
+                    ),
+                    SizedBox(height: 20),
+                    Divider(),
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: _previousPage,
+                          child: Text('Previous'),
+                        ),
+                        SizedBox(width: 20),
+                        ElevatedButton(
+                          onPressed: _nextPage,
+                          child: Text('Next'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

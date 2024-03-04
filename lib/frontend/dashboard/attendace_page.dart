@@ -35,8 +35,8 @@ class _AttendacePageState extends State<AttendacePage> {
   int _documentLimit = 8;
   int _currentPage = 0;
   int _rowsPerPage = 8;
-  DateTime? selectedDate;
-  DateTime? selectedTime;
+  DateTime? _startDate;
+  DateTime? _endDate;
   DateTime? selectedDateTime;
   bool passwordVisible = false;
   bool showDropdown = false;
@@ -87,60 +87,58 @@ class _AttendacePageState extends State<AttendacePage> {
                         children: [
                           Row(
                             children: [
-                              const Text('From:'),
-                              const SizedBox(
-                                width: 5,
+                              SizedBox(width: 20),
+                              Text('From:'),
+                              SizedBox(width: 10),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  final DateTime? picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: _startDate ?? DateTime.now(),
+                                    firstDate: DateTime(2015, 8),
+                                    lastDate: DateTime(2101),
+                                  );
+                                  if (picked != null && picked != _startDate) {
+                                    setState(() {
+                                      _startDate = picked;
+                                    });
+                                  }
+                                },
+                                child: Text(_startDate != null
+                                    ? DateFormat('yyyy-MM-dd')
+                                        .format(_startDate!)
+                                    : 'Select Date'),
                               ),
-                              Container(
-                                width: MediaQuery.of(context).size.width > 600
-                                    ? 170
-                                    : 50,
-                                height: 30,
-                                padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
-                                decoration: BoxDecoration(
-                                    border: Border.all(
-                                        color: Colors.black.withOpacity(0.5)),
-                                    borderRadius: BorderRadius.circular(8)),
-                                child: DateTimeFormField(
-                                  decoration: const InputDecoration(
-                                      border: InputBorder.none,
-                                      contentPadding:
-                                          EdgeInsets.only(bottom: 15),
-                                      hintText: 'Select Date',
-                                      suffixIcon: Icon(Icons.calendar_month)),
-                                  mode: DateTimeFieldPickerMode.date,
-                                  onSaved: (DateTime? value) {},
-                                  onChanged: (DateTime? value) {},
-                                ),
+                              SizedBox(width: 20),
+                              Text('To:'),
+                              SizedBox(width: 10),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  final DateTime? picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: _endDate ?? DateTime.now(),
+                                    firstDate: DateTime(2015, 8),
+                                    lastDate: DateTime(2101),
+                                  );
+                                  if (picked != null && picked != _endDate) {
+                                    setState(() {
+                                      _endDate = picked;
+                                    });
+                                  }
+                                },
+                                child: Text(_endDate != null
+                                    ? DateFormat('yyyy-MM-dd').format(_endDate!)
+                                    : 'Select Date'),
                               ),
-                              const SizedBox(
-                                width: 5,
-                              ),
-                              const Text('To:'),
-                              const SizedBox(
-                                width: 5,
-                              ),
-                              Container(
-                                width: MediaQuery.of(context).size.width > 600
-                                    ? 170
-                                    : 50,
-                                height: 30,
-                                padding: EdgeInsets.only(left: 8),
-                                decoration: BoxDecoration(
-                                    border: Border.all(
-                                        color: Colors.black.withOpacity(0.5)),
-                                    borderRadius: BorderRadius.circular(8)),
-                                child: DateTimeFormField(
-                                  decoration: const InputDecoration(
-                                      border: InputBorder.none,
-                                      contentPadding:
-                                          EdgeInsets.only(bottom: 15),
-                                      hintText: 'Select Date',
-                                      suffixIcon: Icon(Icons.calendar_month)),
-                                  mode: DateTimeFieldPickerMode.date,
-                                  onSaved: (DateTime? value) {},
-                                  onChanged: (DateTime? value) {},
-                                ),
+                              SizedBox(width: 20),
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _startDate = null;
+                                    _endDate = null;
+                                  });
+                                },
+                                child: Text('Show All Data'),
                               ),
                               Container(
                                 child: InkWell(
