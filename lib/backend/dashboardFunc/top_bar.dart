@@ -45,7 +45,7 @@ class _TopBarState extends State<TopBar> {
                     Text(
                       timeFormat,
                       style: const TextStyle(
-                        fontSize: 25,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

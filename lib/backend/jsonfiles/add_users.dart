@@ -1,6 +1,6 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 Future<void> addUser(
   String username,
   String fname,
@@ -16,15 +16,22 @@ Future<void> addUser(
   String tin,
   String taxCode,
   String employeeId,
+  String mobilenum, 
 ) async {
   try {
-    // Add user to Firestore collection
-    await FirebaseFirestore.instance.collection('User').add({
+    // Use the current user's UID as the document ID
+    final docUser = FirebaseFirestore.instance
+      .collection('User')
+      .doc(FirebaseAuth.instance.currentUser!.uid);
+    
+    // Set user data to Firestore document
+    await docUser.set({
       'username': username,
       'fname': fname,
       'mname': mname,
       'lname': lname,
       'email': email,
+      'mobilenum': mobilenum,
       'startShift': startShift,
       'endShift': endShift,
       'role': role,
