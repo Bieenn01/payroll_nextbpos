@@ -53,6 +53,7 @@ dependencies:
   table_calendar: ^3.0.9
   holiday_event_api: ^1.0.2
   flutter_datetime_picker: ^1.5.1
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:

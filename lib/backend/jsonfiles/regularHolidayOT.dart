@@ -107,9 +107,6 @@ class _RegularHolidayOT extends State<RegularHolidayOT> {
                         value: _selectedOvertimeTypes[index],
                         items: <String>[
                           'Regular',
-                          'Special Holiday OT',
-                          'Regular Holiday OT',
-                          'Rest day OT'
                         ].map<DropdownMenuItem<String>>((String value) {
                           return DropdownMenuItem<String>(
                             value: value,

@@ -1,23 +1,21 @@
-import 'dart:ui';
-
-import 'package:date_field/date_field.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:intl/intl.dart';
 
-class AttendacePage extends StatefulWidget {
-  const AttendacePage({super.key});
+class AttendancePage extends StatefulWidget {
+  const AttendancePage({Key? key}) : super(key: key);
 
   @override
-  State<AttendacePage> createState() => _AttendacePageState();
+  State<AttendancePage> createState() => _AttendancePageState();
 }
 
-class _AttendacePageState extends State<AttendacePage> {
-  late Stream<QuerySnapshot> _userRecordsStream;
+class _AttendancePageState extends State<AttendancePage> {
+  late Future<List<DocumentSnapshot>> _userRecordsFuture;
   TextEditingController _searchController = TextEditingController();
   String _selectedDepartment = '';
+  int _itemsPerPage = 5;
+  int _currentPage = 0;
 
   @override
   void initState() {
@@ -25,29 +23,16 @@ class _AttendacePageState extends State<AttendacePage> {
     _fetchUserRecords();
   }
 
-  void _fetchUserRecords() {
-    _userRecordsStream = FirebaseFirestore.instance
+  Future<void> _fetchUserRecords() async {
+    _userRecordsFuture = FirebaseFirestore.instance
         .collection('Records')
         .orderBy('timeIn', descending: true)
-        .snapshots();
+        .get()
+        .then((querySnapshot) => querySnapshot.docs);
   }
 
-  int _documentLimit = 8;
-  int _currentPage = 0;
-  int _rowsPerPage = 8;
   DateTime? _startDate;
   DateTime? _endDate;
-  DateTime? selectedDateTime;
-  bool passwordVisible = false;
-  bool showDropdown = false;
-
-  String selectedRole = 'Select Role';
-  String selectedDep = '--Select--';
-  String typeEmployee = 'Type of Employee';
-
-  get searchController => null;
-
-  get colorController => null;
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +91,7 @@ class _AttendacePageState extends State<AttendacePage> {
                                 },
                                 child: Text(_startDate != null
                                     ? DateFormat('yyyy-MM-dd')
-                                        .format(_startDate!)
+                                    .format(_startDate!)
                                     : 'Select Date'),
                               ),
                               SizedBox(width: 20),
@@ -148,11 +133,11 @@ class _AttendacePageState extends State<AttendacePage> {
                                       padding: EdgeInsets.all(3),
                                       decoration: BoxDecoration(
                                           borderRadius:
-                                              BorderRadius.circular(8),
+                                          BorderRadius.circular(8),
                                           color: Colors.teal.shade900),
                                       child: const Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        MainAxisAlignment.spaceBetween,
                                         children: [
                                           Icon(
                                             Icons.filter_list,
@@ -164,7 +149,7 @@ class _AttendacePageState extends State<AttendacePage> {
                                           Text(
                                             'Filter',
                                             style:
-                                                TextStyle(color: Colors.white),
+                                            TextStyle(color: Colors.white),
                                           )
                                         ],
                                       ),
@@ -208,8 +193,8 @@ class _AttendacePageState extends State<AttendacePage> {
                     ),
                     Divider(),
                     Expanded(
-                      child: StreamBuilder<QuerySnapshot>(
-                        stream: _userRecordsStream,
+                      child: FutureBuilder<List<DocumentSnapshot>>(
+                        future: _userRecordsFuture,
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -222,74 +207,130 @@ class _AttendacePageState extends State<AttendacePage> {
                               child: Text('Error: ${snapshot.error}'),
                             );
                           }
-                          if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
+                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
                             return Center(
                               child: Text('No user records available.'),
                             );
                           }
 
                           var filteredDocs =
-                              snapshot.data!.docs.where((document) {
+                          snapshot.data!.where((document) {
                             String userName =
-                                (document.data() as Map)['userName'];
+                            (document.data() as Map)['userName'];
                             String query = _searchController.text.toLowerCase();
                             String department =
-                                (document.data() as Map)['department'] ?? '';
+                            (document.data() as Map)['department'] ?? '';
                             return userName.toLowerCase().contains(query) &&
                                 (_selectedDepartment.isEmpty ||
                                     department == _selectedDepartment);
                           }).toList();
 
+                          int startIndex = _currentPage * _itemsPerPage;
+                          int endIndex = startIndex + _itemsPerPage;
+                          if (endIndex > filteredDocs.length) {
+                            endIndex = filteredDocs.length;
+                          }
+                          List<DocumentSnapshot> pageItems =
+                          filteredDocs.sublist(startIndex, endIndex);
+
                           return ListView.builder(
-                            itemCount: filteredDocs.length,
+                            itemCount: pageItems.length + 1,
                             itemBuilder: (context, index) {
-                              return DataTable(
-                                columns: [
-                                  ColumnInput('Username'),
-                                  ColumnInput('Time in'),
-                                  ColumnInput('Time out'),
-                                  ColumnInput('Department')
-                                ],
-                                rows: filteredDocs
-                                    .map((DocumentSnapshot document) {
-                                  Map<String, dynamic> data =
-                                      document.data() as Map<String, dynamic>;
-                                  return DataRow(cells: [
-                                    DataCell(
-                                      Container(
-                                        width:
-                                            100, // Adjust the width as needed
-                                        child:
-                                            Text(data['userName'] ?? 'Unknown'),
-                                      ),
+                              if (index == 0) {
+                                return Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    DropdownButton<int>(
+                                      value: _itemsPerPage,
+                                      items: [5, 10, 15, 20, 25]
+                                          .map<DropdownMenuItem<int>>(
+                                              (int value) {
+                                            return DropdownMenuItem<int>(
+                                              value: value,
+                                              child: Text('$value'),
+                                            );
+                                          }).toList(),
+                                      onChanged: (int? newValue) {
+                                        setState(() {
+                                          _itemsPerPage = newValue!;
+                                        });
+                                      },
                                     ),
-                                    DataCell(
-                                      Container(
-                                        width:
-                                            150, // Adjust the width as needed
-                                        child: Text(
-                                            _formatTimestamp(data['timeIn'])),
-                                      ),
+                                    IconButton(
+                                      onPressed: () {
+                                        if (_currentPage > 0) {
+                                          setState(() {
+                                            _currentPage--;
+                                          });
+                                        }
+                                      },
+                                      icon: Icon(Icons.arrow_back),
                                     ),
-                                    DataCell(
-                                      Container(
-                                        width:
-                                            150, // Adjust the width as needed
-                                        child: Text(
-                                            _formatTimestamp(data['timeOut'])),
-                                      ),
+                                    IconButton(
+                                      onPressed: () {
+                                        if (_currentPage <
+                                            (filteredDocs.length /
+                                                        _itemsPerPage)
+                                                    .ceil() -
+                                                1) {
+                                          setState(() {
+                                            _currentPage++;
+                                          });
+                                        }
+                                      },
+                                      icon: Icon(Icons.arrow_forward),
                                     ),
-                                    DataCell(
-                                      Container(
-                                        width:
-                                            100, // Adjust the width as needed
-                                        child: Text(
-                                            data['department'] ?? 'Unknown'),
+                                  ],
+                                );
+                              } else {
+                                int dataIndex = index - 1;
+                                Map<String, dynamic> data = pageItems[dataIndex]
+                                    .data() as Map<String, dynamic>;
+                                return DataTable(
+                                  columns: [
+                                    ColumnInput('Username'),
+                                    ColumnInput('Time in'),
+                                    ColumnInput('Time out'),
+                                    ColumnInput('Department')
+                                  ],
+                                  rows: [
+                                    DataRow(cells: [
+                                      DataCell(
+                                        Container(
+                                          width:
+                                              100, // Adjust the width as needed
+                                          child: Text(
+                                              data['userName'] ?? 'Unknown'),
+                                        ),
                                       ),
-                                    ),
-                                  ]);
-                                }).toList(),
-                              );
+                                      DataCell(
+                                        Container(
+                                          width:
+                                              150, // Adjust the width as needed
+                                          child: Text(
+                                              _formatTimestamp(data['timeIn'])),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Container(
+                                          width:
+                                              150, // Adjust the width as needed
+                                          child: Text(_formatTimestamp(
+                                              data['timeOut'])),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Container(
+                                          width:
+                                              100, // Adjust the width as needed
+                                          child: Text(
+                                              data['department'] ?? 'Unknown'),
+                                        ),
+                                      ),
+                                    ])
+                                  ],
+                                );
+                              }
                             },
                           );
                         },
@@ -317,10 +358,10 @@ String _formatTimestamp(dynamic timestamp) {
   }
 }
 
-DataColumn ColumnInput(Label) {
+DataColumn ColumnInput(String label) {
   return DataColumn(
       label: Text(
-    Label,
+    label,
     style: const TextStyle(
       fontWeight: FontWeight.w900,
     ),

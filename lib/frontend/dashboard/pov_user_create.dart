@@ -7,7 +7,9 @@ import 'package:date_field/date_field.dart';
 import 'package:flutter/widgets.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/view_userDetails.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/add_users.dart';
+import 'package:project_payroll_nextbpo/backend/widgets/shimmer.dart';
 import 'package:project_payroll_nextbpo/backend/widgets/toast_widget.dart';
+import 'package:shimmer/shimmer.dart' as ShimmerPackage;
 
 class User {
   String department;
@@ -53,9 +55,11 @@ class PovUser extends StatefulWidget {
 }
 
 class _UserState extends State<PovUser> {
-  int _documentLimit = 10;
-  int _currentPage = 0;
-  int _rowsPerPage = 8;
+  int _currentPage = 1;
+  int _pageSize = 5; // Default page size
+
+  late int _totalUsers;
+  late Future<void> Function(int, DocumentSnapshot?) _fetchUsersWithPagination;
   DateTime? selectedDate;
   DateTime? selectedTime;
   DateTime? selectedDateTime;
@@ -82,61 +86,51 @@ class _UserState extends State<PovUser> {
   @override
   void initState() {
     super.initState();
-// Fetch users when the widget initializes
+    _fetchUsersWithPagination = _fetchUsers;
+    _fetchUsersWithPagination(_pageSize, null);
   }
 
-  Future<QuerySnapshot> _fetchUsersWithPagination(
-      int limit, DocumentSnapshot? startAfterDocument) async {
-    Query query = FirebaseFirestore.instance
-        .collection('User')
-        .orderBy('email')
-        .limit(limit);
+Future<QuerySnapshot> _fetchUsers(
+    int limit,
+    DocumentSnapshot? startAfterDocument,
+  ) async {
+    try {
+      Query query = FirebaseFirestore.instance
+          .collection('User')
+          .orderBy('email')
+          .limit(limit);
 
-    if (startAfterDocument != null) {
-      query = query.startAfterDocument(startAfterDocument);
-    }
+      if (startAfterDocument != null) {
+        query = query.startAfterDocument(startAfterDocument);
+      }
 
-    return await query.get();
-  }
-
-  void _nextPage() async {
-    DocumentSnapshot? lastVisible = _lastVisibleSnapshot;
-    QuerySnapshot snapshot = await _fetchUsersWithPagination(
-      _documentLimit,
-      lastVisible,
-    );
-
-    setState(() {
-      _users.addAll(snapshot.docs);
-      _lastVisibleSnapshot =
-          snapshot.docs.isNotEmpty ? snapshot.docs.last : null;
-    });
-  }
-
-  void _previousPage() async {
-    // Ensure we don't navigate to a negative page
-    if (_currentPage > 0) {
-      // Calculate the startAfter document based on the first document of the current page
-      DocumentSnapshot? startAfterDocument =
-          _users.isNotEmpty ? _users.first : null;
-
-      // Fetch the previous set of documents
-      QuerySnapshot snapshot =
-          await _fetchUsersWithPagination(_documentLimit, startAfterDocument);
-
-      setState(() {
-        // Clear the current list and add the documents from the previous page
-        _users.clear();
-        _users.addAll(snapshot.docs);
-
-        // Decrement the current page
-        _currentPage--;
-      });
+      return await query.get();
+    } catch (e) {
+      // Handle errors gracefully
+      throw Exception('Failed to fetch users: $e');
     }
   }
+
+  void _nextPage() {
+  setState(() {
+    _currentPage++;
+    // Call your function to fetch users with pagination for the next page
+    _fetchUsersWithPagination(_pageSize, _lastVisibleSnapshot);
+  });
+}
+
+void _previousPage() {
+  setState(() {
+    if (_currentPage > 1) {
+      _currentPage--;
+      // Call your function to fetch users with pagination for the previous page
+      _fetchUsersWithPagination(_pageSize, _lastVisibleSnapshot);
+    }
+  });
+}
 
 // Initialize _lastVisibleSnapshot as null
-  DocumentSnapshot? _lastVisibleSnapshot;
+DocumentSnapshot? _lastVisibleSnapshot;
 
 // Initialize _users as an empty list
   List<DocumentSnapshot> _users = [];
@@ -162,6 +156,7 @@ class _UserState extends State<PovUser> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -182,6 +177,26 @@ class _UserState extends State<PovUser> {
                         ),
                       ],
                     ),
+                    Row(children: [
+                      Text('Show: '),
+                      DropdownButton<int>(
+                        value: _pageSize,
+                        items: [5, 10, 15, 25].map((value) {
+                          return DropdownMenuItem<int>(
+                            value: value,
+                            child: Text(value.toString()),
+                          );
+                        }).toList(),
+                        onChanged: (newValue) {
+                          setState(() {
+                            _pageSize = newValue!;
+                            _currentPage =
+                                1; // Reset page number when changing page size
+                            _fetchUsersWithPagination(_pageSize, null);
+                          });
+                        },
+                      ),
+                    ]),
                     SizedBox(
                       height: 10,
                     ),
@@ -282,108 +297,94 @@ class _UserState extends State<PovUser> {
                     SizedBox(height: 10),
                     Divider(),
                     FutureBuilder(
-                      future: _fetchUsersWithPagination(
-                          _documentLimit, _lastVisibleSnapshot),
-                      builder:
-                          (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Container(
-                              width: 50,
-                              height: 100,
-                              child: CircularProgressIndicator());
-                        }
-                        if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        }
-                        if (snapshot.data!.docs.isEmpty) {
-                          return Text('No users found.');
-                        }
-                        return SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            columns: const [
-                              DataColumn(
-                                  label: Text('#',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('ID',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Name',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Username',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Type',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Department',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Shift',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Action',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              DataColumn(
-                                  label: Text('Status',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              // Added column for Status
-                            ],
-                            rows: snapshot.data!.docs
-                                .map((DocumentSnapshot document) {
-                              Map<String, dynamic> data =
-                                  document.data()! as Map<String, dynamic>;
-                              DateTime? startShift = data['startShift'] != null
-                                  ? (data['startShift'] as Timestamp).toDate()
-                                  : null;
-                              String shift = getShiftText(startShift);
-                              String userId = document.id;
-                              bool isActive = data['isActive'] ??
-                                  false; // Assuming isActive is the boolean field for account status
+  future: _fetchUsers(_pageSize, _lastVisibleSnapshot),
+  builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting || snapshot.data == null) {
+      return _buildShimmerLoading(); // Show shimmer loading while waiting for data
+    }
+    if (snapshot.hasError) {
+      return Text('Error: ${snapshot.error}');
+    }
+    if (snapshot.data!.docs.isEmpty) {
+      return Text('No users found.');
+    }
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        columns: const [
+          DataColumn(
+            label: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('ID', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Username', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Type', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Department', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Shift', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          // Added column for Status
+        ],
+        rows: snapshot.data!.docs
+            .map((DocumentSnapshot document) {
+          Map<String, dynamic> data =
+              document.data()! as Map<String, dynamic>;
+          DateTime? startShift = data['startShift'] != null
+              ? (data['startShift'] as Timestamp).toDate()
+              : null;
+          String shift = getShiftText(startShift);
+          String userId = document.id;
+          bool isActive = data['isActive'] ?? false;
 
-                              return DataRow(cells: [
-                                DataCell(Text('1')),
-                                DataCell(Text(data['employeeId'].toString())),
-                                DataCell(
-                                    Text('${data['fname']} ${data['lname']}')),
-                                DataCell(Text(data['username'].toString())),
-                                DataCell(Text(data['typeEmployee'].toString())),
-                                DataCell(Text(data['department'].toString())),
-                                DataCell(Text(shift)),
-                                DataCell(
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      editUserDetails(userId, data);
-                                    },
-                                    child: Text('Edit'),
-                                  ),
-                                ),
-                                DataCell(
-                                  Switch(
-                                    value: isActive,
-                                    onChanged: (value) {
-                                      updateAccountStatus(userId, value);
-                                    },
-                                  ),
-                                ),
-                              ]);
-                            }).toList(),
-                          ),
-                        );
-                      },
-                    ),
+          return DataRow(cells: [
+            DataCell(Text('1')),
+            DataCell(Text(data['employeeId'].toString())),
+            DataCell(
+                Text('${data['fname']} ${data['lname']}')),
+            DataCell(Text(data['username'].toString())),
+            DataCell(Text(data['typeEmployee'].toString())),
+            DataCell(Text(data['department'].toString())),
+            DataCell(Text(shift)),
+            DataCell(
+              ElevatedButton(
+                onPressed: () {
+                  editUserDetails(userId, data);
+                },
+                child: Text('Edit'),
+              ),
+            ),
+            DataCell(
+              Switch(
+                value: isActive,
+                onChanged: (value) {
+                  updateAccountStatus(userId, value);
+                },
+              ),
+            ),
+          ]);
+        }).toList(),
+      ),
+    );
+  },
+),
+
+
                     SizedBox(height: 20),
                     Divider(),
                     SizedBox(height: 20),
@@ -394,23 +395,89 @@ class _UserState extends State<PovUser> {
                           onPressed: _previousPage,
                           child: Text('Previous'),
                         ),
-                        SizedBox(width: 20),
+                        SizedBox(width: 10),
+                        Text('Page $_currentPage'),
+                        SizedBox(width: 10),
                         ElevatedButton(
                           onPressed: _nextPage,
                           child: Text('Next'),
                         ),
-                      ],
+                      ]
                     ),
+                    SizedBox(height: 20),
                   ],
                 ),
               ),
             ],
           ),
+            
+        ),
+      ),
+      
+    );
+  }
+Widget _buildShimmerLoading() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: ShimmerPackage.Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: DataTable(
+          columns: const [
+            DataColumn(
+              label: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label: Text('ID', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label:
+                  Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label: Text('Username',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label:
+                  Text('Type', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label: Text('Department',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label:
+                  Text('Shift', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label:
+                  Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label:
+                  Text('Status', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            // Added column for Status
+          ],
+          rows: List.generate(
+            5, // You can change this to the number of shimmer rows you want
+            (index) => DataRow(cells: [
+              DataCell(Container(width: 40, height: 16, color: Colors.white)),
+              DataCell(Container(width: 60, height: 16, color: Colors.white)),
+              DataCell(Container(width: 120, height: 16, color: Colors.white)),
+              DataCell(Container(width: 80, height: 16, color: Colors.white)),
+              DataCell(Container(width: 80, height: 16, color: Colors.white)),
+              DataCell(Container(width: 100, height: 16, color: Colors.white)),
+              DataCell(Container(width: 60, height: 16, color: Colors.white)),
+              DataCell(Container(width: 60, height: 16, color: Colors.white)),
+              DataCell(Container(width: 60, height: 16, color: Colors.white)),
+            ]),
+          ),
         ),
       ),
     );
   }
-
   Future<void> updateAccountStatus(String userId, bool isActive) async {
     try {
       CollectionReference users = FirebaseFirestore.instance.collection('User');
