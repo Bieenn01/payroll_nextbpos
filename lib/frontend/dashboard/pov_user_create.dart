@@ -9,6 +9,7 @@ import 'package:project_payroll_nextbpo/backend/dashboardFunc/view_userDetails.d
 import 'package:project_payroll_nextbpo/backend/jsonfiles/add_users.dart';
 import 'package:project_payroll_nextbpo/backend/widgets/shimmer.dart';
 import 'package:project_payroll_nextbpo/backend/widgets/toast_widget.dart';
+import 'package:project_payroll_nextbpo/frontend/modal.dart';
 import 'package:shimmer/shimmer.dart' as ShimmerPackage;
 
 class User {
@@ -488,6 +489,8 @@ class _UserState extends State<PovUser> {
       await users.doc(userId).update({'isActive': isActive});
 
       setState(() {});
+      showSuccess(
+          context, 'Status Update', 'Account status updated successfully.');
       print('Account status updated successfully.');
     } catch (e) {
       print('Error updating account status: $e');
@@ -1311,6 +1314,7 @@ class _UserState extends State<PovUser> {
       );
 
       Navigator.pop(context); // Close the dialog or navigate to the next screen
+      showSuccess(context, 'Create', 'Account has been created successfully.');
       showToast("Registered Successfully!");
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
