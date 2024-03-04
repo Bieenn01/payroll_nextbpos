@@ -7,9 +7,8 @@ import 'package:date_field/date_field.dart';
 import 'package:flutter/widgets.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/view_userDetails.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/add_users.dart';
-import 'package:project_payroll_nextbpo/backend/widgets/shimmer.dart';
 import 'package:project_payroll_nextbpo/backend/widgets/toast_widget.dart';
-import 'package:shimmer/shimmer.dart' as ShimmerPackage;
+import 'package:project_payroll_nextbpo/frontend/modal.dart';
 
 class User {
   String department;
@@ -46,23 +45,22 @@ class User {
       required this.mobilenum});
 }
 
-class PovUser extends StatefulWidget {
-  PovUser({Key? key}) : super(key: key);
+class PovUser2 extends StatefulWidget {
+  PovUser2({Key? key}) : super(key: key);
 
   @override
-  State<PovUser> createState() => _UserState();
+  State<PovUser2> createState() => _UserState();
 }
 
-class _UserState extends State<PovUser> {
-  int _currentPage = 1;
-  int _pageSize = 5; // Default page size
-
-  late int _totalUsers;
-  late Future<void> Function(int, DocumentSnapshot?) _fetchUsersWithPagination;
+class _UserState extends State<PovUser2> {
+  int _documentLimit = 5;
+  int _currentPage = 0;
+  int _rowsPerPage = 8;
   DateTime? selectedDate;
   DateTime? selectedTime;
   DateTime? selectedDateTime;
   bool passwordVisible = false;
+  int index = 0;
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
@@ -85,50 +83,60 @@ class _UserState extends State<PovUser> {
   @override
   void initState() {
     super.initState();
-    _fetchUsersWithPagination = _fetchUsers;
-    _fetchUsersWithPagination(_pageSize, null);
+// Fetch users when the widget initializes
   }
 
-  Future<QuerySnapshot> _fetchUsers(
-    int limit,
-    DocumentSnapshot? startAfterDocument,
-  ) async {
-    try {
-      Query query = FirebaseFirestore.instance
-          .collection('User')
-          .orderBy('email')
-          .limit(limit);
+  Future<QuerySnapshot> _fetchUsersWithPagination(
+      int limit, DocumentSnapshot? startAfterDocument) async {
+    Query query = FirebaseFirestore.instance
+        .collection('User')
+        .orderBy('email')
+        .limit(limit);
 
-      if (startAfterDocument != null) {
-        query = query.startAfterDocument(startAfterDocument);
-      }
+    if (startAfterDocument != null) {
+      query = query.startAfterDocument(startAfterDocument);
+    }
 
-      return await query.get();
-    } catch (e) {
-      // Handle errors gracefully
-      throw Exception('Failed to fetch users: $e');
+    return await query.get();
+  }
+
+  void _nextPage() async {
+    DocumentSnapshot? lastVisible = _lastVisibleSnapshot;
+    QuerySnapshot snapshot = await _fetchUsersWithPagination(
+      _documentLimit,
+      lastVisible,
+    );
+
+    setState(() {
+      _users.addAll(snapshot.docs);
+      _lastVisibleSnapshot =
+          snapshot.docs.isNotEmpty ? snapshot.docs.last : null;
+    });
+  }
+
+  void _previousPage() async {
+    // Ensure we don't navigate to a negative page
+    if (_currentPage > 0) {
+      // Calculate the startAfter document based on the first document of the current page
+      DocumentSnapshot? startAfterDocument =
+          _users.isNotEmpty ? _users.first : null;
+
+      // Fetch the previous set of documents
+      QuerySnapshot snapshot =
+          await _fetchUsersWithPagination(_documentLimit, startAfterDocument);
+
+      setState(() {
+        // Clear the current list and add the documents from the previous page
+        _users.clear();
+        _users.addAll(snapshot.docs);
+
+        // Decrement the current page
+        _currentPage--;
+      });
     }
   }
 
-  void _nextPage() {
-    setState(() {
-      _currentPage++;
-      // Call your function to fetch users with pagination for the next page
-      _fetchUsersWithPagination(_pageSize, _lastVisibleSnapshot);
-    });
-  }
-
-  void _previousPage() {
-    setState(() {
-      if (_currentPage > 1) {
-        _currentPage--;
-        // Call your function to fetch users with pagination for the previous page
-        _fetchUsersWithPagination(_pageSize, _lastVisibleSnapshot);
-      }
-    });
-  }
-
-// Initialize _lastVisibleSnapshot as null
+  // Initialize _lastVisibleSnapshot as null
   DocumentSnapshot? _lastVisibleSnapshot;
 
 // Initialize _users as an empty list
@@ -150,12 +158,13 @@ class _UserState extends State<PovUser> {
     return Scaffold(
       body: Container(
         color: Colors.teal.shade700,
-        padding: EdgeInsets.all(15),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
+              padding: const EdgeInsets.all(15),
+              margin: const EdgeInsets.all(15),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(15),
@@ -163,85 +172,54 @@ class _UserState extends State<PovUser> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
+                  const Row(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Text(
-                          "Account List",
-                          style: TextStyle(
-                              fontSize: 25, fontWeight: FontWeight.bold),
-                        ),
+                      Text(
+                        "Account List",
+                        style: TextStyle(
+                            fontSize: 25, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                   const SizedBox(
                     height: 10,
                   ),
-                  Row(children: [
-                    Text('Show: '),
-                    DropdownButton<int>(
-                      value: _pageSize,
-                      items: [5, 10, 15, 25].map((value) {
-                        return DropdownMenuItem<int>(
-                          value: value,
-                          child: Text(value.toString()),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          _pageSize = newValue!;
-                          _currentPage =
-                              1; // Reset page number when changing page size
-                          _fetchUsersWithPagination(_pageSize, null);
-                        });
-                      },
-                    ),
-                  ]),
-                  SizedBox(
-                    height: 10,
-                  ),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Flexible(
                           child: Container(
+                            width: MediaQuery.of(context).size.width > 600
+                                ? 300
+                                : 50,
                             height: 30,
+                            margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                            padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: Colors.black.withOpacity(0.5),
-                              ),
+                                  color: Colors.black.withOpacity(0.5)),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 5.0),
-                                  child: Icon(Icons.search),
-                                ),
-                                Expanded(
-                                  child: TextField(
-                                    textAlign: TextAlign.start,
-                                    decoration: InputDecoration(
-                                      contentPadding:
-                                          EdgeInsets.only(bottom: 15, left: 5),
-                                      border: InputBorder.none,
-                                      hintText: 'Search',
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            child: const TextField(
+                              textAlign: TextAlign.start,
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.only(bottom: 15),
+                                prefixIcon: Icon(Icons.search),
+                                border: InputBorder.none,
+                                hintText: 'Search',
+                              ),
                             ),
                           ),
                         ),
-                        SizedBox(width: 5),
+                        const SizedBox(
+                          width: 5,
+                        ),
                         Flexible(
                           child: Container(
                             height: 30,
+                            width: 100,
                             decoration: BoxDecoration(
                                 border: Border.all(
                                     color:
@@ -252,10 +230,8 @@ class _UserState extends State<PovUser> {
                                 print(MediaQuery.of(context).size.width);
                                 createAccount(context);
                               }),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.teal,
-                              ),
-                              child: Text(
+                              style: styleFrom,
+                              child: const Text(
                                 "+ Add New",
                                 style: TextStyle(
                                     fontWeight: FontWeight.w400,
@@ -265,10 +241,13 @@ class _UserState extends State<PovUser> {
                             ),
                           ),
                         ),
-                        SizedBox(width: 5),
+                        const SizedBox(
+                          width: 5,
+                        ),
                         Flexible(
                           child: Container(
                             height: 30,
+                            width: 100,
                             decoration: BoxDecoration(
                                 border: Border.all(
                                     color:
@@ -276,10 +255,8 @@ class _UserState extends State<PovUser> {
                                 borderRadius: BorderRadius.circular(8)),
                             child: ElevatedButton(
                                 onPressed: (() {}),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.teal,
-                                ),
-                                child: Row(
+                                style: styleFrom,
+                                child: const Row(
                                   children: [
                                     Icon(Icons.cloud_download_outlined),
                                     Text(
@@ -296,14 +273,17 @@ class _UserState extends State<PovUser> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 10),
-                  Divider(),
+                  const SizedBox(height: 10),
+                  const Divider(),
                   FutureBuilder(
-                    future: _fetchUsers(_pageSize, _lastVisibleSnapshot),
+                    future: _fetchUsersWithPagination(
+                        _documentLimit, _lastVisibleSnapshot),
                     builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting ||
-                          snapshot.data == null) {
-                        return _buildShimmerLoading(); // Show shimmer loading while waiting for data
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Container(
+                            width: 50,
+                            height: 100,
+                            child: CircularProgressIndicator());
                       }
                       if (snapshot.hasError) {
                         return Text('Error: ${snapshot.error}');
@@ -314,41 +294,41 @@ class _UserState extends State<PovUser> {
                       return DataTable(
                         columns: const [
                           DataColumn(
-                            label: Text('#',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
+                              label: Text('#',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
                           DataColumn(
-                            label: Text('ID',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
+                              label: Text('ID',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
                           DataColumn(
-                            label: Text('Name',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
+                              label: Text('Name',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
                           DataColumn(
-                            label: Text('Username',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
+                              label: Text('Username',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
                           DataColumn(
-                            label: Text('Type',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
+                              label: Text('Type',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
                           DataColumn(
-                            label: Text('Department',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
+                              label: Text('Department',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
                           DataColumn(
-                            label: Text('Shift',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
+                              label: Text('Shift',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
                           DataColumn(
-                            label: Text('Action',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
+                              label: Text('Status',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
                           DataColumn(
-                            label: Text('Status',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
+                              label: Text('Action',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold))),
                           // Added column for Status
                         ],
                         rows: snapshot.data!.docs
@@ -360,121 +340,70 @@ class _UserState extends State<PovUser> {
                               : null;
                           String shift = getShiftText(startShift);
                           String userId = document.id;
-                          bool isActive = data['isActive'] ?? false;
 
-                          return DataRow(cells: [
-                            DataCell(Text('1')),
-                            DataCell(Text(data['employeeId'].toString())),
-                            DataCell(Text('${data['fname']} ${data['lname']}')),
-                            DataCell(Text(data['username'].toString())),
-                            DataCell(Text(data['typeEmployee'].toString())),
-                            DataCell(Text(data['department'].toString())),
-                            DataCell(Text(shift)),
-                            DataCell(
-                              ElevatedButton(
-                                onPressed: () {
-                                  editUserDetails(userId, data);
-                                },
-                                child: Text('Edit'),
-                              ),
-                            ),
-                            DataCell(
-                              Switch(
-                                value: isActive,
-                                onChanged: (value) {
-                                  updateAccountStatus(userId, value);
-                                },
-                              ),
-                            ),
-                          ]);
+                          bool isActive = data['isActive'] ??
+                              false; // Assuming isActive is the boolean field for account status
+
+                          Color? rowColor = index % 2 == 0
+                              ? Colors.white
+                              : Colors.grey[200]; // Alternating row colors
+                          index++; //
+
+                          return DataRow(
+                              color: MaterialStateColor.resolveWith(
+                                  (states) => rowColor!),
+                              cells: [
+                                DataCell(Text(index.toString())),
+                                DataCell(Text(data['employeeId'].toString())),
+                                DataCell(
+                                    Text('${data['fname']} ${data['lname']}')),
+                                DataCell(Text(data['username'].toString())),
+                                DataCell(Text(data['typeEmployee'].toString())),
+                                DataCell(Text(data['department'].toString())),
+                                DataCell(Text(shift)),
+                                DataCell(
+                                  Switch(
+                                    value: isActive,
+                                    activeColor: Colors.green,
+                                    onChanged: (value) {
+                                      updateAccountStatus(userId, value);
+                                    },
+                                  ),
+                                ),
+                                DataCell(
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      editUserDetails(userId, data);
+                                    },
+                                    child: Text('Edit'),
+                                  ),
+                                ),
+                              ]);
                         }).toList(),
                       );
                     },
                   ),
-                  SizedBox(height: 20),
-                  Divider(),
-                  SizedBox(height: 20),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    ElevatedButton(
-                      onPressed: _previousPage,
-                      child: Text('Previous'),
-                    ),
-                    SizedBox(width: 10),
-                    Text('Page $_currentPage'),
-                    SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: _nextPage,
-                      child: Text('Next'),
-                    ),
-                  ]),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
+                  const Divider(),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: _previousPage,
+                        child: Text('Previous'),
+                      ),
+                      const SizedBox(width: 20),
+                      ElevatedButton(
+                        onPressed: _nextPage,
+                        child: Text('Next'),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildShimmerLoading() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: ShimmerPackage.Shimmer.fromColors(
-        baseColor: Colors.grey[300]!,
-        highlightColor: Colors.grey[100]!,
-        child: DataTable(
-          columns: const [
-            DataColumn(
-              label: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label: Text('ID', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label:
-                  Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label: Text('Username',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label:
-                  Text('Type', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label: Text('Department',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label:
-                  Text('Shift', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label:
-                  Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label:
-                  Text('Status', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            // Added column for Status
-          ],
-          rows: List.generate(
-            5, // You can change this to the number of shimmer rows you want
-            (index) => DataRow(cells: [
-              DataCell(Container(width: 40, height: 16, color: Colors.white)),
-              DataCell(Container(width: 60, height: 16, color: Colors.white)),
-              DataCell(Container(width: 120, height: 16, color: Colors.white)),
-              DataCell(Container(width: 80, height: 16, color: Colors.white)),
-              DataCell(Container(width: 80, height: 16, color: Colors.white)),
-              DataCell(Container(width: 100, height: 16, color: Colors.white)),
-              DataCell(Container(width: 60, height: 16, color: Colors.white)),
-              DataCell(Container(width: 60, height: 16, color: Colors.white)),
-              DataCell(Container(width: 60, height: 16, color: Colors.white)),
-            ]),
-          ),
         ),
       ),
     );
@@ -487,8 +416,11 @@ class _UserState extends State<PovUser> {
       await users.doc(userId).update({'isActive': isActive});
 
       setState(() {});
+      showSuccess(
+          context, 'Status Update', 'Account status updated successfully.');
       print('Account status updated successfully.');
     } catch (e) {
+      showError(context, 'Error', 'Error updating account status: $e');
       print('Error updating account status: $e');
     }
   }
@@ -601,6 +533,8 @@ class _UserState extends State<PovUser> {
           .collection('User')
           .doc(userId)
           .update(updatedUserData);
+      Navigator.pop(context);
+      showSuccess(context, 'Update', 'User details updated successfully!');
       print('User details updated successfully!');
     } catch (error) {
       print('Error updating user details: $error');
@@ -1310,7 +1244,7 @@ class _UserState extends State<PovUser> {
       );
 
       Navigator.pop(context); // Close the dialog or navigate to the next screen
-      showToast("Registered Successfully!");
+      showSuccess(context, 'Create', 'Account has been created.');
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         showToast('The password provided is too weak.');

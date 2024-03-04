@@ -65,10 +65,6 @@ class _TopBarState extends State<TopBar> {
                     position: const RelativeRect.fromLTRB(80, 100, 50, 0),
                     items: const [
                       PopupMenuItem(
-                        child: Text('Account List'),
-                        value: 'account_list',
-                      ),
-                      PopupMenuItem(
                         child: Text('Log out'),
                         value: 'log_out',
                       ),

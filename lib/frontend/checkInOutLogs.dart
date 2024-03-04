@@ -9,6 +9,7 @@ class Logs extends StatefulWidget {
 
 class _Logs extends State<Logs> {
   late Stream<QuerySnapshot> _userRecordsStream;
+  int index = 0;
 
   @override
   void initState() {
@@ -58,12 +59,18 @@ class _Logs extends State<Logs> {
             rows: snapshot.data!.docs.map((DocumentSnapshot document) {
               Map<String, dynamic> data =
                   document.data() as Map<String, dynamic>;
-              return DataRow(cells: [
-                DataCell(Text(data['userName'] ?? 'Unknown')),
-                DataCell(Text(_formatTimestamp(data['timeIn']))),
-                DataCell(Text(_formatTimestamp(data['timeOut']))),
-                DataCell(Text(data['department'] ?? 'Unknown')),
-              ]);
+              Color? rowColor = index % 2 == 0
+                  ? Colors.white
+                  : Colors.grey[200]; // Alternating row colors
+              index++; //
+              return DataRow(
+                  color: MaterialStateColor.resolveWith((states) => rowColor!),
+                  cells: [
+                    DataCell(Text(data['userName'] ?? 'Unknown')),
+                    DataCell(Text(_formatTimestamp(data['timeIn']))),
+                    DataCell(Text(_formatTimestamp(data['timeOut']))),
+                    DataCell(Text(data['department'] ?? 'Unknown')),
+                  ]);
             }).toList(),
           );
         },

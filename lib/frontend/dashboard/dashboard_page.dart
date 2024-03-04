@@ -120,8 +120,8 @@ class _DashboardState extends State<Dashboard> {
                                             color: Colors.white,
                                             borderRadius:
                                                 BorderRadius.circular(15)),
-                                        child: smallContainer('7',
-                                            Icons.wb_sunny, 'Early Departure'),
+                                        child: smallContainer(
+                                            '7', Icons.wb_sunny, 'Undertime'),
                                       ),
                                     ),
                                     Flexible(
