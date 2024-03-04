@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/main_calendar.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/check_in_out_logs.dart';
+import 'package:project_payroll_nextbpo/backend/jsonfiles/regularOT.dart';
+import 'package:project_payroll_nextbpo/backend/jsonfiles/restDayOT.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/specialHolidayOT.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/attendace_page.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_page.dart';
@@ -222,6 +224,32 @@ class ScreensView extends StatelessWidget {
               Flexible(
                 flex: 7,
                 child: SpecialholidayPage(),
+              ),
+            ],
+          ),
+        );
+        break;
+      case 'Settings':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                flex: 1,
+                child: TopBar(),
+              ),
+              Flexible(
+                flex: 2,
+                child: RegularOT(),
+              ),
+              Flexible(
+                flex: 2,
+                child: SpecialHolidayOT(),
+              ),
+              Flexible(
+                flex: 2,
+                child: RestDayOT(),
               ),
             ],
           ),
