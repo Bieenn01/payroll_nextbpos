@@ -152,7 +152,7 @@ class ScreensView extends StatelessWidget {
         );
         break;
       case 'Logs':
-        page = Container( 
+        page = Container(
           color: Colors.teal.shade700,
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
