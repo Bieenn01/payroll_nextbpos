@@ -1,6 +1,8 @@
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({Key? key}) : super(key: key);
@@ -11,17 +13,30 @@ class CalendarPage extends StatefulWidget {
 
 class _CalendarPageState extends State<CalendarPage> {
   late MeetingDataSource _dataSource;
+  bool _showHolidays = true;
 
   @override
   void initState() {
-    _dataSource = MeetingDataSource();
-    _loadMeetingsFromFirestore(); // Load meetings from Firestore
     super.initState();
+    _dataSource = MeetingDataSource();
+    _toggleDataSource(true); // Load holidays by default
   }
 
   TextEditingController eventNameController = TextEditingController();
   TextEditingController startTimeController = TextEditingController();
   TextEditingController endTimeController = TextEditingController();
+
+  void _toggleDataSource(bool value) async {
+    setState(() {
+      _showHolidays = value;
+    });
+
+    if (_showHolidays) {
+      await _loadHolidaysFromFirestore(); // Fetch holidays from Firestore
+    } else {
+      await _loadMeetingsFromFirestore(); // Load meetings from Firestore
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +46,12 @@ class _CalendarPageState extends State<CalendarPage> {
           'Calendar',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        actions: [
+          Switch(
+            value: _showHolidays,
+            onChanged: _toggleDataSource,
+          ),
+        ],
       ),
       body: SfCalendar(
         view: CalendarView.month,
@@ -50,13 +71,46 @@ class _CalendarPageState extends State<CalendarPage> {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showAddAppointmentDialog(DateTime.now());
-        },
-        child: Icon(Icons.add),
-      ),
     );
+  }
+
+  Future<void> _loadHolidaysFromFirestore() async {
+    try {
+      // Retrieve holidays from Firestore
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+          .instance
+          .collection('HolidaysPH')
+          .doc('holidays')
+          .get();
+
+      if (snapshot.exists) {
+        List<Map<String, dynamic>> holidays =
+            List<Map<String, dynamic>>.from(snapshot.data()!['holidays']);
+
+        List<Meeting> holidayMeetings = holidays.map((holiday) {
+          DateTime holidayDate = DateTime.parse(holiday['date']);
+          bool isHolidayPassed = holidayDate.isBefore(DateTime.now());
+
+          Color eventColor = isHolidayPassed ? Colors.green : Colors.orange.shade600;
+
+          return Meeting(
+            holiday['eventName'],
+            holidayDate,
+            holidayDate,
+            eventColor,
+            true,
+          );
+        }).toList();
+
+        setState(() {
+          _dataSource = MeetingDataSource(holidayMeetings);
+        });
+      } else {
+        print('No holidays found in Firestore.');
+      }
+    } catch (e) {
+      print('Error loading holidays from Firestore: $e');
+    }
   }
 
   Future<void> _loadMeetingsFromFirestore() async {
@@ -282,6 +336,47 @@ class _CalendarPageState extends State<CalendarPage> {
         FirebaseFirestore.instance.collection('meetings').doc(doc.id).delete();
       }
     });
+  }
+}
+
+class HolidayFetcher {
+  Future<void> fetchAndSaveHolidays() async {
+    final url = Uri.parse(
+        'https://www.googleapis.com/calendar/v3/calendars/en.philippines%23holiday%40group.v.calendar.google.com/events?key=AIzaSyBaS9eujBHEvyXw9X25wnzjXvlHGeEcPFU');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        final List<dynamic> items = data['items'];
+
+        List<Map<String, dynamic>> holidays = items.map((item) {
+          DateTime holidayDate = DateTime.parse(item['start']['date']);
+          holidayDate.isBefore(DateTime.now());
+
+          String eventName = item['summary'];
+          String date =
+              holidayDate.toIso8601String(); // Convert date to ISO 8601 format
+
+          // Create a map for the holiday data
+          return {
+            'eventName': eventName,
+            'date': date,
+          };
+        }).toList();
+
+        // Save holidays to Firestore
+        await FirebaseFirestore.instance
+            .collection('HolidaysPH')
+            .doc('holidays')
+            .set({'holidays': holidays});
+      } else {
+        throw Exception('Failed to load holidays: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching holidays: $e');
+    }
   }
 }
 

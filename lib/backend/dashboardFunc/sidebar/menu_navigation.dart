@@ -8,20 +8,16 @@ import 'package:project_payroll_nextbpo/backend/jsonfiles/restDayOT.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/specialHolidayOT.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/attendace_page.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_page.dart';
-import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/holiday/holiday.dart';
 import 'package:project_payroll_nextbpo/frontend/holiday/specialholiday.dart';
-import 'package:project_payroll_nextbpo/frontend/overtime%20bar/holiday_overtime.dart';
+
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restday_overtime.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restspecial_overtime.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/specialh_overtime.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/top_bar.dart';
-import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create2.dart';
-import 'package:project_payroll_nextbpo/frontend/mobileHomeScreen.dart';
-import 'package:project_payroll_nextbpo/frontend/checkInOutLogs.dart';
-import 'package:project_payroll_nextbpo/frontend/raw%20backend/userTimeInToday.dart';
+import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
+
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regular_overtime.dart';
-import 'package:project_payroll_nextbpo/frontend/raw%20backend/userdisplaycurrent.dart';
 
 class ScreensView extends StatelessWidget {
   final String menu;
@@ -51,13 +47,20 @@ class ScreensView extends StatelessWidget {
         /**buildDashboardPage(context) */
         break;
       case 'Overtime':
-        page = const Center(
-          child: Text(
-            "Dart Page",
-            style: TextStyle(
-              color: Color(0xFF171719),
-              fontSize: 22,
-            ),
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                flex: 1,
+                child: TopBar(),
+              ),
+              Flexible(
+                flex: 7,
+                child: Dashboard(),
+              ),
+            ],
           ),
         );
         break;
@@ -164,13 +167,13 @@ class ScreensView extends StatelessWidget {
               ),
               Flexible(
                 flex: 7,
-                child: buildLogsPage(),
+                child: AttendancePage(),
               ),
             ],
           ),
         );
         break;
-      case 'Account List':
+      case 'Add Account':
         page = buildAddAccountPage();
         break;
       case 'Calendar':
@@ -260,77 +263,42 @@ class ScreensView extends StatelessWidget {
         );
         break;
       default:
-        page = const Center(
-          child: Text(
-            "Other Page",
-            style: TextStyle(
-              color: Color(0xFF171719),
-              fontSize: 22,
-            ),
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                flex: 1,
+                child: TopBar(),
+              ),
+              Flexible(
+                flex: 7,
+                child: Dashboard(),
+              ),
+            ],
           ),
         );
     }
     return page;
   }
 
-  Widget buildDashboardPage(BuildContext context) {
-    return Container(
-      color: Color.fromARGB(0, 250, 249, 249),
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 20),
-          Expanded(
-            flex: 1, // Adjust the flex value for the Userdisplay widget
-            child: Userdisplay(),
-          ),
-          SizedBox(height: 20),
-          Expanded(
-            flex: 5, // Adjust the flex value for the calendar to make it bigger
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(width: 20),
-                Expanded(
-                  flex: 2,
-                  child: GestureDetector(
-                    onTap: () {
-                      _navigateToCalendarPageWithDialog(context);
-                    },
-                    child: CalendarPage(),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 20),
-          Expanded(
-            flex: 2, // Adjust the flex value for the UserTimedInToday widget
-            child: UserTimedInToday(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildLogsPage() {
-    return Container(
-      color: Colors.transparent,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Flexible(
-            child: Logs(),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget buildLogsPage() {
+  //   return Container(
+  //      color: Colors.transparent,
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Flexible(
+  //           child: Logs(),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget buildAddAccountPage() {
     return Container(
-      color: Colors.teal.shade700,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
