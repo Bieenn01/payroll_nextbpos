@@ -8,7 +8,6 @@ import 'package:project_payroll_nextbpo/backend/jsonfiles/regularOT.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/restDayOT.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/specialHolidayOT.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/attendace_page.dart';
-import 'package:project_payroll_nextbpo/frontend/dashboard/attendace_page2.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_page.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/holiday/holiday.dart';
@@ -164,7 +163,7 @@ class ScreensView extends StatelessWidget {
               ),
               Flexible(
                 flex: 7,
-                child: AttendacePage(),
+                child: AttendancePage(),
               ),
             ],
           ),
