@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:date_field/date_field.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/view_userDetails.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/add_users.dart';
@@ -28,10 +29,11 @@ class User {
   String taxCode;
   String employeeId;
   String mobilenum;
-
+  int salary;
   User(
       {required this.department,
       required this.email,
+      required this.salary,
       required this.endShift,
       required this.fname,
       required this.startShift,
@@ -67,6 +69,7 @@ class _UserState extends State<PovUser> {
   int index = 0;
 
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController salaryController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController middleNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
@@ -82,7 +85,7 @@ class _UserState extends State<PovUser> {
   String selectedDep = 'Select Department';
   String typeEmployee = 'Type of Employee';
 
-  String kaizarscoreEmail = "kaizarscore12@gmail.com";
+  
 
   @override
   void initState() {
@@ -394,7 +397,7 @@ class _UserState extends State<PovUser> {
                                         DataCell(Text(
                                             data['employeeId'].toString())),
                                         DataCell(Text(
-                                            '${data['fname']} ${data['lname']}')),
+                                            '${data['fname']} ${data['mname']} ${data['lname']}')),
                                         DataCell(
                                             Text(data['username'].toString())),
                                         DataCell(Text(
@@ -560,10 +563,14 @@ class _UserState extends State<PovUser> {
   void editUserDetails(String userId, Map<String, dynamic> userData) {
     TextEditingController firstNameController =
         TextEditingController(text: userData['fname']);
+         TextEditingController middleNameController =
+        TextEditingController(text: userData['mname']);
     TextEditingController lastNameController =
         TextEditingController(text: userData['lname']);
     TextEditingController usernameController =
         TextEditingController(text: userData['username']);
+          TextEditingController salaryController =
+        TextEditingController(text: userData['salary']);
     TextEditingController typeEmployeeController =
         TextEditingController(text: userData['typeEmployee']);
     TextEditingController departmentController =
@@ -591,12 +598,20 @@ class _UserState extends State<PovUser> {
                   controller: firstNameController,
                   decoration: const InputDecoration(labelText: 'First Name'),
                 ),
+                   TextFormField(
+                  controller: middleNameController,
+                  decoration: const InputDecoration(labelText: 'Middle Name'),
+                ),
                 TextFormField(
                   controller: lastNameController,
                   decoration: const InputDecoration(labelText: 'Last Name'),
                 ),
                 TextFormField(
                   controller: usernameController,
+                  decoration: const InputDecoration(labelText: 'Username'),
+                ),
+                 TextFormField(
+                  controller: salaryController,
                   decoration: const InputDecoration(labelText: 'Username'),
                 ),
                 TextFormField(
@@ -631,7 +646,9 @@ class _UserState extends State<PovUser> {
               onPressed: () async {
                 Map<String, dynamic> updatedUserData = {
                   'fname': firstNameController.text,
+                  'mname': middleNameController.text,
                   'lname': lastNameController.text,
+                  'salary': salaryController.text,
                   'username': usernameController.text,
                   'typeEmployee': typeEmployeeController.text,
                   'department': departmentController.text,
@@ -760,6 +777,28 @@ class _UserState extends State<PovUser> {
                               ),
                             ],
                           ),
+                            const SizedBox(
+                            width: 10,
+                          ),
+                             Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('MIddle Name'),
+                              Container(
+                                width: 280,
+                                height: 40,
+                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                decoration: boxdecoration(),
+                                child: TextField(
+                                  controller: middleNameController,
+                                  decoration: const InputDecoration(
+                                      labelText: 'Enter Middle Name',
+                                      border: InputBorder.none),
+                                ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(
                             width: 10,
                           ),
@@ -785,7 +824,16 @@ class _UserState extends State<PovUser> {
                           const SizedBox(
                             width: 10,
                           ),
-                          Column(
+                          
+                        ],
+                      ),
+                      const SizedBox(height: 15),
+                        Row(
+                        children: [
+                          const SizedBox(
+                            width: 10,
+                          ),
+                         Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -825,9 +873,35 @@ class _UserState extends State<PovUser> {
                               ),
                             ],
                           ),
+                              const SizedBox(
+                            width: 10,
+                          ),
+                    Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Salary'),
+        Container(
+          width: 280,
+          height: 40,
+          padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
+          decoration: boxdecoration(),
+          child: TextField(
+            controller: salaryController,
+            keyboardType: TextInputType.number, // Set keyboard type to number
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.digitsOnly // Accept only digits
+            ],
+            decoration: const InputDecoration(
+              labelText: 'Enter Salary',
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+      ],
+    ),
                         ],
                       ),
-                      const SizedBox(height: 15),
                       Text(
                         'Employment Information :',
                         style: catergoryStyle(),
@@ -868,10 +942,10 @@ class _UserState extends State<PovUser> {
                                     });
                                   },
                                   dropdownMenuEntries: [
-                                    'Select Department',
                                     'IT',
                                     'HR',
-                                    'Security'
+                                    'ACCOUNTANCY',
+                                    'SERVICING'
                                   ].map<DropdownMenuEntry<String>>(
                                       (String value) {
                                     return DropdownMenuEntry<String>(
@@ -914,9 +988,8 @@ class _UserState extends State<PovUser> {
                                     });
                                   },
                                   dropdownMenuEntries: [
-                                    'Select Role',
+                                    'Employee',
                                     'Admin',
-                                    'Employee'
                                   ].map<DropdownMenuEntry<String>>(
                                       (String value) {
                                     return DropdownMenuEntry<String>(
@@ -956,7 +1029,6 @@ class _UserState extends State<PovUser> {
                                     });
                                   },
                                   dropdownMenuEntries: [
-                                    'Type of Employee',
                                     'Regular',
                                     'Contractual'
                                   ].map<DropdownMenuEntry<String>>(
@@ -979,7 +1051,7 @@ class _UserState extends State<PovUser> {
                                 'Shift',
                                 style: textStyle,
                               ),
-                              Row(
+                              Column(
                                 children: [
                                   Container(
                                     width: 120,
@@ -1031,6 +1103,7 @@ class _UserState extends State<PovUser> {
                       const SizedBox(
                         height: 20,
                       ),
+                  
                       Text(
                         'Tax and Identification Information',
                         style: catergoryStyle(),
@@ -1175,7 +1248,7 @@ class _UserState extends State<PovUser> {
                                 padding: EdgeInsets.all(8),
                                 decoration: boxdecoration(),
                                 child: TextField(
-                                  controller: taxCodeController,
+                                  controller: usernameController,
                                   decoration: const InputDecoration(
                                     border: InputBorder.none,
                                     labelText: 'Enter Username',
@@ -1340,6 +1413,7 @@ class _UserState extends State<PovUser> {
           email: emailController.text, password: passwordController.text);
       // Create the user object with the entered data
       User newUser = User(
+        salary: int.parse(salaryController.text),
         department: selectedDep,
         fname: firstNameController.text,
         mname: middleNameController.text,
@@ -1355,9 +1429,11 @@ class _UserState extends State<PovUser> {
         taxCode: taxCodeController.text,
         employeeId: employeeIdController.text,
         mobilenum: mobilenumController.text,
+        
       );
 
       await addUser(
+        newUser.salary,
         newUser.username,
         newUser.fname,
         newUser.mname,

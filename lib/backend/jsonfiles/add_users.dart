@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 Future<void> addUser(
+  int salary, 
   String username,
   String fname,
   String mname,
@@ -16,16 +17,17 @@ Future<void> addUser(
   String tin,
   String taxCode,
   String employeeId,
-  String mobilenum, 
+  String mobilenum,
 ) async {
   try {
     // Use the current user's UID as the document ID
     final docUser = FirebaseFirestore.instance
-      .collection('User')
-      .doc(FirebaseAuth.instance.currentUser!.uid);
-    
+        .collection('User')
+        .doc(FirebaseAuth.instance.currentUser!.uid);
+
     // Set user data to Firestore document
     await docUser.set({
+      'salary': salary, // Parse salary as an integer
       'username': username,
       'fname': fname,
       'mname': mname,
