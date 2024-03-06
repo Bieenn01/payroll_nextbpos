@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/main_calendar.dart';
-import 'package:project_payroll_nextbpo/backend/dashboardFunc/check_in_out_logs.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/regularHolidayOT.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/regularOT.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/restDayOT.dart';
@@ -18,9 +17,7 @@ import 'package:project_payroll_nextbpo/frontend/overtime%20bar/specialh_overtim
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/top_bar.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 
-
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regular_overtime.dart';
-
 
 class ScreensView extends StatelessWidget {
   final String menu;
@@ -157,10 +154,11 @@ class ScreensView extends StatelessWidget {
           ),
         );
         break;
+
       case 'Logs':
-        page = Container( 
+        page = Container(
           color: Colors.teal.shade700,
-          child: const Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Flexible(
@@ -285,20 +283,19 @@ class ScreensView extends StatelessWidget {
     return page;
   }
 
-
-  Widget buildLogsPage() {
-    return Container(
-       color: Colors.transparent,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Flexible(
-            child: Logs(),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget buildLogsPage() {
+  //   return Container(
+  //      color: Colors.transparent,
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Flexible(
+  //           child: Logs(),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget buildAddAccountPage() {
     return Container(
