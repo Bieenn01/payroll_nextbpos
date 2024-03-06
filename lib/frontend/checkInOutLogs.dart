@@ -39,27 +39,6 @@ class _LogsState extends State<Logs> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                Container(
-                  width: 500,
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  height: 35,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search User Name',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      prefixIcon: Icon(Icons.search, color: Colors.grey),
-                      border: InputBorder.none,
-                    ),
-                    onChanged: (value) {
-                      setState(() {});
-                    },
-                  ),
-                ),
                 SizedBox(width: 20),
                 Text('From:'),
                 SizedBox(width: 10),
@@ -111,6 +90,28 @@ class _LogsState extends State<Logs> {
                     });
                   },
                   child: Text('Show All Data'),
+                ),
+                SizedBox(width: 20),
+                Container(
+                  width: 500,
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  height: 35,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search User Name',
+                      hintStyle: TextStyle(color: Colors.grey),
+                      prefixIcon: Icon(Icons.search, color: Colors.grey),
+                      border: InputBorder.none,
+                    ),
+                    onChanged: (value) {
+                      setState(() {});
+                    },
+                  ),
                 ),
               ],
             ),
