@@ -1,28 +1,75 @@
-import 'dart:ui';
+import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_field/date_field.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:intl/intl.dart';
 
 class TopBar extends StatefulWidget {
-  const TopBar({super.key});
+  const TopBar({Key? key});
 
   @override
   State<TopBar> createState() => _TopBarState();
 }
 
 class _TopBarState extends State<TopBar> {
+  late StreamSubscription<DocumentSnapshot> _subscription;
+  late String _userName = 'Guest';
+  late String _role = 'Guest';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchFirstName();
+    _fetchRole();
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchFirstName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user.uid)
+          .get();
+
+      setState(() {
+        _userName = docSnapshot['fname'];
+      });
+    }
+  }
+
+    Future<void> _fetchRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user.uid)
+          .get();
+
+      setState(() {
+        _role = docSnapshot['role'];
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final DateTime now = DateTime.now();
-    final DateFormat Dayformatter = DateFormat('EEEE');
+    final DateFormat dayFormatter = DateFormat('EEEE');
     final DateFormat formatter = DateFormat.jm();
-    final DateFormat dformatter = DateFormat('EEEE, MMM d, ' 'yyyy ');
+    final DateFormat dateFormatter = DateFormat('EEEE, MMM d, ' 'yyyy ');
     final String timeFormat = formatter.format(now);
-    final String DayFormat = Dayformatter.format(now);
-    final String date = dformatter.format(now);
+    final String dayFormat = dayFormatter.format(now);
+    final String date = dateFormatter.format(now);
 
     return Scaffold(
       body: Container(
@@ -84,7 +131,7 @@ class _TopBarState extends State<TopBar> {
                       border: Border(
                           left:
                               BorderSide(color: Colors.grey.withOpacity(0.5)))),
-                  child: const Row(
+                  child: Row(
                     children: [
                       CircleAvatar(
                         child: Icon(
@@ -99,13 +146,15 @@ class _TopBarState extends State<TopBar> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Dahnica Tedlos',
+                            _userName,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text('Super Admin'),
+                          Text(
+                            _role
+                          ),
                         ],
                       ),
                       SizedBox(width: 10),

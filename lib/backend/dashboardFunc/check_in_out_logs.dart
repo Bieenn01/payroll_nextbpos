@@ -11,7 +11,6 @@ class _LogsState extends State<Logs> {
   late Stream<QuerySnapshot> _userRecordsStream;
   TextEditingController _searchController = TextEditingController();
   String _selectedDepartment = '';
-  int index2 = 0;
 
   @override
   void initState() {
@@ -107,40 +106,32 @@ class _LogsState extends State<Logs> {
                       rows: filteredDocs.map((DocumentSnapshot document) {
                         Map<String, dynamic> data =
                             document.data() as Map<String, dynamic>;
-                        Color? rowColor = index2 % 2 == 0
-                            ? Colors.white
-                            : Colors.grey[200]; // Alternating row colors
-                        index2++; //
-                        return DataRow(
-                            color: MaterialStateColor.resolveWith(
-                                (states) => rowColor!),
-                            cells: [
-                              DataCell(
-                                Container(
-                                  width: 100, // Adjust the width as needed
-                                  child: Text(data['userName'] ?? 'Unknown'),
-                                ),
-                              ),
-                              DataCell(
-                                Container(
-                                  width: 150, // Adjust the width as needed
-                                  child: Text(_formatTimestamp(data['timeIn'])),
-                                ),
-                              ),
-                              DataCell(
-                                Container(
-                                  width: 150, // Adjust the width as needed
-                                  child:
-                                      Text(_formatTimestamp(data['timeOut'])),
-                                ),
-                              ),
-                              DataCell(
-                                Container(
-                                  width: 100, // Adjust the width as needed
-                                  child: Text(data['department'] ?? 'Unknown'),
-                                ),
-                              ),
-                            ]);
+                        return DataRow(cells: [
+                          DataCell(
+                            Container(
+                              width: 100, // Adjust the width as needed
+                              child: Text(data['userName'] ?? 'Unknown'),
+                            ),
+                          ),
+                          DataCell(
+                            Container(
+                              width: 150, // Adjust the width as needed
+                              child: Text(_formatTimestamp(data['timeIn'])),
+                            ),
+                          ),
+                          DataCell(
+                            Container(
+                              width: 150, // Adjust the width as needed
+                              child: Text(_formatTimestamp(data['timeOut'])),
+                            ),
+                          ),
+                          DataCell(
+                            Container(
+                              width: 100, // Adjust the width as needed
+                              child: Text(data['department'] ?? 'Unknown'),
+                            ),
+                          ),
+                        ]);
                       }).toList(),
                     );
                   },

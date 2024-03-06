@@ -158,8 +158,10 @@ class SidebarMenu extends StatelessWidget {
                                                         width: 6,
                                                       ),
                                                       Text(
-                                                        node.key,
-                                                        style: const TextStyle(
+                                                        node.key == "/"
+                                                            ? "Menu"
+                                                            : node.key,
+                                                        style: TextStyle(
                                                           color: Colors.black,
                                                           fontSize: 18,
                                                         ),
