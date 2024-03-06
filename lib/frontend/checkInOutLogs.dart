@@ -9,7 +9,6 @@ class Logs extends StatefulWidget {
 
 class _LogsState extends State<Logs> {
   late Stream<QuerySnapshot> _userRecordsStream;
-  int index = 0;
   late int _perPage;
   late int _currentPage;
   late int _totalPages;

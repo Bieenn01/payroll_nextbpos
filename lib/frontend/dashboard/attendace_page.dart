@@ -91,7 +91,7 @@ class _AttendancePageState extends State<AttendancePage> {
                                 },
                                 child: Text(_startDate != null
                                     ? DateFormat('yyyy-MM-dd')
-                                        .format(_startDate!)
+                                    .format(_startDate!)
                                     : 'Select Date'),
                               ),
                               SizedBox(width: 20),
@@ -133,11 +133,11 @@ class _AttendancePageState extends State<AttendancePage> {
                                       padding: EdgeInsets.all(3),
                                       decoration: BoxDecoration(
                                           borderRadius:
-                                              BorderRadius.circular(8),
+                                          BorderRadius.circular(8),
                                           color: Colors.teal.shade900),
                                       child: const Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        MainAxisAlignment.spaceBetween,
                                         children: [
                                           Icon(
                                             Icons.filter_list,
@@ -149,7 +149,7 @@ class _AttendancePageState extends State<AttendancePage> {
                                           Text(
                                             'Filter',
                                             style:
-                                                TextStyle(color: Colors.white),
+                                            TextStyle(color: Colors.white),
                                           )
                                         ],
                                       ),
@@ -213,12 +213,13 @@ class _AttendancePageState extends State<AttendancePage> {
                             );
                           }
 
-                          var filteredDocs = snapshot.data!.where((document) {
+                          var filteredDocs =
+                          snapshot.data!.where((document) {
                             String userName =
-                                (document.data() as Map)['userName'];
+                            (document.data() as Map)['userName'];
                             String query = _searchController.text.toLowerCase();
                             String department =
-                                (document.data() as Map)['department'] ?? '';
+                            (document.data() as Map)['department'] ?? '';
                             return userName.toLowerCase().contains(query) &&
                                 (_selectedDepartment.isEmpty ||
                                     department == _selectedDepartment);
@@ -230,10 +231,12 @@ class _AttendancePageState extends State<AttendancePage> {
                             endIndex = filteredDocs.length;
                           }
                           List<DocumentSnapshot> pageItems =
-                              filteredDocs.sublist(startIndex, endIndex);
+                          filteredDocs.sublist(startIndex, endIndex);
 
                           return ListView.builder(
-                            itemCount: pageItems.length + 1,
+                            itemCount:
+                                (pageItems.length / _itemsPerPage).ceil() + 1,
+                            
                             itemBuilder: (context, index) {
                               if (index == 0) {
                                 return Row(
@@ -241,18 +244,15 @@ class _AttendancePageState extends State<AttendancePage> {
                                   children: [
                                     DropdownButton<int>(
                                       value: _itemsPerPage,
-                                      items: [
-                                        5,
-                                        10,
-                                        15,
-                                        20,
-                                        25
-                                      ].map<DropdownMenuItem<int>>((int value) {
-                                        return DropdownMenuItem<int>(
-                                          value: value,
-                                          child: Text('$value'),
-                                        );
-                                      }).toList(),
+                                      items: [5, 10, 15, 20, 25]
+                                          .map<DropdownMenuItem<int>>(
+                                        (int value) {
+                                          return DropdownMenuItem<int>(
+                                            value: value,
+                                            child: Text('$value'),
+                                          );
+                                        },
+                                      ).toList(),
                                       onChanged: (int? newValue) {
                                         setState(() {
                                           _itemsPerPage = newValue!;
@@ -286,9 +286,12 @@ class _AttendancePageState extends State<AttendancePage> {
                                   ],
                                 );
                               } else {
-                                int dataIndex = index - 1;
-                                Map<String, dynamic> data = pageItems[dataIndex]
-                                    .data() as Map<String, dynamic>;
+                                int startIndex = (index - 1) * _itemsPerPage;
+                                int endIndex = startIndex + _itemsPerPage;
+                                if (endIndex > pageItems.length) {
+                                  endIndex = pageItems.length;
+                                }
+
                                 return DataTable(
                                   columns: [
                                     ColumnInput('Username'),
@@ -296,42 +299,36 @@ class _AttendancePageState extends State<AttendancePage> {
                                     ColumnInput('Time out'),
                                     ColumnInput('Department')
                                   ],
-                                  rows: [
-                                    DataRow(cells: [
-                                      DataCell(
-                                        Container(
-                                          width:
-                                              100, // Adjust the width as needed
-                                          child: Text(
-                                              data['userName'] ?? 'Unknown'),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        Container(
-                                          width:
-                                              150, // Adjust the width as needed
-                                          child: Text(
-                                              _formatTimestamp(data['timeIn'])),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        Container(
-                                          width:
-                                              150, // Adjust the width as needed
-                                          child: Text(_formatTimestamp(
-                                              data['timeOut'])),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        Container(
-                                          width:
-                                              100, // Adjust the width as needed
-                                          child: Text(
-                                              data['department'] ?? 'Unknown'),
-                                        ),
-                                      ),
-                                    ])
-                                  ],
+                                  rows: List<DataRow>.generate(
+                                      endIndex - startIndex, (i) {
+                                    int dataIndex = startIndex + i;
+                                    Map<String, dynamic> data =
+                                        pageItems[dataIndex].data()
+                                            as Map<String, dynamic>;
+
+                                    return DataRow(cells: [
+                                      DataCell(Container(
+                                        width: 100,
+                                        child:
+                                            Text(data['userName'] ?? 'Unknown'),
+                                      )),
+                                      DataCell(Container(
+                                        width: 150,
+                                        child: Text(
+                                            _formatTimestamp(data['timeIn'])),
+                                      )),
+                                      DataCell(Container(
+                                        width: 150,
+                                        child: Text(
+                                            _formatTimestamp(data['timeOut'])),
+                                      )),
+                                      DataCell(Container(
+                                        width: 100,
+                                        child: Text(
+                                            data['department'] ?? 'Unknown'),
+                                      )),
+                                    ]);
+                                  }),
                                 );
                               }
                             },

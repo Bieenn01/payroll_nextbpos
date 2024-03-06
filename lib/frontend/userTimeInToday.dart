@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -71,6 +70,7 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
               child: Text('No users timed in today.'),
             );
           }
+
           return Expanded(
             child: Container(
               width: MediaQuery.of(context).size.width,
