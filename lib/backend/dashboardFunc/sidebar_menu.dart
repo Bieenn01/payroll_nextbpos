@@ -32,13 +32,13 @@ class SidebarMenu extends StatelessWidget {
                   children: [
                     Container(
                       color: Colors.white,
-                      width: 250,
+                      width: 200,
                       child: Column(
                         children: [
                           // Widget at the top side of the sidebar (preference).
                           Container(
                             color: Colors.white,
-                            width: 250,
+                            width: 200,
                             child: const Padding(
                               padding: EdgeInsets.only(
                                 top: 15,

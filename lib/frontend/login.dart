@@ -164,18 +164,34 @@ class _LoginState extends State<Login> {
 
   login(BuildContext context) async {
     try {
-      UserCredential userCredential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(
-              email: emailController.text, password: passwordController.text);
+      // Query the users collection to find the user with the provided username
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .where('username', isEqualTo: usernameController.text)
+          .get();
 
-      // Get the user from the userCredential
-      User? user = userCredential.user;
+      if (querySnapshot.docs.isNotEmpty) {
+        // Assuming username is unique, there should be only one document
+        String email =
+            querySnapshot.docs.first['email']; // Fetch email from Firestore
+        String password =
+            passwordController.text; // Get password from the user input
 
-      if (user != null) {
-        // Navigate to the PovDashboard with only the userID
-        Navigator.of(context).pushReplacement(MaterialPageRoute(
-          builder: (context) => PovDashboard(userId: user.uid),
-        ));
+        // Sign in the user with fetched email and the provided password
+        UserCredential userCredential = await FirebaseAuth.instance
+            .signInWithEmailAndPassword(email: email, password: password);
+
+        // Get the user from the userCredential
+        User? user = userCredential.user;
+
+        if (user != null) {
+          // Navigate to the PovDashboard with only the userID
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (context) => PovDashboard(userId: user.uid),
+          ));
+        }
+      } else {
+        showToast("No user found with that username.");
       }
     } on FirebaseAuthException catch (e) {
       // Handle authentication exceptions

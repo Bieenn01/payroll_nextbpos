@@ -1,10 +1,12 @@
 import 'dart:ui';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_field/date_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:intl/intl.dart';
+import 'package:project_payroll_nextbpo/backend/widgets/toast_widget.dart';
 
 Future<dynamic> showSuccess(BuildContext context, text, text2) {
   return showDialog(
@@ -152,8 +154,11 @@ Future<dynamic> showError(BuildContext context, text, text2) {
   );
 }
 
-Future<dynamic> passwordVerification(BuildContext context) {
-  return showDialog(
+Future<bool> passwordVerification(BuildContext context) async {
+  String enteredPassword = '';
+  bool verificationSuccess = false;
+
+  dynamic result = await showDialog(
     context: context,
     barrierLabel: '',
     builder: (_) => AlertDialog(
@@ -165,19 +170,21 @@ Future<dynamic> passwordVerification(BuildContext context) {
             Padding(
               padding: const EdgeInsets.only(left: 250),
               child: IconButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  icon: Icon(Icons.close)),
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+                icon: Icon(Icons.close),
+              ),
             ),
             Container(
-                decoration:
-                    BoxDecoration(borderRadius: BorderRadius.circular(50)),
-                child: const Icon(
-                  Icons.info_rounded,
-                  color: Colors.blue,
-                  size: 80,
-                )),
+              decoration:
+                  BoxDecoration(borderRadius: BorderRadius.circular(50)),
+              child: const Icon(
+                Icons.info_rounded,
+                color: Colors.blue,
+                size: 80,
+              ),
+            ),
             const SizedBox(
               height: 15,
             ),
@@ -188,17 +195,19 @@ Future<dynamic> passwordVerification(BuildContext context) {
             Text(
               'Please enter the password to',
               style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic),
+                color: Colors.black,
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+              ),
             ),
             Text(
               ' proceed with deactivating an account',
               style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic),
-            )
+                color: Colors.black,
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
           ],
         ),
       ),
@@ -221,12 +230,19 @@ Future<dynamic> passwordVerification(BuildContext context) {
               width: 300,
               padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
               decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.black.withOpacity(0.5)),
-                  borderRadius: BorderRadius.circular(10)),
+                color: Colors.white,
+                border: Border.all(color: Colors.black.withOpacity(0.5)),
+                borderRadius: BorderRadius.circular(10),
+              ),
               child: TextField(
+                onChanged: (value) {
+                  enteredPassword = value;
+                },
+                obscureText: true,
                 decoration: InputDecoration(
-                    border: InputBorder.none, hintText: 'Enter Password'),
+                  border: InputBorder.none,
+                  hintText: 'Enter Password',
+                ),
               ),
             ),
             const SizedBox(
@@ -237,7 +253,7 @@ Future<dynamic> passwordVerification(BuildContext context) {
               children: [
                 ElevatedButton(
                   onPressed: (() {
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(false);
                   }),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey,
@@ -254,8 +270,25 @@ Future<dynamic> passwordVerification(BuildContext context) {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: (() {
-                    Navigator.of(context).pop();
+                  onPressed: (() async {
+                    // Access Firebase to verify password
+                    final CollectionReference users =
+                        FirebaseFirestore.instance.collection('User');
+                    final QuerySnapshot result = await users
+                        .where(users.id)
+                        .where('role', isEqualTo: 'Superadmin')
+                        .where('pinCode', isEqualTo: enteredPassword)
+                        .get();
+
+                    if (result.docs.isNotEmpty) {
+                      // Password matched
+                      verificationSuccess = true;
+                      Navigator.of(context).pop(true);
+                      // Proceed with deactivation
+                      // Perform your deactivation logic here
+                    } else {
+                      showToast("Incorrect PIN code.");
+                    }
                   }),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
@@ -278,4 +311,5 @@ Future<dynamic> passwordVerification(BuildContext context) {
       ),
     ),
   );
+  return verificationSuccess;
 }

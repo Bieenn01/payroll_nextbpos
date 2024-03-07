@@ -11,6 +11,9 @@ class _LogsState extends State<Logs> {
   late Stream<QuerySnapshot> _userRecordsStream;
   TextEditingController _searchController = TextEditingController();
   String _selectedDepartment = '';
+  DateTime? _startDate;
+  DateTime? _endDate;
+  int index = 0;
 
   @override
   void initState() {
@@ -37,29 +40,80 @@ class _LogsState extends State<Logs> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                Expanded(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    height: 35,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Search User Name',
-                        hintStyle: TextStyle(color: Colors.grey),
-                        prefixIcon: Icon(Icons.search, color: Colors.grey),
-                        border: InputBorder.none,
-                      ),
-                      onChanged: (value) {
-                        setState(() {});
-                      },
-                    ),
-                  ),
+                SizedBox(width: 20),
+                Text('From:'),
+                SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () async {
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: _startDate ?? DateTime.now(),
+                      firstDate: DateTime(2015, 8),
+                      lastDate: DateTime(2101),
+                    );
+                    if (picked != null && picked != _startDate) {
+                      setState(() {
+                        _startDate = picked;
+                      });
+                    }
+                  },
+                  child: Text(_startDate != null
+                      ? DateFormat('yyyy-MM-dd').format(_startDate!)
+                      : 'Select Date'),
                 ),
                 SizedBox(width: 20),
+                Text('To:'),
+                SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () async {
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: _endDate ?? DateTime.now(),
+                      firstDate: DateTime(2015, 8),
+                      lastDate: DateTime(2101),
+                    );
+                    if (picked != null && picked != _endDate) {
+                      setState(() {
+                        _endDate = picked;
+                      });
+                    }
+                  },
+                  child: Text(_endDate != null
+                      ? DateFormat('yyyy-MM-dd').format(_endDate!)
+                      : 'Select Date'),
+                ),
+                SizedBox(width: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _startDate = null;
+                      _endDate = null;
+                    });
+                  },
+                  child: Text('Show All Data'),
+                ),
+                SizedBox(width: 20),
+                Container(
+                  width: 500,
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  height: 35,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search User Name',
+                      hintStyle: TextStyle(color: Colors.grey),
+                      prefixIcon: Icon(Icons.search, color: Colors.grey),
+                      border: InputBorder.none,
+                    ),
+                    onChanged: (value) {
+                      setState(() {});
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -84,19 +138,25 @@ class _LogsState extends State<Logs> {
                 }
 
                 var filteredDocs = snapshot.data!.docs.where((document) {
-                  String userName = (document.data() as Map)['userName'];
+                  Map<String, dynamic> data =
+                      document.data() as Map<String, dynamic>;
+                  String userName = data['userName'];
                   String query = _searchController.text.toLowerCase();
-                  String department =
-                      (document.data() as Map)['department'] ?? '';
+                  String department = data['department'] ?? '';
+                  DateTime? timeIn = (data['timeIn'] as Timestamp?)?.toDate();
                   return userName.toLowerCase().contains(query) &&
                       (_selectedDepartment.isEmpty ||
-                          department == _selectedDepartment);
+                          department == _selectedDepartment) &&
+                      (_startDate == null || timeIn!.isAfter(_startDate!)) &&
+                      (_endDate == null ||
+                          timeIn!.isBefore(_endDate!.add(Duration(days: 1))));
                 }).toList();
 
-                return ListView.builder(
-                  itemCount: filteredDocs.length,
-                  itemBuilder: (context, index) {
-                    return DataTable(
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Container(
+                    alignment: Alignment.topLeft, // Set alignment to top left
+                    child: DataTable(
                       columns: [
                         DataColumn(label: Text('User Name')),
                         DataColumn(label: Text('Time In')),
@@ -106,35 +166,22 @@ class _LogsState extends State<Logs> {
                       rows: filteredDocs.map((DocumentSnapshot document) {
                         Map<String, dynamic> data =
                             document.data() as Map<String, dynamic>;
-                        return DataRow(cells: [
-                          DataCell(
-                            Container(
-                              width: 100, // Adjust the width as needed
-                              child: Text(data['userName'] ?? 'Unknown'),
-                            ),
-                          ),
-                          DataCell(
-                            Container(
-                              width: 150, // Adjust the width as needed
-                              child: Text(_formatTimestamp(data['timeIn'])),
-                            ),
-                          ),
-                          DataCell(
-                            Container(
-                              width: 150, // Adjust the width as needed
-                              child: Text(_formatTimestamp(data['timeOut'])),
-                            ),
-                          ),
-                          DataCell(
-                            Container(
-                              width: 100, // Adjust the width as needed
-                              child: Text(data['department'] ?? 'Unknown'),
-                            ),
-                          ),
-                        ]);
+                        Color? rowColor = index % 2 == 0
+                            ? Colors.white
+                            : Colors.grey[200]; // Alternating row colors
+                        index++; //
+                        return DataRow(
+                            color: MaterialStateColor.resolveWith(
+                                (states) => rowColor!),
+                            cells: [
+                              DataCell(Text(data['userName'] ?? 'Unknown')),
+                              DataCell(Text(_formatTimestamp(data['timeIn']))),
+                              DataCell(Text(_formatTimestamp(data['timeOut']))),
+                              DataCell(Text(data['department'] ?? 'Unknown')),
+                            ]);
                       }).toList(),
-                    );
-                  },
+                    ),
+                  ),
                 );
               },
             ),
@@ -149,7 +196,7 @@ class _LogsState extends State<Logs> {
 
     if (timestamp is Timestamp) {
       DateTime dateTime = timestamp.toDate();
-      return DateFormat('MMMM dd, yyyy HH:mm:ss:a').format(dateTime);
+      return DateFormat('MMMM dd, yyyy HH:mm:ss').format(dateTime);
     } else {
       return timestamp.toString();
     }

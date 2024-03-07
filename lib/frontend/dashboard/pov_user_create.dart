@@ -154,13 +154,14 @@ class _UserState extends State<PovUser> {
       body: Center(
         child: Container(
           color: Colors.teal.shade700,
-          padding: EdgeInsets.all(15),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
                 child: SingleChildScrollView(
                   child: Container(
+                    margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
+                    padding: EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(15),
@@ -171,43 +172,58 @@ class _UserState extends State<PovUser> {
                         Row(
                           children: [
                             Padding(
-                              padding: const EdgeInsets.all(15.0),
+                              padding: const EdgeInsets.all(10.0),
                               child: Text(
                                 "Account List",
                                 style: TextStyle(
-                                    fontSize: 25, fontWeight: FontWeight.bold),
+                                    fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ],
-                        ),
-                        Row(children: [
-                          Text('Show: '),
-                          DropdownButton<int>(
-                            value: _pageSize,
-                            items: [5, 10, 15, 25].map((value) {
-                              return DropdownMenuItem<int>(
-                                value: value,
-                                child: Text(value.toString()),
-                              );
-                            }).toList(),
-                            onChanged: (newValue) {
-                              setState(() {
-                                _pageSize = newValue!;
-                                _currentPage =
-                                    1; // Reset page number when changing page size
-                                _fetchUsersWithPagination(_pageSize, null);
-                              });
-                            },
-                          ),
-                        ]),
-                        SizedBox(
-                          height: 10,
                         ),
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 10),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
+                              Flexible(
+                                child: Container(
+                                  height: 30,
+                                  child: Row(children: [
+                                    Text('Show entries: '),
+                                    Container(
+                                      width: 70,
+                                      height: 30,
+                                      padding: EdgeInsets.only(left: 10),
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border: Border.all(
+                                              color: Colors.grey.shade200)),
+                                      child: DropdownButton<int>(
+                                        padding: EdgeInsets.all(5),
+                                        underline: SizedBox(),
+                                        value: _pageSize,
+                                        items: [5, 10, 15, 25].map((value) {
+                                          return DropdownMenuItem<int>(
+                                            value: value,
+                                            child: Text(value.toString()),
+                                          );
+                                        }).toList(),
+                                        onChanged: (newValue) {
+                                          setState(() {
+                                            _pageSize = newValue!;
+                                            _currentPage =
+                                                1; // Reset page number when changing page size
+                                            _fetchUsersWithPagination(
+                                                _pageSize, null);
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ]),
+                                ),
+                              ),
                               Flexible(
                                 child: Container(
                                   height: 30,
@@ -299,7 +315,6 @@ class _UserState extends State<PovUser> {
                             ],
                           ),
                         ),
-                        SizedBox(height: 10),
                         Divider(),
                         FutureBuilder(
                           future: _fetchUsers(_pageSize, _lastVisibleSnapshot),
@@ -317,181 +332,200 @@ class _UserState extends State<PovUser> {
                               return Text('No users found.');
                             }
                             return SizedBox(
-                                height: 500,
-                                child: Expanded(
-                                    child: SingleChildScrollView(
-                                        scrollDirection: Axis.vertical,
-                                        child: SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
-                                          child: DataTable(
-                                            columns: const [
-                                              DataColumn(
-                                                label: Text('#',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                              ),
-                                              DataColumn(
-                                                label: Text('ID',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                              ),
-                                              DataColumn(
-                                                label: Text('Name',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                              ),
-                                              DataColumn(
-                                                label: Text('Username',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                              ),
-                                              DataColumn(
-                                                label: Text('Type',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                              ),
-                                              DataColumn(
-                                                label: Text('Department',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                              ),
-                                              DataColumn(
-                                                label: Text('Shift',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                              ),
+                                height: 600,
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.vertical,
+                                  child: DataTable(
+                                    columns: const [
+                                      DataColumn(
+                                        label: Text('#',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                      DataColumn(
+                                        label: Text('ID',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                      DataColumn(
+                                        label: Text('Name',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                      DataColumn(
+                                        label: Text('Username',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                      DataColumn(
+                                        label: Text('Type',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                      DataColumn(
+                                        label: Text('Department',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                      DataColumn(
+                                        label: Text('Shift',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                      ),
 
-                                              DataColumn(
-                                                label: Text('Active Status',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                              ),
-                                              DataColumn(
-                                                label: Text('Action',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                              ),
-                                              // Added column for Status
-                                            ],
-                                            rows: snapshot.data!.docs.map(
-                                                (DocumentSnapshot document) {
-                                              Map<String, dynamic> data =
-                                                  document.data()!
-                                                      as Map<String, dynamic>;
-                                              DateTime? startShift =
-                                                  data['startShift'] != null
-                                                      ? (data['startShift']
-                                                              as Timestamp)
-                                                          .toDate()
-                                                      : null;
-                                              String shift =
-                                                  getShiftText(startShift);
-                                              String userId = document.id;
-                                              bool isActive =
-                                                  data['isActive'] ?? false;
+                                      DataColumn(
+                                        label: Text('Active Status',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                      DataColumn(
+                                        label: Text('Action',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                      // Added column for Status
+                                    ],
+                                    rows: snapshot.data!.docs
+                                        .map((DocumentSnapshot document) {
+                                      Map<String, dynamic> data = document
+                                          .data()! as Map<String, dynamic>;
+                                      DateTime? startShift =
+                                          data['startShift'] != null
+                                              ? (data['startShift']
+                                                      as Timestamp)
+                                                  .toDate()
+                                              : null;
+                                      String shift = getShiftText(startShift);
+                                      String userId = document.id;
+                                      bool isActive = data['isActive'] ?? false;
 
-                                              Color? rowColor = index % 2 == 0
-                                                  ? Colors.white
-                                                  : Colors.grey[
-                                                      200]; // Alternating row colors
-                                              index++; //
+                                      Color? rowColor = index % 2 == 0
+                                          ? Colors.white
+                                          : Colors.grey[
+                                              200]; // Alternating row colors
+                                      index++; //
 
-                                              return DataRow(
-                                                  color: MaterialStateColor
-                                                      .resolveWith((states) =>
-                                                          rowColor!),
-                                                  cells: [
-                                                    DataCell(
-                                                        Text(index.toString())),
-                                                    DataCell(Text(
-                                                        data['employeeId']
-                                                            .toString())),
-                                                    DataCell(Text(
-                                                        '${data['fname']} ${data['mname']} ${data['lname']}')),
-                                                    DataCell(Text(
-                                                        data['username']
-                                                            .toString())),
-                                                    DataCell(Text(
-                                                        data['typeEmployee']
-                                                            .toString())),
-                                                    DataCell(Text(
-                                                        data['department']
-                                                            .toString())),
-                                                    DataCell(Text(shift)),
-                                                    DataCell(
-                                                      Switch(
-                                                        activeColor:
-                                                            Colors.green,
-                                                        value: isActive,
-                                                        onChanged: (value) {
-                                                          updateAccountStatus(
-                                                              userId, value);
-                                                        },
-                                                      ),
+                                      return DataRow(
+                                          color: MaterialStateColor.resolveWith(
+                                              (states) => rowColor!),
+                                          cells: [
+                                            DataCell(Text(index.toString())),
+                                            DataCell(Text(
+                                                data['employeeId'].toString())),
+                                            DataCell(Text(
+                                                '${data['fname']} ${data['mname']} ${data['lname']}')),
+                                            DataCell(Text(
+                                                data['username'].toString())),
+                                            DataCell(Text(data['typeEmployee']
+                                                .toString())),
+                                            DataCell(Text(
+                                                data['department'].toString())),
+                                            DataCell(Text(shift)),
+                                            DataCell(
+                                              Switch(
+                                                value: isActive,
+                                                activeColor: Colors.green,
+                                                onChanged: (value) async {
+                                                  if (!value) {
+                                                    // Perform password verification only when deactivating the account
+                                                    bool verificationResult =
+                                                        await passwordVerification(
+                                                            context);
+                                                    showToast(
+                                                        "User Deactivated");
+
+                                                    // Check if verification was successful before updating the account status
+                                                    if (verificationResult) {
+                                                      // If verification is successful, update the account status
+                                                      updateAccountStatus(
+                                                          userId, value);
+                                                    } else {
+                                                      // Handle the scenario when verification is unsuccessful or canceled
+                                                      // For example, show a message to the user or perform other actions
+                                                    }
+                                                  } else {
+                                                    // If activating the account, directly update the account status
+                                                    updateAccountStatus(
+                                                        userId, value);
+                                                    showToast("User Activated");
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                            DataCell(
+                                              Container(
+                                                width: 100,
+                                                child: ElevatedButton(
+                                                  onPressed: () {
+                                                    editUserDetails(
+                                                        userId, data);
+                                                  },
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
                                                     ),
-                                                    DataCell(
-                                                      Container(
-                                                        width: 100,
-                                                        child: ElevatedButton(
-                                                          onPressed: () {
-                                                            editUserDetails(
-                                                                userId, data);
-                                                          },
-                                                          style: ElevatedButton
-                                                              .styleFrom(),
-                                                          child: const Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .spaceBetween,
-                                                            children: [
-                                                              Icon(
-                                                                Icons
-                                                                    .edit_document,
-                                                                color:
-                                                                    Colors.blue,
-                                                                size: 18,
-                                                              ),
-                                                              Text(
-                                                                'Edit',
-                                                                style: TextStyle(
-                                                                    color: Colors
-                                                                        .blue),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
+                                                  ),
+                                                  child: const Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.edit_document,
+                                                        color: Colors.blue,
+                                                        size: 18,
                                                       ),
-                                                    ),
-                                                  ]);
-                                            }).toList(),
-                                          ),
-                                        ))));
+                                                      Text(
+                                                        'Edit',
+                                                        style: TextStyle(
+                                                            color: Colors.blue),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ]);
+                                    }).toList(),
+                                  ),
+                                ));
                           },
                         ),
-                        SizedBox(height: 20),
                         Divider(),
-                        SizedBox(height: 20),
+                        SizedBox(height: 5),
                         Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               ElevatedButton(
                                 onPressed: _previousPage,
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
                                 child: Text('Previous'),
                               ),
                               SizedBox(width: 10),
-                              Text('Page $_currentPage'),
+                              Container(
+                                  height: 35,
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                          color: Colors.grey.shade200)),
+                                  child: Text('$_currentPage')),
                               SizedBox(width: 10),
                               ElevatedButton(
                                 onPressed: _nextPage,
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
                                 child: Text('Next'),
                               ),
                             ]),
@@ -575,13 +609,13 @@ class _UserState extends State<PovUser> {
     try {
       CollectionReference users = FirebaseFirestore.instance.collection('User');
 
-      await users.doc(userId).update({'isActive': isActive});
+      users.doc(userId).update({'isActive': isActive});
 
       setState(() {});
 
       // showSuccess(
       //     context, 'Status Update', 'Account status updated successfully.');
-      passwordVerification(context);
+
       print('Account status updated successfully.');
     } catch (e) {
       print('Error updating account status: $e');
