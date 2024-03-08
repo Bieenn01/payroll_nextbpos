@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/main_calendar.dart';
-import 'package:project_payroll_nextbpo/frontend/raw%20backend/userTimeInToday.dart';
+import 'package:project_payroll_nextbpo/frontend/dashboard/userTimeInToday.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({Key? key}) : super(key: key);
@@ -67,6 +67,7 @@ class _DashboardState extends State<Dashboard> {
                           flex: 4,
                           child: Container(
                             padding: const EdgeInsets.all(8),
+                            margin: EdgeInsets.fromLTRB(10, 10, 10, 10),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(15),
@@ -74,8 +75,6 @@ class _DashboardState extends State<Dashboard> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Text('Attendance Overview'),
-                                SizedBox(height: 5),
                                 Expanded(child: UserTimedInToday()),
                               ],
                             ),
