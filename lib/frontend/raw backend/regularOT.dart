@@ -11,6 +11,8 @@ class RegularOT extends StatefulWidget {
 
 class _RegularOTState extends State<RegularOT> {
   late List<String> _selectedOvertimeTypes;
+  DateTime? fromDate;
+  DateTime? toDate;
 
   @override
   void initState() {
@@ -335,5 +337,158 @@ class _RegularOTState extends State<RegularOT> {
         );
       },
     );
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isFromDate) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        if (isFromDate) {
+          fromDate = pickedDate;
+        } else {
+          toDate = pickedDate;
+        }
+      });
+    }
+  }
+
+  Future<void> _showConfirmationDialog4(DocumentSnapshot overtimeDoc) async {
+    String userId = overtimeDoc['userId'];
+    QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
+        .collection('Overtime')
+        .where('userId', isEqualTo: userId)
+        .get();
+
+    List<DocumentSnapshot> userOvertimeDocs = overtimeSnapshot.docs;
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Regular Overtime Logs'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoRow('ID', userId),
+                _buildInfoRow(
+                    'Name', overtimeDoc['userName'] ?? 'Not Available'),
+                _buildInfoRow(
+                    'Department', overtimeDoc['department'] ?? 'Not Available'),
+                SizedBox(height: 10),
+                _buildOvertimeTable(userOvertimeDocs),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Done'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label + ':', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text(value),
+      ],
+    );
+  }
+
+  Widget _buildOvertimeTable(List<DocumentSnapshot> overtimeDocs) {
+    // Sort documents by timestamp in descending order
+    overtimeDocs.sort((a, b) {
+      Timestamp aTimestamp = a['timeIn'];
+      Timestamp bTimestamp = b['timeIn'];
+      return bTimestamp.compareTo(aTimestamp);
+    });
+
+    return DataTable(
+      columns: [
+        DataColumn(label: Text('Date')),
+        DataColumn(label: Text('Time In')),
+        DataColumn(label: Text('Time Out')),
+        DataColumn(label: Text('Overtime Hours')),
+        DataColumn(label: Text('Overtime Minutes')),
+      ],
+      rows: overtimeDocs.map((overtimeDoc) {
+        return DataRow(cells: [
+          DataCell(Text(_formatDate(overtimeDoc['timeIn']))),
+          DataCell(Text(_formatTime(overtimeDoc['timeIn']))),
+          DataCell(Text(_formatTime(overtimeDoc['timeOut']))),
+          DataCell(Text(overtimeDoc['hours_overtime']?.toString() ??
+              'Not Available Yet')),
+          DataCell(Text(overtimeDoc['minute_overtime']?.toString() ??
+              'Not Available Yet')),
+        ]);
+      }).toList(),
+    );
+  }
+
+  String _formatTimestamp2(dynamic timestamp) {
+    if (timestamp == null) return '-------';
+
+    if (timestamp is Timestamp) {
+      DateTime dateTime = timestamp.toDate();
+      return DateFormat('MMMM dd, yyyy HH:mm:ss').format(dateTime);
+    } else {
+      return timestamp.toString();
+    }
+  }
+
+  String _formatDate(dynamic timestamp) {
+    if (timestamp == null) return '-------';
+
+    if (timestamp is Timestamp) {
+      DateTime dateTime = timestamp.toDate();
+      return DateFormat('MMMM d, yyyy').format(dateTime);
+    } else {
+      return timestamp.toString();
+    }
+  }
+
+  String _formatTime(dynamic timestamp) {
+    if (timestamp == null) return '-------';
+
+    if (timestamp is Timestamp) {
+      DateTime dateTime = timestamp.toDate();
+      return DateFormat('HH:mm:ss').format(dateTime);
+    } else {
+      return timestamp.toString();
+    }
+  }
+
+  Future<void> _selectDate2(BuildContext context, bool isFromDate) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        if (isFromDate) {
+          fromDate = pickedDate;
+        } else {
+          toDate = pickedDate;
+        }
+      });
+    }
   }
 }
