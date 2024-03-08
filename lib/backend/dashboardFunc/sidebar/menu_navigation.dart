@@ -18,6 +18,7 @@ import 'package:project_payroll_nextbpo/backend/dashboardFunc/top_bar.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regular_overtime.dart';
+import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regularOT.dart';
 
 class ScreensView extends StatelessWidget {
   final String menu;
@@ -47,7 +48,7 @@ class ScreensView extends StatelessWidget {
         /**buildDashboardPage(context) */
         break;
       case 'Overtime':
-        page = Container(
+        page = page = Container(
           color: Colors.teal.shade700,
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,7 +59,7 @@ class ScreensView extends StatelessWidget {
               ),
               Flexible(
                 flex: 7,
-                child: Dashboard(),
+                child: RegularOTPage(),
               ),
             ],
           ),
@@ -76,7 +77,7 @@ class ScreensView extends StatelessWidget {
               ),
               Flexible(
                 flex: 7,
-                child: RegularOT(),
+                child: RegularOTPage(),
               ),
             ],
           ),
