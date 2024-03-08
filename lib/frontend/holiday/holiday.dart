@@ -376,7 +376,7 @@ class _HolidayPageState extends State<HolidayPage> {
 
           const textStyle = TextStyle(fontWeight: FontWeight.bold);
           return Container(
-            height: 610,
+            height: 600,
             child: SingleChildScrollView(
               child: DataTable(
                 columns: const [

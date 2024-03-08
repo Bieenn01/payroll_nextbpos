@@ -401,7 +401,7 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
           const textStyle = TextStyle(fontWeight: FontWeight.bold);
 
           return SizedBox(
-            height: 610,
+            height: 600,
             child: SingleChildScrollView(
               child: DataTable(
                 columns: const [

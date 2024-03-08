@@ -56,7 +56,7 @@ class ScreensView extends StatelessWidget {
               ),
               Flexible(
                 flex: 7,
-                child: SpecialHolidayOTPage(),
+                child: RegularOTPage(),
               ),
             ],
           ),
