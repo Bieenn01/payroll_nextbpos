@@ -24,108 +24,120 @@ class _RegularOTState extends State<RegularOT> {
       appBar: AppBar(
         title: Text('Regular Overtime'),
       ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('Overtime').snapshots(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('No data available yet'));
-          } else {
-            List<DocumentSnapshot> overtimeDocs = snapshot.data!.docs;
-            // Sort documents by timestamp in descending order
-            overtimeDocs.sort((a, b) {
-              Timestamp aTimestamp = a['timeIn'];
-              Timestamp bTimestamp = b['timeIn'];
-              return bTimestamp.compareTo(aTimestamp);
-            });
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('ID')),
-                  DataColumn(label: Text('Name')),
-                  DataColumn(label: Text('Department')),
-                  DataColumn(label: Text('Time In')),
-                  DataColumn(label: Text('Time Out')),
-                  DataColumn(label: Text('Overtime Hours')),
-                  DataColumn(label: Text('Overtime Minute')),
-                  DataColumn(label: Text('Overtime Pay')),
-                  DataColumn(label: Text('Overtime Type')),
-                ],
-                rows: List.generate(overtimeDocs.length, (index) {
-                  DocumentSnapshot overtimeDoc = overtimeDocs[index];
-                  Map<String, dynamic> overtimeData =
-                      overtimeDoc.data() as Map<String, dynamic>;
-                  _selectedOvertimeTypes.add('Regular');
-                  return DataRow(cells: [
-                    DataCell(Text(overtimeDoc.id)),
-                    DataCell(
-                      Text(overtimeData['userName'] ?? 'Not Available Yet'),
+      body: Container(
+        color: Colors.teal.shade700,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            StreamBuilder(
+              stream:
+                  FirebaseFirestore.instance.collection('Overtime').snapshots(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.data!.docs.isEmpty) {
+                  return Center(child: Text('No data available yet'));
+                } else {
+                  List<DocumentSnapshot> overtimeDocs = snapshot.data!.docs;
+                  // Sort documents by timestamp in descending order
+                  overtimeDocs.sort((a, b) {
+                    Timestamp aTimestamp = a['timeIn'];
+                    Timestamp bTimestamp = b['timeIn'];
+                    return bTimestamp.compareTo(aTimestamp);
+                  });
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      columns: const [
+                        DataColumn(label: Text('ID')),
+                        DataColumn(label: Text('Name')),
+                        DataColumn(label: Text('Department')),
+                        DataColumn(label: Text('Time In')),
+                        DataColumn(label: Text('Time Out')),
+                        DataColumn(label: Text('Overtime Hours')),
+                        DataColumn(label: Text('Overtime Minute')),
+                        DataColumn(label: Text('Overtime Pay')),
+                        DataColumn(label: Text('Overtime Type')),
+                      ],
+                      rows: List.generate(overtimeDocs.length, (index) {
+                        DocumentSnapshot overtimeDoc = overtimeDocs[index];
+                        Map<String, dynamic> overtimeData =
+                            overtimeDoc.data() as Map<String, dynamic>;
+                        _selectedOvertimeTypes.add('Regular');
+                        return DataRow(cells: [
+                          DataCell(Text(overtimeDoc.id)),
+                          DataCell(
+                            Text(overtimeData['userName'] ??
+                                'Not Available Yet'),
+                          ),
+                          DataCell(
+                            Text(overtimeData['department'] ??
+                                'Not Available Yet'),
+                          ),
+                          DataCell(
+                            Text((_formatTimestamp(overtimeData['timeIn']))),
+                          ),
+                          DataCell(
+                            Text((_formatTimestamp(overtimeData['timeOut']))),
+                          ),
+                          DataCell(
+                            Text(overtimeData['hours_overtime']?.toString() ??
+                                'Not Available Yet'),
+                          ),
+                          DataCell(
+                            Text(overtimeData['minute_overtime']?.toString() ??
+                                'Not Available Yet'),
+                          ),
+                          DataCell(
+                            Text(overtimeData['overtimePay']?.toString() ??
+                                'Not Available Yet'),
+                          ),
+                          DataCell(
+                            DropdownButton<String>(
+                              value: _selectedOvertimeTypes[index],
+                              items: <String>[
+                                'Regular',
+                                'Special Holiday OT',
+                                'Regular Holiday OT',
+                                'Rest day OT'
+                              ].map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) async {
+                                if (newValue == 'Special Holiday OT') {
+                                  await _showConfirmationDialog(overtimeDoc);
+                                }
+                                setState(() {
+                                  _selectedOvertimeTypes[index] = newValue!;
+                                });
+                                if (newValue == 'Regular Holiday OT') {
+                                  await _showConfirmationDialog2(overtimeDoc);
+                                }
+                                setState(() {
+                                  _selectedOvertimeTypes[index] = newValue!;
+                                });
+                                if (newValue == 'Rest day OT') {
+                                  await _showConfirmationDialog3(overtimeDoc);
+                                }
+                                setState(() {
+                                  _selectedOvertimeTypes[index] = newValue!;
+                                });
+                              },
+                            ),
+                          ),
+                        ]);
+                      }),
                     ),
-                    DataCell(
-                      Text(overtimeData['department'] ?? 'Not Available Yet'),
-                    ),
-                    DataCell(
-                      Text((_formatTimestamp(overtimeData['timeIn']))),
-                    ),
-                    DataCell(
-                      Text((_formatTimestamp(overtimeData['timeOut']))),
-                    ),
-                    DataCell(
-                      Text(overtimeData['hours_overtime']?.toString() ??
-                          'Not Available Yet'),
-                    ),
-                    DataCell(
-                      Text(overtimeData['minute_overtime']?.toString() ??
-                          'Not Available Yet'),
-                    ),
-                    DataCell(
-                      Text(overtimeData['overtimePay']?.toString() ??
-                          'Not Available Yet'),
-                    ),
-                    DataCell(
-                      DropdownButton<String>(
-                        value: _selectedOvertimeTypes[index],
-                        items: <String>[
-                          'Regular',
-                          'Special Holiday OT',
-                          'Regular Holiday OT',
-                          'Rest day OT'
-                        ].map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) async {
-                          if (newValue == 'Special Holiday OT') {
-                            await _showConfirmationDialog(overtimeDoc);
-                          }
-                          setState(() {
-                            _selectedOvertimeTypes[index] = newValue!;
-                          });
-                          if (newValue == 'Regular Holiday OT') {
-                            await _showConfirmationDialog2(overtimeDoc);
-                          }
-                          setState(() {
-                            _selectedOvertimeTypes[index] = newValue!;
-                          });
-                          if (newValue == 'Rest day OT') {
-                            await _showConfirmationDialog3(overtimeDoc);
-                          }
-                          setState(() {
-                            _selectedOvertimeTypes[index] = newValue!;
-                          });
-                        },
-                      ),
-                    ),
-                  ]);
-                }),
-              ),
-            );
-          }
-        },
+                  );
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
