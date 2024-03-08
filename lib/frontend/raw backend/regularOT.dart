@@ -42,7 +42,7 @@ class _RegularOTState extends State<RegularOT> {
             return SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: DataTable(
-                columns: [
+                columns: const [
                   DataColumn(label: Text('ID')),
                   DataColumn(label: Text('Name')),
                   DataColumn(label: Text('Department')),
