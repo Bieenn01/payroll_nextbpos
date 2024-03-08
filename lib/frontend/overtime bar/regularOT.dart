@@ -387,7 +387,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
                                 TextStyle(fontWeight: FontWeight.bold);
 
                             return SizedBox(
-                              height: 600,
+                              height: 610,
                               child: SingleChildScrollView(
                                 child: DataTable(
                                   columns: const [
@@ -539,43 +539,39 @@ class _RegularOTPageState extends State<RegularOTPage> {
                                             ),
                                           ),
                                           DataCell(
-                                            Center(
-                                              child: Container(
-                                                width: 100,
-                                                padding: EdgeInsets.all(0),
-                                                child: ElevatedButton(
-                                                  onPressed: () async {
-                                                    await _showConfirmationDialog4(
-                                                        overtimeDoc);
-                                                  },
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                    padding: EdgeInsets.all(5),
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
+                                            Container(
+                                              width: 100,
+                                              padding: EdgeInsets.all(0),
+                                              child: ElevatedButton(
+                                                onPressed: () async {
+                                                  await _showConfirmationDialog4(
+                                                      overtimeDoc);
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                  padding: EdgeInsets.all(5),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                ),
+                                                child: const Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceEvenly,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.visibility,
+                                                      color: Colors.blue,
+                                                      size: 15,
                                                     ),
-                                                  ),
-                                                  child: const Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceEvenly,
-                                                    children: [
-                                                      Icon(
-                                                        Icons.visibility,
-                                                        color: Colors.blue,
-                                                        size: 15,
-                                                      ),
-                                                      Text(
-                                                        'View Logs',
-                                                        style: TextStyle(
-                                                            fontSize: 10,
-                                                            color: Colors.blue),
-                                                      ),
-                                                    ],
-                                                  ),
+                                                    Text(
+                                                      'View Logs',
+                                                      style: TextStyle(
+                                                          fontSize: 10,
+                                                          color: Colors.blue),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
                                             ),

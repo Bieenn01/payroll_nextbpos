@@ -10,13 +10,12 @@ import 'package:project_payroll_nextbpo/frontend/dashboard/attendace_page.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_page.dart';
 import 'package:project_payroll_nextbpo/frontend/holiday/holiday.dart';
 import 'package:project_payroll_nextbpo/frontend/holiday/specialholiday.dart';
-
+import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restDayOT.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restday_overtime.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restspecial_overtime.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/specialh_overtime.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/top_bar.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
-
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regular_overtime.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regularOT.dart';
 
@@ -59,7 +58,7 @@ class ScreensView extends StatelessWidget {
               ),
               Flexible(
                 flex: 7,
-                child: RegularOTPage(),
+                child: RestDayOTPage(),
               ),
             ],
           ),
@@ -95,7 +94,7 @@ class ScreensView extends StatelessWidget {
               ),
               Flexible(
                 flex: 7,
-                child: RestdayOvertimePage(),
+                child: RestDayOTPage(),
               ),
             ],
           ),
