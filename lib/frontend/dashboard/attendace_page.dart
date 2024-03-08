@@ -69,7 +69,7 @@ class _AttendancePageState extends State<AttendancePage> {
                         Padding(
                           padding: const EdgeInsets.all(10.0),
                           child: Text(
-                            "Attendace Overview",
+                            "Attendace Overviewww",
                             style: TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.bold),
                           ),
