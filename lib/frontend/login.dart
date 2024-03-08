@@ -90,7 +90,7 @@ class _LoginState extends State<Login> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12)),
                         child: TextField(
-                          controller: emailController,
+                          controller: usernameController,
                           decoration: InputDecoration(
                               border: InputBorder.none,
                               labelText: 'Username',
