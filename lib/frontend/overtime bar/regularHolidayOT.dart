@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-class RestDayOTPage extends StatefulWidget {
-  const RestDayOTPage({Key? key}) : super(key: key);
+class RegularHolidayOTPage extends StatefulWidget {
+  const RegularHolidayOTPage({Key? key}) : super(key: key);
 
   @override
-  State<RestDayOTPage> createState() => _RestDayOTPage();
+  State<RegularHolidayOTPage> createState() => _RegularHolidayOTPage();
 }
 
-class _RestDayOTPage extends State<RestDayOTPage> {
+class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
   late List<String> _selectedOvertimeTypes;
   TextEditingController _searchController = TextEditingController();
   int _itemsPerPage = 5;
@@ -59,7 +59,7 @@ class _RestDayOTPage extends State<RestDayOTPage> {
                           Padding(
                             padding: const EdgeInsets.all(10.0),
                             child: Text(
-                              "Rest Day Overtime",
+                              "Regular Holiday Overtime",
                               style: TextStyle(
                                   fontSize: 20, fontWeight: FontWeight.bold),
                             ),
@@ -72,7 +72,36 @@ class _RestDayOTPage extends State<RestDayOTPage> {
                       SizedBox(height: 10),
                       Divider(),
                       SizedBox(height: 5),
-                      pagination(),
+                      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                        ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text('Previous'),
+                        ),
+                        SizedBox(width: 10),
+                        Container(
+                            height: 35,
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border:
+                                    Border.all(color: Colors.grey.shade200)),
+                            child: Text('$_currentPage')),
+                        SizedBox(width: 10),
+                        ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text('Next'),
+                        ),
+                      ]),
                       SizedBox(height: 20),
                     ],
                   )),
@@ -83,36 +112,201 @@ class _RestDayOTPage extends State<RestDayOTPage> {
     ));
   }
 
-  Row pagination() {
-    return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-      ElevatedButton(
-        onPressed: () {},
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        child: Text('Previous'),
-      ),
-      SizedBox(width: 10),
-      Container(
-          height: 35,
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade200)),
-          child: Text('$_currentPage')),
-      SizedBox(width: 10),
-      ElevatedButton(
-        onPressed: () {},
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        child: Text('Next'),
-      ),
-    ]);
+  Widget _buildTable() {
+    return StreamBuilder(
+      stream:
+          FirebaseFirestore.instance.collection('RegularHolidayOT').snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (!snapshot.hasData) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.data!.docs.isEmpty) {
+          return Center(child: Text('No data available yet'));
+        } else {
+          List<DocumentSnapshot> overtimeDocs = snapshot.data!.docs;
+
+          overtimeDocs = overtimeDocs.where((doc) {
+            DateTime timeIn = doc['timeIn'].toDate();
+            DateTime timeOut = doc['timeOut'].toDate();
+            if (fromDate != null && toDate != null) {
+              return timeIn.isAfter(fromDate!) &&
+                  timeOut.isBefore(toDate!.add(Duration(
+                      days: 1))); // Adjusted toDate to include end of the day
+            } else if (fromDate != null) {
+              return timeIn.isAfter(fromDate!);
+            } else if (toDate != null) {
+              return timeOut.isBefore(toDate!.add(Duration(
+                  days: 1))); // Adjusted toDate to include end of the day
+            }
+            return true;
+          }).toList();
+
+          // Sort documents by timestamp in descending order
+          overtimeDocs.sort((a, b) {
+            Timestamp aTimestamp = a['timeIn'];
+            Timestamp bTimestamp = b['timeIn'];
+            return bTimestamp.compareTo(aTimestamp);
+          });
+
+          const textStyle = TextStyle(fontWeight: FontWeight.bold);
+          return SizedBox(
+            height: 610,
+            child: SingleChildScrollView(
+              child: DataTable(
+                columns: const [
+                  DataColumn(label: Text('# ', style: textStyle)),
+                  DataColumn(label: Text('Employee ID', style: textStyle)),
+                  DataColumn(label: Text('Name', style: textStyle)),
+                  DataColumn(label: Text('Department', style: textStyle)),
+                  DataColumn(
+                      label: Text('Total Hours (h:m)', style: textStyle)),
+                  DataColumn(label: Text('Overtime Pay', style: textStyle)),
+                  DataColumn(label: Text('Overtime Type', style: textStyle)),
+                  DataColumn(label: Text('Action', style: textStyle)),
+                ],
+                rows: List.generate(overtimeDocs.length, (index) {
+                  DocumentSnapshot overtimeDoc = overtimeDocs[index];
+                  Map<String, dynamic> overtimeData =
+                      overtimeDoc.data() as Map<String, dynamic>;
+                  _selectedOvertimeTypes.add('Regular');
+                  FutureBuilder<double>(
+                    future: calculateRegularHolidayOT(
+                      overtimeData['userId'],
+                      Duration(
+                        hours: overtimeData['hours_overtime'],
+                        minutes: overtimeData['minute_overtime'],
+                      ),
+                    ),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Text(
+                            'Calculating...'); // Or any loading indicator
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        double overtimePay = snapshot.data ??
+                            0; // Use snapshot.data, default to 0 if null
+                        return Text(overtimePay.toStringAsFixed(2));
+                      }
+                    },
+                  );
+                  Color? rowColor = indexRow % 2 == 0
+                      ? Colors.white
+                      : Colors.grey[200]; // Alternating row colors
+                  indexRow++; //
+
+                  return DataRow(
+                      color:
+                          MaterialStateColor.resolveWith((states) => rowColor!),
+                      cells: [
+                        DataCell(Text('#')),
+                        DataCell(Text(overtimeDoc.id)),
+                        DataCell(
+                          Text(overtimeData['userName'] ?? 'Not Available Yet'),
+                        ),
+                        DataCell(
+                          Text(overtimeData['department'] ??
+                              'Not Available Yet'),
+                        ),
+                        DataCell(
+                          Container(
+                            width: 100,
+                            decoration:
+                                BoxDecoration(color: Colors.amber.shade200),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        overtimeData['hours_overtime']
+                                                ?.toString() ??
+                                            'Not Available Yet',
+                                        style: textStyle,
+                                      ),
+                                      Text(':'),
+                                      Text(
+                                        overtimeData['minute_overtime']
+                                                ?.toString() ??
+                                            'Not Available Yet',
+                                        style: textStyle,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Text(NumberFormat.currency(
+                                  locale: 'en_PH',
+                                  symbol: '₱ ',
+                                  decimalDigits: 2)
+                              .format(overtimeData['overtimePay'] ?? 0.0)),
+                        ),
+                        DataCell(
+                          DropdownButton<String>(
+                            value: _selectedOvertimeTypes[index],
+                            items: <String>[
+                              'Regular',
+                            ].map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) async {
+                              if (newValue == 'Regular') {
+                                await _showConfirmationDialog(overtimeDoc);
+                              }
+                              setState(() {
+                                _selectedOvertimeTypes[index] = newValue!;
+                              });
+                            },
+                          ),
+                        ),
+                        DataCell(
+                          Container(
+                            width: 100,
+                            padding: EdgeInsets.all(0),
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                await _showConfirmationDialog4(overtimeDoc);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.all(5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Icon(
+                                    Icons.visibility,
+                                    color: Colors.blue,
+                                    size: 15,
+                                  ),
+                                  Text(
+                                    'View Logs',
+                                    style: TextStyle(
+                                        fontSize: 10, color: Colors.blue),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ]);
+                }),
+              ),
+            ),
+          );
+        }
+      },
+    );
   }
 
   Container dateFilterSearchRow(BuildContext context, ButtonStyle styleFrom) {
@@ -339,205 +533,42 @@ class _RestDayOTPage extends State<RestDayOTPage> {
     );
   }
 
-  Widget _buildTable() {
-    return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection('RestdayOT').snapshots(),
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.data!.docs.isEmpty) {
-          return Center(child: Text('No data available yet'));
-        } else {
-          List<DocumentSnapshot> overtimeDocs = snapshot.data!.docs;
-
-          overtimeDocs = overtimeDocs.where((doc) {
-            DateTime timeIn = doc['timeIn'].toDate();
-            DateTime timeOut = doc['timeOut'].toDate();
-            if (fromDate != null && toDate != null) {
-              return timeIn.isAfter(fromDate!) &&
-                  timeOut.isBefore(toDate!.add(Duration(
-                      days: 1))); // Adjusted toDate to include end of the day
-            } else if (fromDate != null) {
-              return timeIn.isAfter(fromDate!);
-            } else if (toDate != null) {
-              return timeOut.isBefore(toDate!.add(Duration(
-                  days: 1))); // Adjusted toDate to include end of the day
-            }
-            return true;
-          }).toList();
-
-          // Sort documents by timestamp in descending order
-          overtimeDocs.sort((a, b) {
-            Timestamp aTimestamp = a['timeIn'];
-            Timestamp bTimestamp = b['timeIn'];
-            return bTimestamp.compareTo(aTimestamp);
-          });
-
-          const textStyle = TextStyle(fontWeight: FontWeight.bold);
-
-          return SizedBox(
-            height: 610,
-            child: SingleChildScrollView(
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('#', style: textStyle)),
-                  DataColumn(label: Text('Employee ID', style: textStyle)),
-                  DataColumn(label: Text('Name', style: textStyle)),
-                  DataColumn(label: Text('Department', style: textStyle)),
-                  DataColumn(
-                      label: Text('Total Hours (h:m)', style: textStyle)),
-                  DataColumn(label: Text('Overtime Pay', style: textStyle)),
-                  DataColumn(label: Text('Overtime Type', style: textStyle)),
-                  DataColumn(label: Text('Action', style: textStyle)),
-                ],
-                rows: List.generate(overtimeDocs.length, (index) {
-                  DocumentSnapshot overtimeDoc = overtimeDocs[index];
-                  Map<String, dynamic> overtimeData =
-                      overtimeDoc.data() as Map<String, dynamic>;
-                  _selectedOvertimeTypes.add('Regular');
-                  FutureBuilder<double>(
-                    future: calculateRestDayOT(
-                      overtimeData['userId'],
-                      Duration(
-                        hours: overtimeData['hours_overtime'],
-                        minutes: overtimeData['minute_overtime'],
-                      ),
-                    ),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Text(
-                            'Calculating...'); // Or any loading indicator
-                      } else if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      } else {
-                        double overtimePay = snapshot.data ??
-                            0; // Use snapshot.data, default to 0 if null
-                        return Text(overtimePay.toStringAsFixed(2));
-                      }
-                    },
-                  );
-                  Color? rowColor = indexRow % 2 == 0
-                      ? Colors.white
-                      : Colors.grey[200]; // Alternating row colors
-                  indexRow++; //
-
-                  return DataRow(
-                      color:
-                          MaterialStateColor.resolveWith((states) => rowColor!),
-                      cells: [
-                        DataCell(Text('#')),
-                        DataCell(Text(overtimeDoc.id)),
-                        DataCell(
-                          Text(overtimeData['userName'] ?? 'Not Available Yet'),
-                        ),
-                        DataCell(
-                          Text(overtimeData['department'] ??
-                              'Not Available Yet'),
-                        ),
-                        DataCell(
-                          Container(
-                            width: 100,
-                            decoration:
-                                BoxDecoration(color: Colors.amber.shade200),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        overtimeData['hours_overtime']
-                                                ?.toString() ??
-                                            'Not Available Yet',
-                                        style: textStyle,
-                                      ),
-                                      Text(':'),
-                                      Text(
-                                        overtimeData['minute_overtime']
-                                                ?.toString() ??
-                                            'Not Available Yet',
-                                        style: textStyle,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                          Text(NumberFormat.currency(
-                                  locale: 'en_PH',
-                                  symbol: '₱ ',
-                                  decimalDigits: 2)
-                              .format(overtimeData['overtimePay'] ?? 0.0)),
-                        ),
-                        DataCell(
-                          DropdownButton<String>(
-                            value: _selectedOvertimeTypes[index],
-                            items: <String>[
-                              'Regular',
-                            ].map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                            onChanged: (String? newValue) async {
-                              if (newValue == 'Regular') {
-                                await moveRecordToRegularOT(overtimeDoc);
-                                await deleteRecordFromRestdayOT(overtimeDoc);
-                              }
-                              setState(() {
-                                _selectedOvertimeTypes[index] = newValue!;
-                              });
-                            },
-                          ),
-                        ),
-                        DataCell(
-                          Container(
-                            width: 100,
-                            padding: EdgeInsets.all(0),
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                await _showConfirmationDialog4(overtimeDoc);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                padding: EdgeInsets.all(5),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Icon(
-                                    Icons.visibility,
-                                    color: Colors.blue,
-                                    size: 15,
-                                  ),
-                                  Text(
-                                    'View Logs',
-                                    style: TextStyle(
-                                        fontSize: 10, color: Colors.blue),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ]);
-                }),
-              ),
+  Future<void> _showConfirmationDialog(DocumentSnapshot overtimeDoc) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button for close dialog!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmation'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Are you sure you want to proceed?'),
+              ],
             ),
-          );
-        }
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Confirm'),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await moveRecordToRegularOT(overtimeDoc);
+                await deleteRecordFromSpecialOT(overtimeDoc);
+              },
+            ),
+          ],
+        );
       },
     );
   }
 
-  Future<double> calculateRestDayOT(
+  Future<double> calculateRegularHolidayOT(
     String userId,
     Duration duration,
   ) async {
@@ -603,10 +634,18 @@ class _RestDayOTPage extends State<RestDayOTPage> {
     }
   }
 
+  Future<void> deleteRecordFromSpecialOT(DocumentSnapshot overtimeDoc) async {
+    try {
+      await overtimeDoc.reference.delete();
+    } catch (e) {
+      print('Error deleting record from Overtime collection: $e');
+    }
+  }
+
   Future<void> _showConfirmationDialog4(DocumentSnapshot overtimeDoc) async {
     String userId = overtimeDoc['userId'];
     QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
-        .collection('RestdayOT')
+        .collection('RegularHolidayOT')
         .where('userId', isEqualTo: userId)
         .get();
 
@@ -621,15 +660,15 @@ class _RestDayOTPage extends State<RestDayOTPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Restday Overtime Logs',
+              const Text(
+                'Regular Holiday Overtime Logs',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               IconButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.close,
                     size: 15,
                   )),
@@ -679,7 +718,6 @@ class _RestDayOTPage extends State<RestDayOTPage> {
       Timestamp bTimestamp = b['timeIn'];
       return bTimestamp.compareTo(aTimestamp);
     });
-
     int index = 0;
 
     return Container(
@@ -793,14 +831,6 @@ class _RestDayOTPage extends State<RestDayOTPage> {
           toDate = pickedDate;
         }
       });
-    }
-  }
-
-  Future<void> deleteRecordFromRestdayOT(DocumentSnapshot overtimeDoc) async {
-    try {
-      await overtimeDoc.reference.delete();
-    } catch (e) {
-      print('Error deleting record from Overtime collection: $e');
     }
   }
 }

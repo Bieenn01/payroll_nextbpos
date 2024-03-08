@@ -10,13 +10,11 @@ import 'package:project_payroll_nextbpo/frontend/dashboard/attendace_page.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_page.dart';
 import 'package:project_payroll_nextbpo/frontend/holiday/holiday.dart';
 import 'package:project_payroll_nextbpo/frontend/holiday/specialholiday.dart';
+import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regularHolidayOT.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restDayOT.dart';
-import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restday_overtime.dart';
-import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restspecial_overtime.dart';
-import 'package:project_payroll_nextbpo/frontend/overtime%20bar/specialh_overtime.dart';
+import 'package:project_payroll_nextbpo/frontend/overtime%20bar/specialHolidayOT.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/top_bar.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
-import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regular_overtime.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regularOT.dart';
 
 class ScreensView extends StatelessWidget {
@@ -58,7 +56,7 @@ class ScreensView extends StatelessWidget {
               ),
               Flexible(
                 flex: 7,
-                child: RestDayOTPage(),
+                child: SpecialHolidayOTPage(),
               ),
             ],
           ),
@@ -112,7 +110,7 @@ class ScreensView extends StatelessWidget {
               ),
               Flexible(
                 flex: 7,
-                child: SpecialHolidayOvertimePage(),
+                child: SpecialHolidayOTPage(),
               ),
             ],
           ),
@@ -130,25 +128,7 @@ class ScreensView extends StatelessWidget {
               ),
               Flexible(
                 flex: 7,
-                child: RegularHolidayOT(),
-              ),
-            ],
-          ),
-        );
-        break;
-      case 'SH/Rest day':
-        page = Container(
-          color: Colors.teal.shade700,
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Flexible(
-                flex: 1,
-                child: TopBar(),
-              ),
-              Flexible(
-                flex: 7,
-                child: RestSpecialOvertimePage(),
+                child: RegularHolidayOTPage(),
               ),
             ],
           ),
@@ -200,6 +180,24 @@ class ScreensView extends StatelessWidget {
           ),
         );
         break;
+      case 'Holiday':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                flex: 1,
+                child: TopBar(),
+              ),
+              Flexible(
+                flex: 7,
+                child: HolidayPage(),
+              ),
+            ],
+          ),
+        );
+        break;
       case 'Regular':
         page = Container(
           color: Colors.teal.shade700,
@@ -230,7 +228,7 @@ class ScreensView extends StatelessWidget {
               ),
               Flexible(
                 flex: 7,
-                child: SpecialholidayPage(),
+                child: SpecialHolidayPage(),
               ),
             ],
           ),

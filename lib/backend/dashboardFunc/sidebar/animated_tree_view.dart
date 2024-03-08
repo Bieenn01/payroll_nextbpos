@@ -9,9 +9,8 @@ final menuTree = TreeNode.root()
         ..addAll([
           TreeNode(key: "Regular (OT)"),
           TreeNode(key: "Rest day"),
-          TreeNode(key: "Special Holiday (SH)"),
           TreeNode(key: "Regular Holiday (RH)"),
-          TreeNode(key: "SH/Rest day"),
+          TreeNode(key: "Special Holiday (SH)"),
         ]),
       TreeNode(key: "Holiday", data: Icons.calendar_month_outlined)
         ..addAll([

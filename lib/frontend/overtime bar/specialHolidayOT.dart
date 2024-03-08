@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-class SpecialHolidayPage extends StatefulWidget {
-  const SpecialHolidayPage({Key? key}) : super(key: key);
+class SpecialHolidayOTPage extends StatefulWidget {
+  const SpecialHolidayOTPage({Key? key}) : super(key: key);
 
   @override
-  State<SpecialHolidayPage> createState() => _SpecialHolidayPageState();
+  State<SpecialHolidayOTPage> createState() => _SpecialHolidayOTPage();
 }
 
-class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
-  late List<String> _selectedHolidayTypes;
+class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
+  late List<String> _selectedOvertimeTypes;
+
   TextEditingController _searchController = TextEditingController();
   int _itemsPerPage = 5;
   int _currentPage = 0;
@@ -24,7 +25,7 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
   @override
   void initState() {
     super.initState();
-    _selectedHolidayTypes = [];
+    _selectedOvertimeTypes = [];
   }
 
   @override
@@ -59,7 +60,7 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                           Padding(
                             padding: const EdgeInsets.all(10.0),
                             child: Text(
-                              "Special Holiday",
+                              "Special Holiday Overtime",
                               style: TextStyle(
                                   fontSize: 20, fontWeight: FontWeight.bold),
                             ),
@@ -81,38 +82,6 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
         ),
       ),
     ));
-  }
-
-  Row pagination() {
-    return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-      ElevatedButton(
-        onPressed: () {},
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        child: Text('Previous'),
-      ),
-      SizedBox(width: 10),
-      Container(
-          height: 35,
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade200)),
-          child: Text('$_currentPage')),
-      SizedBox(width: 10),
-      ElevatedButton(
-        onPressed: () {},
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        child: Text('Next'),
-      ),
-    ]);
   }
 
   Container dateFilterSearchRow(BuildContext context, ButtonStyle styleFrom) {
@@ -339,19 +308,75 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
     );
   }
 
+  Row pagination() {
+    return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+      ElevatedButton(
+        onPressed: () {},
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Text('Previous'),
+      ),
+      SizedBox(width: 10),
+      Container(
+          height: 35,
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade200)),
+          child: Text('$_currentPage')),
+      SizedBox(width: 10),
+      ElevatedButton(
+        onPressed: () {},
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Text('Next'),
+      ),
+    ]);
+  }
+
+  Widget _buildDateFilter() {
+    return Row(
+      children: [
+        ElevatedButton(
+          onPressed: () => _selectDate2(context, true),
+          child: Text(fromDate != null
+              ? DateFormat('yyyy-MM-dd').format(fromDate!)
+              : 'From'),
+        ),
+        ElevatedButton(
+          onPressed: () => _selectDate2(context, false),
+          child: Text(
+              toDate != null ? DateFormat('yyyy-MM-dd').format(toDate!) : 'To'),
+        ),
+        ElevatedButton(
+          onPressed: () => setState(() {
+            fromDate = null;
+            toDate = null;
+          }),
+          child: Text('Show All'),
+        ),
+      ],
+    );
+  }
+
   Widget _buildTable() {
     return StreamBuilder(
       stream:
-          FirebaseFirestore.instance.collection('SpecialHoliday').snapshots(),
+          FirebaseFirestore.instance.collection('SpecialHolidayOT').snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (!snapshot.hasData) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.data!.docs.isEmpty) {
           return Center(child: Text('No data available yet'));
         } else {
-          List<DocumentSnapshot> holidayDocs = snapshot.data!.docs;
-
-          holidayDocs = holidayDocs.where((doc) {
+          List<DocumentSnapshot> overtimeDocs = snapshot.data!.docs;
+          overtimeDocs = overtimeDocs.where((doc) {
             DateTime timeIn = doc['timeIn'].toDate();
             DateTime timeOut = doc['timeOut'].toDate();
             if (fromDate != null && toDate != null) {
@@ -368,15 +393,11 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
           }).toList();
 
           // Sort documents by timestamp in descending order
-          holidayDocs.sort((a, b) {
+          overtimeDocs.sort((a, b) {
             Timestamp aTimestamp = a['timeIn'];
             Timestamp bTimestamp = b['timeIn'];
             return bTimestamp.compareTo(aTimestamp);
           });
-          // Sort the documents by timestamp in descending order
-          holidayDocs.sort((a, b) =>
-              (b['timeIn'] as Timestamp).compareTo(a['timeIn'] as Timestamp));
-
           const textStyle = TextStyle(fontWeight: FontWeight.bold);
 
           return SizedBox(
@@ -385,21 +406,40 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
               child: DataTable(
                 columns: const [
                   DataColumn(label: Text('#', style: textStyle)),
-                  DataColumn(label: Text('ID', style: textStyle)),
+                  DataColumn(label: Text('Employee ID', style: textStyle)),
                   DataColumn(label: Text('Name', style: textStyle)),
                   DataColumn(label: Text('Department', style: textStyle)),
-                  DataColumn(
-                      label: Text('Total Hours (h:m)', style: textStyle)),
-                  DataColumn(label: Text('Holiday Pay', style: textStyle)),
-                  DataColumn(label: Text('Holiday Type', style: textStyle)),
-                  DataColumn(label: Text('Action', style: textStyle))
+                  DataColumn(label: Text('Total Hours (h:m)')),
+                  DataColumn(label: Text('Overtime Pay', style: textStyle)),
+                  DataColumn(label: Text('Overtime Type', style: textStyle)),
+                  DataColumn(label: Text('Action', style: textStyle)),
                 ],
-                rows: List.generate(holidayDocs.length, (index) {
-                  DocumentSnapshot holidayDoc = holidayDocs[index];
-                  Map<String, dynamic> holidayData =
-                      holidayDoc.data() as Map<String, dynamic>;
-                  _selectedHolidayTypes.add('Special Holiday');
-
+                rows: List.generate(overtimeDocs.length, (index) {
+                  DocumentSnapshot overtimeDoc = overtimeDocs[index];
+                  Map<String, dynamic> overtimeData =
+                      overtimeDoc.data() as Map<String, dynamic>;
+                  _selectedOvertimeTypes.add('Regular');
+                  FutureBuilder<double>(
+                    future: calculateSpecialHolidayOT(
+                      overtimeData['userId'],
+                      Duration(
+                        hours: overtimeData['hours_overtime'],
+                        minutes: overtimeData['minute_overtime'],
+                      ),
+                    ),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Text(
+                            'Calculating...'); // Or any loading indicator
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        double overtimePay = snapshot.data ??
+                            0; // Use snapshot.data, default to 0 if null
+                        return Text(overtimePay.toStringAsFixed(2));
+                      }
+                    },
+                  );
                   Color? rowColor = indexRow % 2 == 0
                       ? Colors.white
                       : Colors.grey[200]; // Alternating row colors
@@ -410,11 +450,14 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                           MaterialStateColor.resolveWith((states) => rowColor!),
                       cells: [
                         DataCell(Text('#')),
-                        DataCell(Text(holidayDoc.id)),
-                        DataCell(Text(
-                            holidayData['userName'] ?? 'Not Available Yet')),
-                        DataCell(Text(
-                            holidayData['department'] ?? 'Not Available Yet')),
+                        DataCell(Text(overtimeDoc.id)),
+                        DataCell(
+                          Text(overtimeData['userName'] ?? 'Not Available Yet'),
+                        ),
+                        DataCell(
+                          Text(overtimeData['department'] ??
+                              'Not Available Yet'),
+                        ),
                         DataCell(
                           Container(
                             width: 100,
@@ -427,16 +470,16 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                                   child: Row(
                                     children: [
                                       Text(
-                                        holidayData['regular_hours']
+                                        overtimeData['hours_overtime']
                                                 ?.toString() ??
                                             'Not Available Yet',
                                         style: textStyle,
                                       ),
                                       Text(':'),
                                       Text(
-                                        holidayData['regular_minute']
+                                        overtimeData['minute_overtime']
                                                 ?.toString() ??
-                                            '0',
+                                            'Not Available Yet',
                                         style: textStyle,
                                       ),
                                     ],
@@ -451,14 +494,13 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                                   locale: 'en_PH',
                                   symbol: '₱ ',
                                   decimalDigits: 2)
-                              .format(holidayData['holidayPay'] ?? 0.0)),
+                              .format(overtimeData['overtimePay'] ?? 0.0)),
                         ),
                         DataCell(
                           DropdownButton<String>(
-                            value: _selectedHolidayTypes[index],
+                            value: _selectedOvertimeTypes[index],
                             items: <String>[
-                              'Special Holiday',
-                              'Regular Holiday',
+                              'Regular',
                             ].map<DropdownMenuItem<String>>((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
@@ -466,38 +508,47 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                               );
                             }).toList(),
                             onChanged: (String? newValue) async {
-                              if (newValue == 'Regular Holiday') {
-                                await _showConfirmationDialog2(holidayDoc);
+                              if (newValue == 'Regular') {
+                                await _showConfirmationDialog(overtimeDoc);
                               }
                               setState(() {
-                                _selectedHolidayTypes[index] = newValue!;
-                              });
-                              if (newValue == 'Special Holiday') {
-                                //   await _showConfirmationDialog2(holidayDoc);
-                              }
-                              setState(() {
-                                _selectedHolidayTypes[index] = newValue!;
+                                _selectedOvertimeTypes[index] = newValue!;
                               });
                             },
                           ),
                         ),
                         DataCell(
-                          Row(children: [
-                            IconButton(
-                              icon: Icon(Icons.delete,
-                                  color: Colors.red), // Setting color to red
+                          Container(
+                            width: 100,
+                            padding: EdgeInsets.all(0),
+                            child: ElevatedButton(
                               onPressed: () async {
-                                await _showConfirmationDialog3(holidayDoc);
+                                await _showConfirmationDialog4(overtimeDoc);
                               },
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.all(5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Icon(
+                                    Icons.visibility,
+                                    color: Colors.blue,
+                                    size: 15,
+                                  ),
+                                  Text(
+                                    'View Logs',
+                                    style: TextStyle(
+                                        fontSize: 10, color: Colors.blue),
+                                  ),
+                                ],
+                              ),
                             ),
-                            IconButton(
-                              icon: Icon(Icons.visibility,
-                                  color: Colors.blue), // Setting color to red
-                              onPressed: () async {
-                                await _showConfirmationDialog4(holidayDoc);
-                              },
-                            ),
-                          ]),
+                          ),
                         ),
                       ]);
                 }),
@@ -509,29 +560,84 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
     );
   }
 
-  Future<void> _selectDate2(BuildContext context, bool isFromDate) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
+  Future<double> calculateSpecialHolidayOT(
+    String userId,
+    Duration duration,
+  ) async {
+    final daysInMonth = 22;
+    final overTimeRate = 1.95;
 
-    if (pickedDate != null) {
-      setState(() {
-        if (isFromDate) {
-          fromDate = pickedDate;
-        } else {
-          toDate = pickedDate;
-        }
-      });
+    final daysWorked = duration.inDays;
+    final overtimeHours = duration.inMinutes - 1 - (daysWorked * 8);
+
+    try {
+      var userData =
+          await FirebaseFirestore.instance.collection('User').doc(userId).get();
+      double? monthlySalary = userData.data()?['monthly_salary'];
+
+      if (monthlySalary == null) {
+        // Return 0 if monthlySalary is null
+        return 0;
+      }
+
+      double specialHolidayOTPay = 0;
+
+      if (duration.inMinutes > 1) {
+        specialHolidayOTPay =
+            (monthlySalary / daysInMonth / 8 * overtimeHours * overTimeRate);
+      }
+
+      return specialHolidayOTPay;
+    } catch (error) {
+      print('Error retrieving monthly salary: $error');
+      return 0;
+    }
+  }
+
+  String _formatTimestamp(dynamic timestamp) {
+    if (timestamp == null) return '-------';
+
+    if (timestamp is Timestamp) {
+      DateTime dateTime = timestamp.toDate();
+      return DateFormat('MMMM dd, yyyy HH:mm:ss').format(dateTime);
+    } else {
+      return timestamp.toString();
+    }
+  }
+
+  Future<void> deleteRecordFromSpecialOT(DocumentSnapshot overtimeDoc) async {
+    try {
+      await overtimeDoc.reference.delete();
+    } catch (e) {
+      print('Error deleting record from Overtime collection: $e');
+    }
+  }
+
+  Future<void> moveRecordToRegularOT(DocumentSnapshot overtimeDoc) async {
+    try {
+      Map<String, dynamic> overtimeData =
+          Map<String, dynamic>.from(overtimeDoc.data() as Map<String, dynamic>);
+
+      final monthlySalary = overtimeData['monthly_salary'];
+      final overtimeMinute = overtimeData['minute_overtime'];
+      final overtimeRate = 1.25;
+      final daysInMonth = 22;
+
+      // Set overtimePay to null
+      overtimeData['overtimePay'] =
+          (monthlySalary / daysInMonth / 8 * overtimeMinute * overtimeRate);
+      //dri ibutang ang formula para mapasa dayon didto paglahos
+      // Add to SpecialHolidayOT collection
+      await FirebaseFirestore.instance.collection('Overtime').add(overtimeData);
+    } catch (e) {
+      print('Error moving record to SpecialHolidayOT collection: $e');
     }
   }
 
   Future<void> _showConfirmationDialog4(DocumentSnapshot overtimeDoc) async {
     String userId = overtimeDoc['userId'];
     QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
-        .collection('SpecialHoliday')
+        .collection('SpecialHolidayOT')
         .where('userId', isEqualTo: userId)
         .get();
 
@@ -542,7 +648,24 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Special Holiday Logs'),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Special Holiday Overtime Logs',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  icon: Icon(
+                    Icons.close,
+                    size: 15,
+                  )),
+            ],
+          ),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -552,7 +675,7 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                     'Name', overtimeDoc['userName'] ?? 'Not Available'),
                 _buildInfoRow(
                     'Department', overtimeDoc['department'] ?? 'Not Available'),
-                SizedBox(height: 10),
+                Divider(),
                 _buildOvertimeTable(userOvertimeDocs),
               ],
             ),
@@ -570,6 +693,16 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
     );
   }
 
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label + ':', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text(value),
+      ],
+    );
+  }
+
   Widget _buildOvertimeTable(List<DocumentSnapshot> overtimeDocs) {
     // Sort documents by timestamp in descending order
     overtimeDocs.sort((a, b) {
@@ -583,59 +716,73 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
       height: 300,
       decoration: BoxDecoration(
           color: Colors.white, borderRadius: BorderRadius.circular(8)),
-      child: DataTable(
-        columns: const [
-          DataColumn(
-              label: Text('#', style: TextStyle(fontWeight: FontWeight.bold))),
-          DataColumn(
-              label:
-                  Text('Date', style: TextStyle(fontWeight: FontWeight.bold))),
-          DataColumn(
-              label: Text('Time In',
-                  style: TextStyle(fontWeight: FontWeight.bold))),
-          DataColumn(
-              label: Text('Time Out',
-                  style: TextStyle(fontWeight: FontWeight.bold))),
-          DataColumn(
-              label: Text('Total Hours (h:m)',
-                  style: TextStyle(fontWeight: FontWeight.bold))),
-        ],
-        rows: overtimeDocs.map((overtimeDoc) {
-          Color? rowColor = index % 2 == 0
-              ? Colors.grey[200]
-              : Colors.transparent; // Alternating row colors
-          index++;
-          return DataRow(
-              color: MaterialStateColor.resolveWith((states) => rowColor!),
-              cells: [
-                DataCell(Text('#')),
-                DataCell(Text(_formatDate(overtimeDoc['timeIn']))),
-                DataCell(Text(_formatTime(overtimeDoc['timeIn']))),
-                DataCell(Text(_formatTime(overtimeDoc['timeOut']))),
-                DataCell(Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      child: Row(
-                        children: [
-                          Text(
-                              overtimeDoc['regular_hours']?.toString() ??
-                                  'Not Available Yet',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text(':'),
-                          Text(
-                              overtimeDoc['regular_minute']?.toString() ??
-                                  'Not Available Yet',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    )
-                  ],
-                )),
-              ]);
-        }).toList(),
+      child: SingleChildScrollView(
+        child: DataTable(
+          columns: const [
+            DataColumn(
+                label:
+                    Text('#', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(
+                label: Text('Date',
+                    style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(
+                label: Text('Time In',
+                    style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(
+                label: Text('Time Out',
+                    style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(
+                label: Text('Total Hours (h:m)',
+                    style: TextStyle(fontWeight: FontWeight.bold))),
+          ],
+          rows: overtimeDocs.map((overtimeDoc) {
+            Color? rowColor = index % 2 == 0
+                ? Colors.grey[200]
+                : Colors.transparent; // Alternating row colors
+            index++;
+            return DataRow(
+                color: MaterialStateColor.resolveWith((states) => rowColor!),
+                cells: [
+                  DataCell(Text('#')),
+                  DataCell(Text(_formatDate(overtimeDoc['timeIn']))),
+                  DataCell(Text(_formatTime(overtimeDoc['timeIn']))),
+                  DataCell(Text(_formatTime(overtimeDoc['timeOut']))),
+                  DataCell(Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        child: Row(
+                          children: [
+                            Text(
+                                overtimeDoc['hours_overtime']?.toString() ??
+                                    'Not Available Yet',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text(':'),
+                            Text(
+                                overtimeDoc['minute_overtime']?.toString() ??
+                                    'Not Available Yet',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      )
+                    ],
+                  )),
+                ]);
+          }).toList(),
+        ),
       ),
     );
+  }
+
+  String _formatTimestamp2(dynamic timestamp) {
+    if (timestamp == null) return '-------';
+
+    if (timestamp is Timestamp) {
+      DateTime dateTime = timestamp.toDate();
+      return DateFormat('MMMM dd, yyyy HH:mm:ss').format(dateTime);
+    } else {
+      return timestamp.toString();
+    }
   }
 
   String _formatDate(dynamic timestamp) {
@@ -660,113 +807,45 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
     }
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label + ':', style: TextStyle(fontWeight: FontWeight.bold)),
-        Text(value),
-      ],
-    );
-  }
-
-  Future<void> deleteRecordFromHoliday(DocumentSnapshot holidayDoc) async {
-    try {
-      await holidayDoc.reference.delete();
-    } catch (e) {
-      print('Error deleting record from Overtime collection: $e');
-    }
-  }
-
-  String _formatTimestamp(dynamic timestamp) {
-    if (timestamp == null) return '-------';
-
-    if (timestamp is Timestamp) {
-      DateTime dateTime = timestamp.toDate();
-      return DateFormat('MMMM dd, yyyy HH:mm:ss').format(dateTime);
-    } else {
-      return timestamp.toString();
-    }
-  }
-
-  Future<void> _showConfirmationDialog2(DocumentSnapshot holidayDoc) async {
-    return showDialog<void>(
+  Future<void> _selectDate2(BuildContext context, bool isFromDate) async {
+    final DateTime? pickedDate = await showDatePicker(
       context: context,
-      barrierDismissible: false, // user must tap button for close dialog!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirmation'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Are you sure you want to proceed?'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Confirm'),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await moveRecordToRegularHoliday(holidayDoc);
-                await deleteRecordFromHoliday(holidayDoc);
-              },
-            ),
-          ],
-        );
-      },
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
     );
-  }
 
-  Future<void> moveRecordToRegularHoliday(DocumentSnapshot holidayDoc) async {
-    try {
-      if (holidayDoc.exists) {
-        Map<String, dynamic> holidayData = Map<String, dynamic>.from(
-            holidayDoc.data() as Map<String, dynamic>);
-
-        final monthlySalary = holidayData['monthly_salary'];
-        final minute = holidayData['regular_minute'];
-        final specialHolidayRate = 0.3;
-        final daysInMonth = 22;
-
-        if (monthlySalary != null && minute != null) {
-          // Set specialHolidayPay
-          holidayData['holidayPay'] =
-              (monthlySalary / daysInMonth / 8 * minute * specialHolidayRate);
-
-          // Add to SpecialHoliday collection
-          await FirebaseFirestore.instance
-              .collection('Holiday')
-              .add(holidayData);
-
-          // Delete the record from Holiday collection
-          await deleteRecordFromHoliday(holidayDoc);
+    if (pickedDate != null) {
+      setState(() {
+        if (isFromDate) {
+          fromDate = pickedDate;
         } else {
-          print('Monthly salary or minute data is null');
+          toDate = pickedDate;
         }
-      } else {
-        print('Document does not exist');
-      }
-    } catch (e) {
-      print('Error moving record to SpecialHoliday collection: $e');
+      });
     }
   }
 
-  Future<void> deleteRecordFromOvertime(DocumentSnapshot overtimeDoc) async {
-    try {
-      await overtimeDoc.reference.delete();
-    } catch (e) {
-      print('Error deleting record from Overtime collection: $e');
+  Future<void> _selectDate(BuildContext context, bool isFromDate) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        if (isFromDate) {
+          fromDate = pickedDate;
+        } else {
+          toDate = pickedDate;
+        }
+      });
     }
   }
 
-  Future<void> _showConfirmationDialog3(DocumentSnapshot overtimeDoc) async {
+  Future<void> _showConfirmationDialog(DocumentSnapshot overtimeDoc) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button for close dialog!
@@ -791,7 +870,8 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
               child: Text('Confirm'),
               onPressed: () async {
                 Navigator.of(context).pop();
-                await deleteRecordFromOvertime(overtimeDoc);
+                await moveRecordToRegularOT(overtimeDoc);
+                await deleteRecordFromSpecialOT(overtimeDoc);
               },
             ),
           ],
