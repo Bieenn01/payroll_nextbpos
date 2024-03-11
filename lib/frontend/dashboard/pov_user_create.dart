@@ -605,138 +605,323 @@ class _UserState extends State<PovUser> {
     );
   }
 
-  Future<void> updateAccountStatus(String userId, bool isActive) async {
-    try {
-      CollectionReference users = FirebaseFirestore.instance.collection('User');
+    Future<void> updateAccountStatus(String userId, bool isActive) async {
+      try {
+        CollectionReference users = FirebaseFirestore.instance.collection('User');
 
-      users.doc(userId).update({'isActive': isActive});
+        users.doc(userId).update({'isActive': isActive});
 
-      setState(() {});
+        setState(() {});
 
-      // showSuccess(
-      //     context, 'Status Update', 'Account status updated successfully.');
+        // showSuccess(
+        //     context, 'Status Update', 'Account status updated successfully.');
 
-      print('Account status updated successfully.');
-    } catch (e) {
-      print('Error updating account status: $e');
+        print('Account status updated successfully.');
+      } catch (e) {
+        print('Error updating account status: $e');
+      }
     }
-  }
 
-  void editUserDetails(String userId, Map<String, dynamic> userData) {
-    TextEditingController firstNameController =
-        TextEditingController(text: userData['fname']);
-    TextEditingController middleNameController =
-        TextEditingController(text: userData['mname']);
-    TextEditingController lastNameController =
-        TextEditingController(text: userData['lname']);
-    TextEditingController usernameController =
-        TextEditingController(text: userData['username']);
-    TextEditingController salaryController =
-        TextEditingController(text: userData['salary']);
-    TextEditingController typeEmployeeController =
-        TextEditingController(text: userData['typeEmployee']);
-    TextEditingController departmentController =
-        TextEditingController(text: userData['department']);
-    DateTime? startShift = userData['startShift'] != null
-        ? (userData['startShift'] as Timestamp).toDate()
-        : null;
-    DateTime? endShift = userData['endShift'] != null
-        ? (userData['endShift'] as Timestamp).toDate()
-        : null;
+    void editUserDetails(String userId, Map<String, dynamic> userData) {
+      TextEditingController firstNameController =
+          TextEditingController(text: userData['fname']);
+      TextEditingController middleNameController =
+          TextEditingController(text: userData['mname']);
+      TextEditingController lastNameController =
+          TextEditingController(text: userData['lname']);
+      TextEditingController usernameController =
+          TextEditingController(text: userData['username']);
+      TextEditingController emailController =
+          TextEditingController(text: userData['email']);
+      TextEditingController mobilenumController =
+          TextEditingController(text: userData['mobilenum']);
+      TextEditingController employeeIdController =
+          TextEditingController(text: userData['employeeId']);
+      TextEditingController tinController =
+          TextEditingController(text: userData['tin']);
+      TextEditingController sssController =
+          TextEditingController(text: userData['sss']);
+      TextEditingController taxCodeController =
+          TextEditingController(text: userData['taxCode']);
+      TextEditingController roleController =
+          TextEditingController(text: userData['role']);
+      TextEditingController salaryController =
+          TextEditingController(text: userData['salary']);
+      TextEditingController typeEmployeeController =
+          TextEditingController(text: userData['typeEmployee']);
+      TextEditingController departmentController =
+          TextEditingController(text: userData['department']);
+      DateTime? startShift = userData['startShift'] != null
+          ? (userData['startShift'] as Timestamp).toDate()
+          : null;
+      DateTime? endShift = userData['endShift'] != null
+          ? (userData['endShift'] as Timestamp).toDate()
+          : null;
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        DateTime? startselectedShift = startShift;
-        DateTime? endselectedShift = endShift;
-        return AlertDialog(
-          title: Text('Edit User Details'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: firstNameController,
-                  decoration: const InputDecoration(labelText: 'First Name'),
-                ),
-                TextFormField(
-                  controller: middleNameController,
-                  decoration: const InputDecoration(labelText: 'Middle Name'),
-                ),
-                TextFormField(
-                  controller: lastNameController,
-                  decoration: const InputDecoration(labelText: 'Last Name'),
-                ),
-                TextFormField(
-                  controller: usernameController,
-                  decoration: const InputDecoration(labelText: 'Username'),
-                ),
-                TextFormField(
-                  controller: salaryController,
-                  decoration: const InputDecoration(labelText: 'Username'),
-                ),
-                TextFormField(
-                  controller: typeEmployeeController,
-                  decoration: const InputDecoration(labelText: 'Employee Type'),
-                ),
-                TextFormField(
-                  controller: departmentController,
-                  decoration: const InputDecoration(labelText: 'Department'),
-                ),
-                DateTimeField(
+
+List<String> departmentChoices = ['IT', 'HR', 'ACCOUNTANCY', 'SERVICING'];
+List<String> roleChoices = ['Employee', 'Admin'];
+List<String> employeeTypeChoices = ['Regular', 'Contractual'];
+
+showDialog(
+  context: context,
+  builder: (BuildContext context) {
+    DateTime? startselectedShift = startShift;
+    DateTime? endselectedShift = endShift;
+    String selectedDepartment = userData['department'] ?? '';
+    String selectedRole = userData['role'] ?? '';
+    String selectedEmployeeType = userData['typeEmployee'] ?? '';
+
+    if (!departmentChoices.contains(selectedDepartment)) {
+      selectedDepartment = departmentChoices.first;
+    }
+
+    if (!roleChoices.contains(selectedRole)) {
+      selectedRole = roleChoices.first;
+    }
+
+    if (!employeeTypeChoices.contains(selectedEmployeeType)) {
+      selectedEmployeeType = employeeTypeChoices.first;
+    }
+
+    return AlertDialog(
+      title: Text('Edit User Details'),
+      content: SingleChildScrollView(
+        child: Container(
+          width: double.infinity,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: firstNameController,
+                      decoration: const InputDecoration(labelText: 'First Name'),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: TextFormField(
+                      controller: middleNameController,
+                      decoration: const InputDecoration(labelText: 'Middle Name'),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: TextFormField(
+                      controller: lastNameController,
+                      decoration: const InputDecoration(labelText: 'Last Name'),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: usernameController,
+                      decoration: const InputDecoration(labelText: 'Username'),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: TextFormField(
+                      controller: salaryController,
+                      decoration: const InputDecoration(labelText: 'Salary'),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: TextFormField(
+                      controller: emailController,
+                      decoration: const InputDecoration(labelText: 'Email'),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: mobilenumController,
+                      decoration: const InputDecoration(labelText: 'Mobile Number'),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: TextFormField(
+                      controller: employeeIdController,
+                      decoration: const InputDecoration(labelText: 'Employee ID'),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: TextFormField(
+                      controller: tinController,
+                      decoration: const InputDecoration(labelText: 'Tin'),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: sssController,
+                      decoration: const InputDecoration(labelText: 'SSS'),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: TextFormField(
+                      controller: taxCodeController,
+                      decoration: const InputDecoration(labelText: 'Tax Code'),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                ],
+              ),
+              SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: typeEmployeeController,
+                      decoration: const InputDecoration(labelText: 'Employee Type'),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: TextFormField(
+                      controller: departmentController,
+                      decoration: const InputDecoration(labelText: 'Department'),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: DateTimeField(
                   decoration: const InputDecoration(labelText: 'Start Shift'),
-                  initialDate: startselectedShift,
+                  initialDate: startselectedShift, // Assign initial value here
                   mode: DateTimeFieldPickerMode.time,
                   onChanged: (value) {
                     startselectedShift = value;
                   },
                 ),
-                DateTimeField(
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: DateTimeField(
                   decoration: InputDecoration(labelText: 'End Shift'),
-                  initialDate: endselectedShift,
+                  initialDate: endselectedShift, // Assign initial value here
                   mode: DateTimeFieldPickerMode.time,
                   onChanged: (value) {
                     endselectedShift = value;
                   },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          actions: [
-            ElevatedButton(
-              onPressed: () async {
-                Map<String, dynamic> updatedUserData = {
-                  'fname': firstNameController.text,
-                  'mname': middleNameController.text,
-                  'lname': lastNameController.text,
-                  'salary': salaryController.text,
-                  'username': usernameController.text,
-                  'typeEmployee': typeEmployeeController.text,
-                  'department': departmentController.text,
-                  'startShift': startselectedShift,
-                  'endShift': endselectedShift,
-                };
-                await updateUserDetails(userId, updatedUserData);
-                Navigator.of(context).pop();
+              SizedBox(height: 10),
+              // Department Dropdown
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(labelText: 'Department'),
+                value: selectedDepartment,
+                items: departmentChoices.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  selectedDepartment = newValue!;
+                },
+              ),
+              SizedBox(height: 10),
 
-                setState(() {});
-              },
-              child: Text('Save'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                resetPassword(userData['email']);
-                Navigator.of(context).pop();
-              },
-              child: Text('Reset Password'),
-            ),
-          ],
-        );
-      },
+              // Role Dropdown
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(labelText: 'Role'),
+                value: selectedRole,
+                items: roleChoices.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  selectedRole = newValue!;
+                },
+              ),
+              SizedBox(height: 10),
+
+              // Employee Type Dropdown
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(labelText: 'Employee Type'),
+                value: selectedEmployeeType,
+                items: employeeTypeChoices.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  selectedEmployeeType = newValue!;
+                },
+              ),
+              SizedBox(height: 10),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        ElevatedButton(
+          onPressed: () async {
+            Map<String, dynamic> updatedUserData = {
+              'fname': firstNameController.text,
+              'mname': middleNameController.text,
+              'lname': lastNameController.text,
+              'salary': salaryController.text,
+              'username': usernameController.text,
+              'email': emailController.text,
+              'mobilenum': mobilenumController.text,
+              'employeeId': employeeIdController.text,
+              'sss': sssController.text,
+              'tin': tinController.text,
+              'taxCode': taxCodeController.text,
+              'role': selectedRole,
+              'typeEmployee': selectedEmployeeType,
+              'department': selectedDepartment,
+              'startShift': startselectedShift,
+              'endShift': endselectedShift,
+            };
+            await updateUserDetails(userId, updatedUserData);
+            Navigator.of(context).pop();
+
+            setState(() {});
+          },
+          child: Text('Save'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            resetPassword(userData['email']);
+            Navigator.of(context).pop();
+          },
+          child: Text('Reset Password'),
+        ),
+      ],
     );
-  }
-
+  },
+);
+    }
   Future<void> updateUserDetails(
       String userId, Map<String, dynamic> updatedUserData) async {
     try {
@@ -1070,7 +1255,7 @@ class _UserState extends State<PovUser> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Employee Status:',
+                                'Employee Type:',
                                 style: textStyle,
                               ),
                               Container(
@@ -1086,7 +1271,7 @@ class _UserState extends State<PovUser> {
                                   trailingIcon: Icon(Icons.arrow_drop_down),
                                   initialSelection: typeEmployee,
                                   onSelected: (String? value) {
-                                    // This is called when the user selects an item.
+                                
                                     setState(() {
                                       typeEmployee = value!;
                                     });
