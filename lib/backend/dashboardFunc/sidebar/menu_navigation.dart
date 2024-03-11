@@ -28,12 +28,11 @@ class ScreensView extends StatelessWidget {
       case 'Dashboard':
         page = Container(
           color: Colors.teal.shade700,
-          child: const Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Flexible(
-                flex: 1,
-                child: TopBar(),
+                child: Container(height: 120, child: TopBar()),
               ),
               Flexible(
                 flex: 7,

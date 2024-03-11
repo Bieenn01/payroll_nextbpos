@@ -257,60 +257,67 @@ class _UserState extends State<PovUser> {
                                 ),
                               ),
                               SizedBox(width: 5),
-                              Container(
-                                height: 30,
-                                decoration: BoxDecoration(
-                                    color: Colors.teal,
-                                    border: Border.all(
-                                        color: Colors.teal.shade900
-                                            .withOpacity(0.5)),
-                                    borderRadius: BorderRadius.circular(8)),
-                                child: ElevatedButton(
-                                  onPressed: (() {
-                                    print(MediaQuery.of(context).size.width);
-                                    createAccount(context);
-                                  }),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.teal,
-                                  ),
-                                  child: Text(
-                                    "+ Add New",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        letterSpacing: 1,
-                                        color: Colors.white),
+                              Flexible(
+                                child: Container(
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                      color: Colors.teal,
+                                      border: Border.all(
+                                          color: Colors.teal.shade900
+                                              .withOpacity(0.5)),
+                                      borderRadius: BorderRadius.circular(8)),
+                                  child: ElevatedButton(
+                                    onPressed: (() {
+                                      print(MediaQuery.of(context).size.width);
+                                      createAccount(context);
+                                    }),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.teal,
+                                    ),
+                                    child:
+                                        MediaQuery.of(context).size.width > 600
+                                            ? Text(
+                                                "+ Add New",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w400,
+                                                    letterSpacing: 1,
+                                                    color: Colors.white),
+                                              )
+                                            : Text('+'),
                                   ),
                                 ),
                               ),
                               SizedBox(width: 5),
-                              Container(
-                                height: 30,
-                                decoration: BoxDecoration(
-                                    color: Colors.teal,
-                                    border: Border.all(
-                                        color: Colors.teal.shade900
-                                            .withOpacity(0.5)),
-                                    borderRadius: BorderRadius.circular(8)),
-                                child: ElevatedButton(
-                                    onPressed: (() {}),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.teal,
-                                    ),
-                                    child: const Row(
-                                      children: [
-                                        Icon(
-                                          Icons.cloud_download_outlined,
-                                          color: Colors.white,
-                                        ),
-                                        Text(
-                                          "  Export",
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w400,
-                                              letterSpacing: 1,
-                                              color: Colors.white),
-                                        ),
-                                      ],
-                                    )),
+                              Flexible(
+                                child: Container(
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                      color: Colors.teal,
+                                      border: Border.all(
+                                          color: Colors.teal.shade900
+                                              .withOpacity(0.5)),
+                                      borderRadius: BorderRadius.circular(8)),
+                                  child: ElevatedButton(
+                                      onPressed: (() {}),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.teal,
+                                      ),
+                                      child: const Row(
+                                        children: [
+                                          Icon(
+                                            Icons.cloud_download_outlined,
+                                            color: Colors.white,
+                                          ),
+                                          Text(
+                                            "  Export",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w400,
+                                                letterSpacing: 1,
+                                                color: Colors.white),
+                                          ),
+                                        ],
+                                      )),
+                                ),
                               ),
                             ],
                           ),
@@ -605,323 +612,496 @@ class _UserState extends State<PovUser> {
     );
   }
 
-    Future<void> updateAccountStatus(String userId, bool isActive) async {
-      try {
-        CollectionReference users = FirebaseFirestore.instance.collection('User');
+  Future<void> updateAccountStatus(String userId, bool isActive) async {
+    try {
+      CollectionReference users = FirebaseFirestore.instance.collection('User');
 
-        users.doc(userId).update({'isActive': isActive});
+      users.doc(userId).update({'isActive': isActive});
 
-        setState(() {});
+      setState(() {});
 
-        // showSuccess(
-        //     context, 'Status Update', 'Account status updated successfully.');
+      // showSuccess(
+      //     context, 'Status Update', 'Account status updated successfully.');
 
-        print('Account status updated successfully.');
-      } catch (e) {
-        print('Error updating account status: $e');
-      }
+      print('Account status updated successfully.');
+    } catch (e) {
+      print('Error updating account status: $e');
     }
+  }
 
-    void editUserDetails(String userId, Map<String, dynamic> userData) {
-      TextEditingController firstNameController =
-          TextEditingController(text: userData['fname']);
-      TextEditingController middleNameController =
-          TextEditingController(text: userData['mname']);
-      TextEditingController lastNameController =
-          TextEditingController(text: userData['lname']);
-      TextEditingController usernameController =
-          TextEditingController(text: userData['username']);
-      TextEditingController emailController =
-          TextEditingController(text: userData['email']);
-      TextEditingController mobilenumController =
-          TextEditingController(text: userData['mobilenum']);
-      TextEditingController employeeIdController =
-          TextEditingController(text: userData['employeeId']);
-      TextEditingController tinController =
-          TextEditingController(text: userData['tin']);
-      TextEditingController sssController =
-          TextEditingController(text: userData['sss']);
-      TextEditingController taxCodeController =
-          TextEditingController(text: userData['taxCode']);
-      TextEditingController roleController =
-          TextEditingController(text: userData['role']);
-      TextEditingController salaryController =
-          TextEditingController(text: userData['salary']);
-      TextEditingController typeEmployeeController =
-          TextEditingController(text: userData['typeEmployee']);
-      TextEditingController departmentController =
-          TextEditingController(text: userData['department']);
-      DateTime? startShift = userData['startShift'] != null
-          ? (userData['startShift'] as Timestamp).toDate()
-          : null;
-      DateTime? endShift = userData['endShift'] != null
-          ? (userData['endShift'] as Timestamp).toDate()
-          : null;
+  void editUserDetails(String userId, Map<String, dynamic> userData) {
+    TextEditingController firstNameController =
+        TextEditingController(text: userData['fname']);
+    TextEditingController middleNameController =
+        TextEditingController(text: userData['mname']);
+    TextEditingController lastNameController =
+        TextEditingController(text: userData['lname']);
+    TextEditingController usernameController =
+        TextEditingController(text: userData['username']);
+    TextEditingController emailController =
+        TextEditingController(text: userData['email']);
+    TextEditingController mobilenumController =
+        TextEditingController(text: userData['mobilenum']);
+    TextEditingController employeeIdController =
+        TextEditingController(text: userData['employeeId']);
+    TextEditingController tinController =
+        TextEditingController(text: userData['tin']);
+    TextEditingController sssController =
+        TextEditingController(text: userData['sss']);
+    TextEditingController taxCodeController =
+        TextEditingController(text: userData['taxCode']);
+    TextEditingController roleController =
+        TextEditingController(text: userData['role']);
+    TextEditingController salaryController =
+        TextEditingController(text: userData['salary']);
+    TextEditingController typeEmployeeController =
+        TextEditingController(text: userData['typeEmployee']);
+    TextEditingController departmentController =
+        TextEditingController(text: userData['department']);
+    DateTime? startShift = userData['startShift'] != null
+        ? (userData['startShift'] as Timestamp).toDate()
+        : null;
+    DateTime? endShift = userData['endShift'] != null
+        ? (userData['endShift'] as Timestamp).toDate()
+        : null;
 
+    List<String> departmentChoices = ['IT', 'HR', 'ACCOUNTANCY', 'SERVICING'];
+    List<String> roleChoices = ['Employee', 'Admin'];
+    List<String> employeeTypeChoices = ['Regular', 'Contractual'];
 
-List<String> departmentChoices = ['IT', 'HR', 'ACCOUNTANCY', 'SERVICING'];
-List<String> roleChoices = ['Employee', 'Admin'];
-List<String> employeeTypeChoices = ['Regular', 'Contractual'];
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        DateTime? startselectedShift = startShift;
+        DateTime? endselectedShift = endShift;
+        String selectedDepartment = userData['department'] ?? '';
+        String selectedRole = userData['role'] ?? '';
+        String selectedEmployeeType = userData['typeEmployee'] ?? '';
 
-showDialog(
-  context: context,
-  builder: (BuildContext context) {
-    DateTime? startselectedShift = startShift;
-    DateTime? endselectedShift = endShift;
-    String selectedDepartment = userData['department'] ?? '';
-    String selectedRole = userData['role'] ?? '';
-    String selectedEmployeeType = userData['typeEmployee'] ?? '';
+        if (!departmentChoices.contains(selectedDepartment)) {
+          selectedDepartment = departmentChoices.first;
+        }
 
-    if (!departmentChoices.contains(selectedDepartment)) {
-      selectedDepartment = departmentChoices.first;
-    }
+        if (!roleChoices.contains(selectedRole)) {
+          selectedRole = roleChoices.first;
+        }
 
-    if (!roleChoices.contains(selectedRole)) {
-      selectedRole = roleChoices.first;
-    }
+        if (!employeeTypeChoices.contains(selectedEmployeeType)) {
+          selectedEmployeeType = employeeTypeChoices.first;
+        }
 
-    if (!employeeTypeChoices.contains(selectedEmployeeType)) {
-      selectedEmployeeType = employeeTypeChoices.first;
-    }
-
-    return AlertDialog(
-      title: Text('Edit User Details'),
-      content: SingleChildScrollView(
-        child: Container(
-          width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+        return AlertDialog(
+          surfaceTintColor: Colors.white,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: firstNameController,
-                      decoration: const InputDecoration(labelText: 'First Name'),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: TextFormField(
-                      controller: middleNameController,
-                      decoration: const InputDecoration(labelText: 'Middle Name'),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: TextFormField(
-                      controller: lastNameController,
-                      decoration: const InputDecoration(labelText: 'Last Name'),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: usernameController,
-                      decoration: const InputDecoration(labelText: 'Username'),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: TextFormField(
-                      controller: salaryController,
-                      decoration: const InputDecoration(labelText: 'Salary'),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: TextFormField(
-                      controller: emailController,
-                      decoration: const InputDecoration(labelText: 'Email'),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: mobilenumController,
-                      decoration: const InputDecoration(labelText: 'Mobile Number'),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: TextFormField(
-                      controller: employeeIdController,
-                      decoration: const InputDecoration(labelText: 'Employee ID'),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: TextFormField(
-                      controller: tinController,
-                      decoration: const InputDecoration(labelText: 'Tin'),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: sssController,
-                      decoration: const InputDecoration(labelText: 'SSS'),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: TextFormField(
-                      controller: taxCodeController,
-                      decoration: const InputDecoration(labelText: 'Tax Code'),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                ],
-              ),
-              SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: typeEmployeeController,
-                      decoration: const InputDecoration(labelText: 'Employee Type'),
-                    ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: TextFormField(
-                      controller: departmentController,
-                      decoration: const InputDecoration(labelText: 'Department'),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: DateTimeField(
-                  decoration: const InputDecoration(labelText: 'Start Shift'),
-                  initialDate: startselectedShift, // Assign initial value here
-                  mode: DateTimeFieldPickerMode.time,
-                  onChanged: (value) {
-                    startselectedShift = value;
-                  },
+              const Text(
+                'Edit User Details',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 25,
                 ),
               ),
-              SizedBox(width: 10),
-              Expanded(
-                child: DateTimeField(
-                  decoration: InputDecoration(labelText: 'End Shift'),
-                  initialDate: endselectedShift, // Assign initial value here
-                  mode: DateTimeFieldPickerMode.time,
-                  onChanged: (value) {
-                    endselectedShift = value;
-                  },
-                ),
-              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                icon: Icon(Icons.close),
+              )
             ],
           ),
-              SizedBox(height: 10),
-              // Department Dropdown
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Department'),
-                value: selectedDepartment,
-                items: departmentChoices.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  selectedDepartment = newValue!;
-                },
-              ),
-              SizedBox(height: 10),
+          content: SingleChildScrollView(
+            child: Container(
+              width: 1170,
+              margin: EdgeInsets.all(10),
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(8)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Personal Information :',
+                    style: catergoryStyle(),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          padding: EdgeInsets.only(left: 5),
+                          decoration: boxdecoration(),
+                          child: TextFormField(
+                            controller: firstNameController,
+                            decoration: const InputDecoration(
+                                labelText: 'First Name',
+                                border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          decoration: boxdecoration(),
+                          padding: EdgeInsets.only(left: 5),
+                          child: TextFormField(
+                            controller: middleNameController,
+                            decoration: const InputDecoration(
+                                labelText: 'Middle Name',
+                                border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          decoration: boxdecoration(),
+                          padding: EdgeInsets.only(left: 5),
+                          child: TextFormField(
+                            controller: lastNameController,
+                            decoration: const InputDecoration(
+                                labelText: 'Last Name',
+                                border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          padding: EdgeInsets.only(left: 5),
+                          decoration: boxdecoration(),
+                          child: TextFormField(
+                            controller: mobilenumController,
+                            decoration: const InputDecoration(
+                                labelText: 'Mobile Number',
+                                border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          decoration: boxdecoration(),
+                          padding: EdgeInsets.only(left: 5),
+                          child: TextFormField(
+                            controller: employeeIdController,
+                            decoration: const InputDecoration(
+                                labelText: 'Employee ID',
+                                border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          decoration: boxdecoration(),
+                          padding: EdgeInsets.only(left: 5),
+                          child: TextFormField(
+                            controller: salaryController,
+                            decoration: const InputDecoration(
+                                labelText: 'Salary', border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10),
 
-              // Role Dropdown
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Role'),
-                value: selectedRole,
-                items: roleChoices.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  selectedRole = newValue!;
-                },
-              ),
-              SizedBox(height: 10),
+                  Text(
+                    'Employment Information :',
+                    style: catergoryStyle(),
+                  ),
 
-              // Employee Type Dropdown
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Employee Type'),
-                value: selectedEmployeeType,
-                items: employeeTypeChoices.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  selectedEmployeeType = newValue!;
-                },
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          decoration: boxdecoration(),
+                          padding: EdgeInsets.only(left: 5),
+                          child: DropdownButtonFormField<String>(
+                            decoration: InputDecoration(
+                              labelText: 'Department',
+                              border: InputBorder.none,
+                            ),
+                            value: selectedDepartment,
+                            items: departmentChoices.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              selectedDepartment = newValue!;
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+
+                      // Role Dropdown
+                      Flexible(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          decoration: boxdecoration(),
+                          padding: EdgeInsets.only(left: 5),
+                          child: DropdownButtonFormField<String>(
+                            decoration: InputDecoration(
+                              labelText: 'Role',
+                              border: InputBorder.none,
+                            ),
+                            value: selectedRole,
+                            items: roleChoices.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              selectedRole = newValue!;
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      // Employee Type Dropdown
+                      Flexible(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          decoration: boxdecoration(),
+                          padding: EdgeInsets.only(left: 5),
+                          child: DropdownButtonFormField<String>(
+                            decoration: InputDecoration(
+                              labelText: 'Employee Type',
+                              border: InputBorder.none,
+                            ),
+                            value: selectedEmployeeType,
+                            items: employeeTypeChoices.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              selectedEmployeeType = newValue!;
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Shift'),
+                            Container(
+                              width: 150,
+                              height: 40,
+                              padding: EdgeInsets.only(left: 5),
+                              decoration: boxdecoration(),
+                              child: DateTimeField(
+                                decoration: const InputDecoration(
+                                    suffixIcon: Icon(Icons.timer),
+                                    border: InputBorder.none,
+                                    labelText: 'Start Shift'),
+                                initialDate:
+                                    startselectedShift, // Assign initial value here
+                                mode: DateTimeFieldPickerMode.time,
+                                onChanged: (value) {
+                                  startselectedShift = value;
+                                },
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Container(
+                              width: 150,
+                              height: 40,
+                              padding: EdgeInsets.only(left: 5),
+                              decoration: boxdecoration(),
+                              child: DateTimeField(
+                                decoration: InputDecoration(
+                                    suffixIcon: Icon(Icons.timer),
+                                    border: InputBorder.none,
+                                    labelText: 'End Shift'),
+                                initialDate:
+                                    endselectedShift, // Assign initial value here
+                                mode: DateTimeFieldPickerMode.time,
+                                onChanged: (value) {
+                                  endselectedShift = value;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Department Dropdown
+
+                  Text(
+                    'Tax and Identification Information',
+                    style: catergoryStyle(),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          padding: EdgeInsets.only(left: 5),
+                          decoration: boxdecoration(),
+                          child: TextFormField(
+                            controller: sssController,
+                            decoration: const InputDecoration(
+                                labelText: 'SSS', border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          padding: EdgeInsets.only(left: 5),
+                          decoration: boxdecoration(),
+                          child: TextFormField(
+                            controller: taxCodeController,
+                            decoration: const InputDecoration(
+                                labelText: 'Tax Code',
+                                border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          padding: EdgeInsets.only(left: 5),
+                          decoration: boxdecoration(),
+                          child: TextFormField(
+                            controller: tinController,
+                            decoration: const InputDecoration(
+                                labelText: 'Tin', border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    'Account Information',
+                    style: catergoryStyle(),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          padding: EdgeInsets.only(left: 5),
+                          decoration: boxdecoration(),
+                          child: TextFormField(
+                            controller: usernameController,
+                            decoration: const InputDecoration(
+                                labelText: 'Username',
+                                border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          padding: EdgeInsets.only(left: 5),
+                          decoration: boxdecoration(),
+                          child: TextFormField(
+                            controller: emailController,
+                            decoration: const InputDecoration(
+                                labelText: 'Email', border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: 10),
+                ],
               ),
-              SizedBox(height: 10),
-            ],
+            ),
           ),
-        ),
-      ),
-      actions: [
-        ElevatedButton(
-          onPressed: () async {
-            Map<String, dynamic> updatedUserData = {
-              'fname': firstNameController.text,
-              'mname': middleNameController.text,
-              'lname': lastNameController.text,
-              'salary': salaryController.text,
-              'username': usernameController.text,
-              'email': emailController.text,
-              'mobilenum': mobilenumController.text,
-              'employeeId': employeeIdController.text,
-              'sss': sssController.text,
-              'tin': tinController.text,
-              'taxCode': taxCodeController.text,
-              'role': selectedRole,
-              'typeEmployee': selectedEmployeeType,
-              'department': selectedDepartment,
-              'startShift': startselectedShift,
-              'endShift': endselectedShift,
-            };
-            await updateUserDetails(userId, updatedUserData);
-            Navigator.of(context).pop();
+          actions: [
+            ElevatedButton(
+              onPressed: () async {
+                Map<String, dynamic> updatedUserData = {
+                  'fname': firstNameController.text,
+                  'mname': middleNameController.text,
+                  'lname': lastNameController.text,
+                  'salary': salaryController.text,
+                  'username': usernameController.text,
+                  'email': emailController.text,
+                  'mobilenum': mobilenumController.text,
+                  'employeeId': employeeIdController.text,
+                  'sss': sssController.text,
+                  'tin': tinController.text,
+                  'taxCode': taxCodeController.text,
+                  'role': selectedRole,
+                  'typeEmployee': selectedEmployeeType,
+                  'department': selectedDepartment,
+                  'startShift': startselectedShift,
+                  'endShift': endselectedShift,
+                };
+                await updateUserDetails(userId, updatedUserData);
+                Navigator.of(context).pop();
 
-            setState(() {});
-          },
-          child: Text('Save'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            resetPassword(userData['email']);
-            Navigator.of(context).pop();
-          },
-          child: Text('Reset Password'),
-        ),
-      ],
+                setState(() {});
+              },
+              child: Text('Save'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                resetPassword(userData['email']);
+                Navigator.of(context).pop();
+              },
+              child: Text('Reset Password'),
+            ),
+          ],
+        );
+      },
     );
-  },
-);
-    }
+  }
+
   Future<void> updateUserDetails(
       String userId, Map<String, dynamic> updatedUserData) async {
     try {
@@ -961,7 +1141,7 @@ showDialog(
                 color: Colors.white, borderRadius: BorderRadius.circular(8)),
             child: SingleChildScrollView(
               child: SizedBox(
-                width: 1170,
+                width: 900,
                 child: Flexible(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1005,68 +1185,89 @@ showDialog(
                           const SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('First Name'),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: firstNameController,
-                                  decoration: const InputDecoration(
-                                      labelText: 'Enter First Name',
-                                      border: InputBorder.none),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('First Name', style: textStyle),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    inputFormatters: <TextInputFormatter>[
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp("[a-zA-Z]")),
+                                    ],
+                                    controller: firstNameController,
+                                    decoration: const InputDecoration(
+                                        hintText: 'Enter First Name',
+                                        border: InputBorder.none),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           const SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('MIddle Name'),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: middleNameController,
-                                  decoration: const InputDecoration(
-                                      labelText: 'Enter Middle Name',
-                                      border: InputBorder.none),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Middle Name', style: textStyle),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    inputFormatters: <TextInputFormatter>[
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp("[a-zA-Z]")),
+                                    ],
+                                    controller: middleNameController,
+                                    decoration: const InputDecoration(
+                                        hintText: 'Enter Middle Name',
+                                        border: InputBorder.none),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           const SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Last Name'),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: lastNameController,
-                                  decoration: const InputDecoration(
-                                      labelText: 'Enter Last Name',
-                                      border: InputBorder.none),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Last Name', style: textStyle),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: lastNameController,
+                                    inputFormatters: <TextInputFormatter>[
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp("[a-zA-Z]")),
+                                    ],
+                                    decoration: const InputDecoration(
+                                        hintText: 'Enter Last Name',
+                                        border: InputBorder.none),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           const SizedBox(
                             width: 10,
@@ -1075,78 +1276,98 @@ showDialog(
                       ),
                       const SizedBox(height: 15),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Mobile'),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  decoration: const InputDecoration(
-                                      labelText: 'Enter Mobile',
-                                      border: InputBorder.none),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Employee ID'),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: employeeIdController,
-                                  decoration: const InputDecoration(
-                                      labelText: 'Enter Employee ID',
-                                      border: InputBorder.none),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Salary'),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: salaryController,
-                                  keyboardType: TextInputType
-                                      .number, // Set keyboard type to number
-                                  inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter
-                                        .digitsOnly // Accept only digits
-                                  ],
-                                  decoration: const InputDecoration(
-                                    labelText: 'Enter Salary',
-                                    border: InputBorder.none,
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Mobile', style: textStyle),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    inputFormatters: <TextInputFormatter>[
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp("[0-9]")),
+                                      LengthLimitingTextInputFormatter(11),
+                                    ],
+                                    decoration: const InputDecoration(
+                                        hintText: 'Enter Mobile',
+                                        border: InputBorder.none),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Employee ID', style: textStyle),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: employeeIdController,
+                                    inputFormatters: <TextInputFormatter>[
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp("[0-9]")),
+                                    ],
+                                    decoration: const InputDecoration(
+                                        hintText: 'Enter Employee ID',
+                                        border: InputBorder.none),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Salary', style: textStyle),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: salaryController,
+                                    keyboardType: TextInputType
+                                        .number, // Set keyboard type to number
+                                    inputFormatters: <TextInputFormatter>[
+                                      FilteringTextInputFormatter
+                                          .digitsOnly // Accept only digits
+                                    ],
+                                    decoration: const InputDecoration(
+                                      hintText: 'Enter Salary',
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -1158,193 +1379,205 @@ showDialog(
                         height: 10,
                       ),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Department:', style: textStyle),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 0, 5, 25),
-                                decoration: BoxDecoration(
-                                    border:
-                                        Border.all(color: Colors.grey.shade300),
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12)),
-                                child: DropdownMenu<String>(
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Department:', style: textStyle),
+                                Container(
                                   width: 280,
-                                  inputDecorationTheme: InputDecorationTheme(
-                                    border: InputBorder.none,
-                                  ),
-                                  trailingIcon: Icon(Icons.arrow_drop_down),
-                                  initialSelection: selectedDep,
-                                  onSelected: (String? value) {
-                                    // This is called when the user selects an item.
-                                    setState(() {
-                                      selectedDep = value!;
-                                    });
-                                  },
-                                  dropdownMenuEntries: [
-                                    'IT',
-                                    'HR',
-                                    'ACCOUNTANCY',
-                                    'SERVICING'
-                                  ].map<DropdownMenuEntry<String>>(
-                                      (String value) {
-                                    return DropdownMenuEntry<String>(
-                                        value: value, label: value);
-                                  }).toList(),
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Role:',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 0, 5, 25),
-                                decoration: boxdecoration(),
-                                child: DropdownMenu<String>(
-                                  width: 280,
-                                  inputDecorationTheme: InputDecorationTheme(
-                                    border: InputBorder.none,
-                                  ),
-                                  trailingIcon: Icon(Icons.arrow_drop_down),
-                                  initialSelection: selectedRole,
-                                  onSelected: (String? value) {
-                                    // This is called when the user selects an item.
-                                    setState(() {
-                                      selectedRole = value!;
-                                    });
-                                  },
-                                  dropdownMenuEntries: [
-                                    'Employee',
-                                    'Admin',
-                                  ].map<DropdownMenuEntry<String>>(
-                                      (String value) {
-                                    return DropdownMenuEntry<String>(
-                                        value: value, label: value);
-                                  }).toList(),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Employee Type:',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 0, 5, 25),
-                                decoration: boxdecoration(),
-                                child: DropdownMenu<String>(
-                                  width: 280,
-                                  inputDecorationTheme: InputDecorationTheme(
-                                    border: InputBorder.none,
-                                  ),
-                                  trailingIcon: Icon(Icons.arrow_drop_down),
-                                  initialSelection: typeEmployee,
-                                  onSelected: (String? value) {
-                                
-                                    setState(() {
-                                      typeEmployee = value!;
-                                    });
-                                  },
-                                  dropdownMenuEntries: [
-                                    'Regular',
-                                    'Contractual'
-                                  ].map<DropdownMenuEntry<String>>(
-                                      (String value) {
-                                    return DropdownMenuEntry<String>(
-                                        value: value, label: value);
-                                  }).toList(),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Shift',
-                                style: textStyle,
-                              ),
-                              Column(
-                                children: [
-                                  Container(
-                                    width: 120,
-                                    height: 40,
-                                    padding: EdgeInsets.all(2),
-                                    decoration: boxdecoration(),
-                                    child: DateTimeFormField(
-                                      decoration: const InputDecoration(
-                                          border: InputBorder.none,
-                                          contentPadding:
-                                              EdgeInsets.only(bottom: 15),
-                                          hintText: 'Start',
-                                          suffixIcon: Icon(Icons.timer)),
-                                      mode: DateTimeFieldPickerMode.time,
-                                      onDateSelected: (DateTime value) {
-                                        print(value);
-                                      },
-                                      onChanged: (DateTime? value) {},
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 0, 5, 25),
+                                  decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color: Colors.grey.shade300),
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12)),
+                                  child: DropdownMenu<String>(
+                                    width: 280,
+                                    inputDecorationTheme: InputDecorationTheme(
+                                      border: InputBorder.none,
                                     ),
+                                    trailingIcon: Icon(Icons.arrow_drop_down),
+                                    initialSelection: selectedDep,
+                                    onSelected: (String? value) {
+                                      // This is called when the user selects an item.
+                                      setState(() {
+                                        selectedDep = value!;
+                                      });
+                                    },
+                                    dropdownMenuEntries: [
+                                      'IT',
+                                      'HR',
+                                      'ACCOUNTANCY',
+                                      'SERVICING'
+                                    ].map<DropdownMenuEntry<String>>(
+                                        (String value) {
+                                      return DropdownMenuEntry<String>(
+                                          value: value, label: value);
+                                    }).toList(),
                                   ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  Container(
-                                    width: 120,
-                                    height: 40,
-                                    padding: EdgeInsets.all(2),
-                                    decoration: boxdecoration(),
-                                    child: DateTimeFormField(
-                                      decoration: const InputDecoration(
-                                          hintText: 'End',
-                                          contentPadding:
-                                              EdgeInsets.only(bottom: 15),
-                                          border: InputBorder.none,
-                                          suffixIcon: Icon(Icons.timer)),
-                                      mode: DateTimeFieldPickerMode.time,
-                                      onDateSelected: (DateTime value) {
-                                        print(value);
-                                      },
-                                      onChanged: (DateTime? value) {},
+                                ),
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Role:',
+                                  style: textStyle,
+                                ),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 0, 5, 25),
+                                  decoration: boxdecoration(),
+                                  child: DropdownMenu<String>(
+                                    width: 280,
+                                    inputDecorationTheme: InputDecorationTheme(
+                                      border: InputBorder.none,
                                     ),
-                                  )
-                                ],
-                              )
-                            ],
+                                    trailingIcon: Icon(Icons.arrow_drop_down),
+                                    initialSelection: selectedRole,
+                                    onSelected: (String? value) {
+                                      // This is called when the user selects an item.
+                                      setState(() {
+                                        selectedRole = value!;
+                                      });
+                                    },
+                                    dropdownMenuEntries: [
+                                      'Employee',
+                                      'Admin',
+                                    ].map<DropdownMenuEntry<String>>(
+                                        (String value) {
+                                      return DropdownMenuEntry<String>(
+                                          value: value, label: value);
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Employee Type:',
+                                  style: textStyle,
+                                ),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 0, 5, 25),
+                                  decoration: boxdecoration(),
+                                  child: DropdownMenu<String>(
+                                    width: 280,
+                                    inputDecorationTheme: InputDecorationTheme(
+                                      border: InputBorder.none,
+                                    ),
+                                    trailingIcon: Icon(Icons.arrow_drop_down),
+                                    initialSelection: typeEmployee,
+                                    onSelected: (String? value) {
+                                      setState(() {
+                                        typeEmployee = value!;
+                                      });
+                                    },
+                                    dropdownMenuEntries: [
+                                      'Regular',
+                                      'Contractual'
+                                    ].map<DropdownMenuEntry<String>>(
+                                        (String value) {
+                                      return DropdownMenuEntry<String>(
+                                          value: value, label: value);
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Shift',
+                                  style: textStyle,
+                                ),
+                                Column(
+                                  children: [
+                                    Container(
+                                      width: 120,
+                                      height: 40,
+                                      padding: EdgeInsets.all(2),
+                                      decoration: boxdecoration(),
+                                      child: DateTimeFormField(
+                                        decoration: const InputDecoration(
+                                            border: InputBorder.none,
+                                            contentPadding:
+                                                EdgeInsets.only(bottom: 15),
+                                            hintText: 'Start',
+                                            suffixIcon: Icon(Icons.timer)),
+                                        mode: DateTimeFieldPickerMode.time,
+                                        onDateSelected: (DateTime value) {
+                                          print(value);
+                                        },
+                                        onChanged: (DateTime? value) {},
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 10,
+                                    ),
+                                    Container(
+                                      width: 120,
+                                      height: 40,
+                                      padding: EdgeInsets.all(2),
+                                      decoration: boxdecoration(),
+                                      child: DateTimeFormField(
+                                        decoration: const InputDecoration(
+                                            hintText: 'End',
+                                            contentPadding:
+                                                EdgeInsets.only(bottom: 15),
+                                            border: InputBorder.none,
+                                            suffixIcon: Icon(Icons.timer)),
+                                        mode: DateTimeFieldPickerMode.time,
+                                        onDateSelected: (DateTime value) {
+                                          print(value);
+                                        },
+                                        onChanged: (DateTime? value) {},
+                                      ),
+                                    )
+                                  ],
+                                )
+                              ],
+                            ),
                           )
                         ],
                       ),
@@ -1363,80 +1596,86 @@ showDialog(
                           const SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'SSS',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: EdgeInsets.all(8),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: sssController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Enter SSS',
-                                    border: InputBorder.none,
-                                  ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'SSS',
+                                  style: textStyle,
                                 ),
-                              )
-                            ],
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding: EdgeInsets.all(8),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: sssController,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Enter SSS',
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
                           SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'TIN',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: EdgeInsets.all(8),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: tinController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Enter TIN',
-                                    border: InputBorder.none,
-                                  ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'TIN',
+                                  style: textStyle,
                                 ),
-                              )
-                            ],
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding: EdgeInsets.all(8),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: tinController,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Enter TIN',
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
                           SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Tax Code',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: EdgeInsets.all(8),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: taxCodeController,
-                                  decoration: const InputDecoration(
-                                    border: InputBorder.none,
-                                    labelText: 'Enter TaxCode',
-                                  ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Tax Code',
+                                  style: textStyle,
                                 ),
-                              )
-                            ],
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding: EdgeInsets.all(8),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: taxCodeController,
+                                    decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: 'Enter TaxCode',
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
                           )
                         ],
                       ),
@@ -1455,91 +1694,98 @@ showDialog(
                           SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Email',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: EdgeInsets.all(8),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: emailController,
-                                  decoration: const InputDecoration(
-                                    border: InputBorder.none,
-                                    labelText: 'Enter Email',
-                                  ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Email',
+                                  style: textStyle,
                                 ),
-                              )
-                            ],
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Username',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: EdgeInsets.all(8),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: usernameController,
-                                  decoration: const InputDecoration(
-                                    border: InputBorder.none,
-                                    labelText: 'Enter Username',
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Password',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: EdgeInsets.all(2),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  obscureText: !passwordVisible,
-                                  controller: passwordController,
-                                  decoration: InputDecoration(
-                                    labelText: '',
-                                    border: InputBorder.none,
-                                    suffixIcon: IconButton(
-                                      icon: Icon(passwordVisible
-                                          ? Icons.visibility
-                                          : Icons.visibility_off),
-                                      onPressed: () {
-                                        setState(() {
-                                          passwordVisible = !passwordVisible;
-                                        });
-                                      },
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding: EdgeInsets.all(8),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: emailController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: 'Enter Email',
                                     ),
                                   ),
+                                )
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Username',
+                                  style: textStyle,
                                 ),
-                              )
-                            ],
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding: EdgeInsets.all(8),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: usernameController,
+                                    decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: 'Enter Username',
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Password',
+                                  style: textStyle,
+                                ),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding: EdgeInsets.all(2),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    obscureText: !passwordVisible,
+                                    controller: passwordController,
+                                    decoration: InputDecoration(
+                                      labelText: '',
+                                      border: InputBorder.none,
+                                      suffixIcon: IconButton(
+                                        icon: Icon(passwordVisible
+                                            ? Icons.visibility
+                                            : Icons.visibility_off),
+                                        onPressed: () {
+                                          setState(() {
+                                            passwordVisible = !passwordVisible;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
                           )
                         ],
                       ),

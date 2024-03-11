@@ -47,7 +47,7 @@ class _TopBarState extends State<TopBar> {
     }
   }
 
-    Future<void> _fetchRole() async {
+  Future<void> _fetchRole() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final docSnapshot = await FirebaseFirestore.instance
@@ -131,36 +131,45 @@ class _TopBarState extends State<TopBar> {
                       border: Border(
                           left:
                               BorderSide(color: Colors.grey.withOpacity(0.5)))),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        child: Icon(
-                          Icons.person,
-                        ),
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _userName,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
+                  child: MediaQuery.of(context).size.width > 600
+                      ? Row(
+                          children: [
+                            CircleAvatar(
+                              child: Icon(
+                                Icons.person,
+                              ),
                             ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _userName,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  _role,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.arrow_drop_down),
+                          ],
+                        )
+                      : CircleAvatar(
+                          child: Icon(
+                            Icons.person,
                           ),
-                          Text(
-                            _role
-                          ),
-                        ],
-                      ),
-                      SizedBox(width: 10),
-                      Icon(Icons.arrow_drop_down),
-                    ],
-                  ),
+                        ),
                 ),
               ),
             ],

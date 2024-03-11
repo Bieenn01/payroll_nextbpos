@@ -44,12 +44,17 @@ class _CalendarPageState extends State<CalendarPage> {
       appBar: AppBar(
         title: Text(
           'Calendar',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: MediaQuery.of(context).size.width > 600 ? 25 : 18,
+              fontWeight: FontWeight.bold),
         ),
         actions: [
-          Switch(
-            value: _showHolidays,
-            onChanged: _toggleDataSource,
+          SizedBox(
+            height: MediaQuery.of(context).size.height > 600 ? 30 : 10,
+            child: Switch(
+              value: _showHolidays,
+              onChanged: _toggleDataSource,
+            ),
           ),
         ],
       ),
@@ -91,7 +96,8 @@ class _CalendarPageState extends State<CalendarPage> {
           DateTime holidayDate = DateTime.parse(holiday['date']);
           bool isHolidayPassed = holidayDate.isBefore(DateTime.now());
 
-          Color eventColor = isHolidayPassed ? Colors.green : Colors.orange.shade600;
+          Color eventColor =
+              isHolidayPassed ? Colors.green : Colors.orange.shade600;
 
           return Meeting(
             holiday['eventName'],

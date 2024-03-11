@@ -180,6 +180,7 @@ class SidebarMenu extends StatelessWidget {
                         ],
                       ),
                     ),
+                    //menu
                     Expanded(
                       child: ScreensView(menu: state.menu),
                     ),
