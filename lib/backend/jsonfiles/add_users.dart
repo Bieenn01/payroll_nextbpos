@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 Future<void> addUser(
-  int salary, 
+  double salary, 
   String username,
   String fname,
   String mname,
@@ -18,6 +18,7 @@ Future<void> addUser(
   String taxCode,
   String employeeId,
   String mobilenum,
+  bool isActive,
 ) async {
   try {
     // Use the current user's UID as the document ID
