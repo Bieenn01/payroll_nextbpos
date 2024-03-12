@@ -48,10 +48,7 @@ class User {
       required this.taxCode,
       required this.employeeId,
       required this.mobilenum,
-      required this.isActive
-      });
-      
-        
+      required this.isActive});
 }
 
 class PovUser extends StatefulWidget {
@@ -72,7 +69,8 @@ class _UserState extends State<PovUser> {
   bool passwordVisible = false;
   int index = 0;
   List<DocumentSnapshot> _allDocs = []; // Store all fetched documents
-  List<DocumentSnapshot> _displayedDocs = []; // Documents to display on the current page
+  List<DocumentSnapshot> _displayedDocs =
+      []; // Documents to display on the current page
 
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -104,8 +102,7 @@ class _UserState extends State<PovUser> {
     DocumentSnapshot? startAfterDocument,
   ) async {
     try {
-      Query query =
-          FirebaseFirestore.instance.collection('User');
+      Query query = FirebaseFirestore.instance.collection('User');
 
       return await query.get();
     } catch (e) {
@@ -249,40 +246,35 @@ class _UserState extends State<PovUser> {
                                 ),
                               ),
                               Flexible(
-                                  child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Container(
-                                        width:
-                                            MediaQuery.of(context).size.width >
-                                                    600
-                                                ? 400
-                                                : 50,
-                                        height: 30,
-                                        margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
-                                        padding:
-                                            EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          border: Border.all(
-                                            color:
-                                                Colors.black.withOpacity(0.5),
-                                          ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Container(
+                                      width: MediaQuery.of(context).size.width >
+                                              600
+                                          ? 400
+                                          : 50,
+                                      height: 30,
+                                      margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                      padding: EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: Colors.black.withOpacity(0.5),
                                         ),
-                                        child: TextField(
-                                          controller: _searchController,
-                                          textAlign: TextAlign.start,
-                                          decoration: const InputDecoration(
-                                            contentPadding:
-                                                EdgeInsets.only(bottom: 15),
-                                            prefixIcon: Icon(Icons.search),
-                                            border: InputBorder.none,
-                                            hintText: 'Search',
-                                          ),
-                                          onChanged: (value) {
+                                      ),
+                                      child: TextField(
+                                        controller: _searchController,
+                                        textAlign: TextAlign.start,
+                                        decoration: const InputDecoration(
+                                          contentPadding:
+                                              EdgeInsets.only(bottom: 15),
+                                          prefixIcon: Icon(Icons.search),
+                                          border: InputBorder.none,
+                                          hintText: 'Search',
+                                        ),
+                                        onChanged: (value) {
                                           setState(() {
-                                             
                                             _fetchUsers(_pageSize,
                                                 _lastVisibleSnapshot); // Trigger user fetching with pagination
                                           });
@@ -346,12 +338,11 @@ class _UserState extends State<PovUser> {
                                               color: Colors.white),
                                         ),
                                       ],
-                                    )
-                                  ),
-                                ),
-                              ],
-                            ),
+                                    )),
+                              ),
+                            ],
                           ),
+                        ),
                         Divider(),
                         FutureBuilder(
                           future: _fetchUsers(_pageSize, _lastVisibleSnapshot),
@@ -373,8 +364,8 @@ class _UserState extends State<PovUser> {
                                 snapshot.data!.docs != null) {
                               _allDocs = snapshot.data!.docs;
 
-                              int startIndex = (_currentPage - 1) * _pageSize ;
-                              int endIndex = startIndex + _pageSize ;
+                              int startIndex = (_currentPage - 1) * _pageSize;
+                              int endIndex = startIndex + _pageSize;
 
                               // Ensure endIndex does not exceed the length of _allDocs
                               if (endIndex > _allDocs.length) {
@@ -403,50 +394,81 @@ class _UserState extends State<PovUser> {
                                   child: DataTable(
                                     columns: const [
                                       DataColumn(
-                                        label: Text('#',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
+                                        label: Flexible(
+                                          child: Text('#',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                        ),
                                       ),
                                       DataColumn(
-                                        label: Text('ID',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
+                                        label: Flexible(
+                                          child: Text('ID',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                        ),
                                       ),
                                       DataColumn(
-                                        label: Text('Name',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
+                                        label: Flexible(
+                                          child: Text('Name',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                        ),
                                       ),
                                       DataColumn(
-                                        label: Text('Username',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
+                                        label: Flexible(
+                                          child: Text('Username',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                        ),
                                       ),
                                       DataColumn(
-                                        label: Text('Type',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
+                                        label: Flexible(
+                                          child: Text('Type',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                        ),
                                       ),
                                       DataColumn(
-                                        label: Text('Department',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
+                                        label: Flexible(
+                                          child: Text('Department',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                        ),
                                       ),
                                       DataColumn(
-                                        label: Text('Shift',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
+                                        label: Flexible(
+                                          child: Text('Shift',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                        ),
                                       ),
 
                                       DataColumn(
-                                        label: Text('Active Status',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
+                                        label: Flexible(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              Text('Active',
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                              Text('Status',
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ],
+                                          ),
+                                        ),
                                       ),
                                       DataColumn(
-                                        label: Text('Action',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
+                                        label: Flexible(
+                                          child: Text('Action',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                        ),
                                       ),
                                       // Added column for Status
                                     ],
@@ -469,7 +491,7 @@ class _UserState extends State<PovUser> {
                                             data['isActive'] ?? false;
 
                                         // Calculate the real index based on the current page and page size
-                                        int realIndex =  index + 1;
+                                        int realIndex = index + 1;
 
                                         Color? rowColor = realIndex % 2 == 0
                                             ? Colors.white
@@ -493,28 +515,37 @@ class _UserState extends State<PovUser> {
                                                 data['department'].toString())),
                                             DataCell(Text(shift)),
                                             DataCell(
-                                              Switch(
-                                                value: isActive,
-                                                activeColor: Colors.green,
-                                                onChanged: (value) async {
-                                                  if (!value) {
-                                                    bool verificationResult =
-                                                        await passwordVerification(
-                                                            context);
-                                                    if (verificationResult) {
-                                                      updateAccountStatus(
-                                                          userId, value);
-                                                      showToast(
-                                                          "User Deactivated");
-                                                    } else {
-                                                      // Handle unsuccessful or canceled verification
-                                                    }
-                                                  } else {
-                                                    updateAccountStatus(
-                                                        userId, value);
-                                                    showToast("User Activated");
-                                                  }
-                                                },
+                                              SizedBox(
+                                                width: 50,
+                                                height: 30,
+                                                child: FittedBox(
+                                                  fit: BoxFit.fill,
+                                                  child: Switch(
+                                                    value: isActive,
+                                                    activeColor: Colors.green,
+                                                    onChanged: (value) async {
+                                                      if (!value) {
+                                                        bool
+                                                            verificationResult =
+                                                            await passwordVerification(
+                                                                context);
+                                                        if (verificationResult) {
+                                                          updateAccountStatus(
+                                                              userId, value);
+                                                          showToast(
+                                                              "User Deactivated");
+                                                        } else {
+                                                          // Handle unsuccessful or canceled verification
+                                                        }
+                                                      } else {
+                                                        updateAccountStatus(
+                                                            userId, value);
+                                                        showToast(
+                                                            "User Activated");
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                             DataCell(
@@ -559,8 +590,7 @@ class _UserState extends State<PovUser> {
                                       },
                                     ),
                                   ),
-                                )
-                              );
+                                ));
                           },
                         ),
                         Divider(),
@@ -690,7 +720,7 @@ class _UserState extends State<PovUser> {
     }
   }
 
-void editUserDetails(String userId, Map<String, dynamic> userData) {
+  void editUserDetails(String userId, Map<String, dynamic> userData) {
     TextEditingController firstNameController =
         TextEditingController(text: userData['fname'].toString());
     TextEditingController middleNameController =
@@ -725,7 +755,6 @@ void editUserDetails(String userId, Map<String, dynamic> userData) {
     DateTime? endShift = userData['endShift'] != null
         ? (userData['endShift'] as Timestamp).toDate()
         : null;
-
 
     List<String> departmentChoices = ['IT', 'HR', 'ACCOUNTANCY', 'SERVICING'];
     List<String> roleChoices = ['Employee', 'Admin'];
@@ -1146,8 +1175,7 @@ void editUserDetails(String userId, Map<String, dynamic> userData) {
                 };
                 await updateUserDetails(userId, updatedUserData);
                 Navigator.of(context).pop();
-                showSuccess(context, 'Updated',
-                    '');
+                showSuccess(context, 'Updated', '');
                 setState(() {});
               },
               child: Text('Save'),

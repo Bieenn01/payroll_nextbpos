@@ -421,7 +421,7 @@ class _AttendancePageState extends State<AttendancePage> {
                                 children: [
                                   DataTable(
                                     columns: const [
-                                      ColumnInput('#'),
+                                      DataColumn(label: Text('#')),
                                       DataColumn(label: Text('Name')),
                                       DataColumn(label: Text('Time in')),
                                       DataColumn(label: Text('Time out')),
@@ -441,8 +441,7 @@ class _AttendancePageState extends State<AttendancePage> {
                                         color: MaterialStateColor.resolveWith(
                                             (states) => rowColor!),
                                         cells: [
-                                          DataCell(
-                                              Text((dataIndex + 1).toString())),
+                                          DataCell(Text((index).toString())),
                                           DataCell(Container(
                                             width: 100,
                                             child: Text(
