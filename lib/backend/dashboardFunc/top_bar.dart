@@ -73,142 +73,130 @@ class _TopBarState extends State<TopBar> {
     final String dayFormat = dayFormatter.format(now);
     final String date = dateFormatter.format(now);
 
-    return LayoutBuilder(builder: (context, constraints) {
-      double desiredHeight = constraints.maxHeight * 0.2;
-
-      return FractionallySizedBox(
-        heightFactor: desiredHeight / MediaQuery.of(context).size.height,
-        child: Wrap(
-          children: [content(context, timeFormat, date)],
-        ),
-      );
-    });
-  }
-
-// content(context, timeFormat, date)
-  Container content(BuildContext context, String timeFormat, String date) {
-    return Container(
-      color: Colors.teal.shade700,
-      child: Expanded(
-        child: Container(
-          margin: const EdgeInsets.all(15),
-          padding: const EdgeInsets.all(15),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                child: MediaQuery.of(context).size.height > 600
-                    ? Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            timeFormat,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            date,
-                            style: const TextStyle(
-                              fontSize: 15,
-                            ),
-                          ),
-                        ],
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            timeFormat,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            date,
-                            style: const TextStyle(
-                              fontSize: 15,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-              InkWell(
-                onTap: () {
-                  showMenu(
-                    context: context,
-                    position: const RelativeRect.fromLTRB(80, 100, 50, 0),
-                    items: const [
-                      PopupMenuItem(
-                        child: Text('Log out'),
-                        value: 'log_out',
-                      ),
-                    ],
-                    elevation: 8.0,
-                  ).then((value) {
-                    if (value == 'account_list') {
-                      // Handle account list selection
-                    } else if (value == 'log_out') {
-                      // Handle log out selection
-                    }
-                  });
-                },
-                child: Container(
-                  padding: EdgeInsets.fromLTRB(5, 2, 2, 2),
-                  decoration: BoxDecoration(
-                      border: Border(
-                          left:
-                              BorderSide(color: Colors.grey.withOpacity(0.5)))),
-                  child: MediaQuery.of(context).size.width > 600
-                      ? Row(
+    return Scaffold(
+      body: Container(
+        color: Colors.teal.shade700,
+        child: Expanded(
+          child: Container(
+            margin: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  child: MediaQuery.of(context).size.height > 600
+                      ? Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CircleAvatar(
-                              child: Icon(
-                                Icons.person,
+                            Text(
+                              timeFormat,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(
-                              width: 10,
+                            Text(
+                              date,
+                              style: const TextStyle(
+                                fontSize: 15,
+                              ),
                             ),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _userName,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  _role,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_drop_down),
                           ],
                         )
-                      : CircleAvatar(
-                          child: Icon(
-                            Icons.person,
-                          ),
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              timeFormat,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              date,
+                              style: const TextStyle(
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
                         ),
                 ),
-              ),
-            ],
+                InkWell(
+                  onTap: () {
+                    showMenu(
+                      context: context,
+                      position: const RelativeRect.fromLTRB(80, 100, 50, 0),
+                      items: const [
+                        PopupMenuItem(
+                          child: Text('Log out'),
+                          value: 'log_out',
+                        ),
+                      ],
+                      elevation: 8.0,
+                    ).then((value) {
+                      if (value == 'account_list') {
+                        // Handle account list selection
+                      } else if (value == 'log_out') {
+                        // Handle log out selection
+                      }
+                    });
+                  },
+                  child: Container(
+                    padding: EdgeInsets.fromLTRB(5, 2, 2, 2),
+                    decoration: BoxDecoration(
+                        border: Border(
+                            left: BorderSide(
+                                color: Colors.grey.withOpacity(0.5)))),
+                    child: MediaQuery.of(context).size.width > 600
+                        ? Row(
+                            children: [
+                              CircleAvatar(
+                                child: Icon(
+                                  Icons.person,
+                                ),
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _userName,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    _role,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(width: 8),
+                              Icon(Icons.arrow_drop_down),
+                            ],
+                          )
+                        : CircleAvatar(
+                            child: Icon(
+                              Icons.person,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
