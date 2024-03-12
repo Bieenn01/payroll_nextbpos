@@ -707,7 +707,7 @@ class _UserState extends State<PovUser> {
         ? (userData['endShift'] as Timestamp).toDate()
         : null;
 
-    List<String> departmentChoices = ['IT', 'HR', 'ACCOUNTANCY', 'SERVICING'];
+    List<String> departmentChoices = ['IT', 'HR', 'ACCOUNTING', 'SERVICING'];
     List<String> roleChoices = ['Employee', 'Admin'];
     List<String> employeeTypeChoices = ['Regular', 'Contractual'];
 
@@ -1459,7 +1459,7 @@ class _UserState extends State<PovUser> {
                                     dropdownMenuEntries: [
                                       'IT',
                                       'HR',
-                                      'ACCOUNTANCY',
+                                      'ACCOUNTING',
                                       'SERVICING'
                                     ].map<DropdownMenuEntry<String>>(
                                         (String value) {

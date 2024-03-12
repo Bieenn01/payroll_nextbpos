@@ -30,9 +30,13 @@ class ScreensView extends StatelessWidget {
           color: Colors.teal.shade700,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Flexible(
-                child: Container(height: 120, child: TopBar()),
+                child: Container(
+                    margin: EdgeInsets.only(bottom: 100),
+                    height: 100,
+                    child: TopBar()),
               ),
               Flexible(
                 flex: 7,
