@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart' as ShimmerPackage;
 
 class AttendancePage extends StatefulWidget {
   const AttendancePage({Key? key}) : super(key: key);
@@ -18,21 +19,41 @@ class _AttendancePageState extends State<AttendancePage> {
   TextEditingController _searchController = TextEditingController();
   String _selectedDepartment = '';
   int _itemsPerPage = 5;
-  int _currentPage = 0;
+  int _currentPage = 1;
+  int index = 0;
 
   @override
   void initState() {
     super.initState();
-    _fetchUserRecords();
+    _fetchUserRecords(_itemsPerPage);
   }
 
-  Future<void> _fetchUserRecords() async {
-    _userRecordsFuture = FirebaseFirestore.instance
-        .collection('Records')
-        .orderBy('timeIn', descending: true)
-        .get()
-        .then((querySnapshot) => querySnapshot.docs);
+    void _nextPage() {
+    setState(() {
+      _currentPage++;
+      // Call your function to fetch users with pagination for the next page
+      _fetchUserRecords(_itemsPerPage);
+    });
   }
+
+  void _previousPage() {
+    setState(() {
+      if (_currentPage > 1) {
+        _currentPage--;
+        // Call your function to fetch users with pagination for the previous page
+        _fetchUserRecords(_itemsPerPage);
+      }
+    });
+  }
+
+Future<QuerySnapshot> _fetchUserRecords(int itemsPerPage) async {
+  QuerySnapshot userRecordsSnapshot = await FirebaseFirestore.instance
+      .collection('Records')
+      .orderBy('timeIn', descending: true)
+      .get();
+
+  return userRecordsSnapshot;
+}
 
   DateTime? _startDate;
   DateTime? _endDate;
@@ -97,19 +118,26 @@ class _AttendancePageState extends State<AttendancePage> {
                                     padding: EdgeInsets.all(5),
                                     underline: SizedBox(),
                                     value: _itemsPerPage,
-                                    items: [5, 10, 15, 20, 25]
-                                        .map<DropdownMenuItem<int>>(
-                                      (int value) {
-                                        return DropdownMenuItem<int>(
-                                          value: value,
-                                          child: Text('$value'),
-                                        );
-                                      },
-                                    ).toList(),
-                                    onChanged: (int? newValue) {
-                                      setState(() {
-                                        _itemsPerPage = newValue!;
-                                      });
+                                    items: [5, 10, 15, 25].map((_pageSize) {
+                                      return DropdownMenuItem<int>(
+                                        value: _pageSize,
+                                        child: Text(_pageSize.toString()),
+                                      );
+                                    }).toList(),
+                                    onChanged: (newValue) {
+                                      if (newValue != null) {
+                                        if ([5, 10, 15, 25]
+                                            .contains(newValue)) {
+                                          setState(() {
+                                            _itemsPerPage = newValue;
+                                          });
+                                        } else {
+                                          // Handle case where the selected value is not in the predefined range
+                                          // For example, you can show a dialog, display a message, or perform any appropriate action.
+                                          print(
+                                              "Selected value is not in the predefined range.");
+                                        }
+                                      }
                                     },
                                   ),
                                 ),
@@ -313,191 +341,172 @@ class _AttendancePageState extends State<AttendancePage> {
                     ),
                     Divider(),
                     Expanded(
-                      child: FutureBuilder<List<DocumentSnapshot>>(
-                        future: _userRecordsFuture,
-                        builder: (context, snapshot) {
+                      child: FutureBuilder(
+                        future: _fetchUserRecords(_itemsPerPage),
+                        builder:
+                            (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return Center(
-                              child: CircularProgressIndicator(),
-                            );
+                              return _buildShimmerLoading();
                           }
                           if (snapshot.hasError) {
                             return Center(
                               child: Text('Error: ${snapshot.error}'),
                             );
                           }
-                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          if (!snapshot.hasData) {
                             return Center(
                               child: Text('No user records available.'),
                             );
                           }
 
-                          var filteredDocs = snapshot.data!.where((document) {
+                          List<DocumentSnapshot> userRecords =
+                              snapshot.data!.docs;
+
+                          List<DocumentSnapshot> filteredDocs =
+                              userRecords.where((document) {
                             Map<String, dynamic> data =
                                 document.data() as Map<String, dynamic>;
                             String userName = data['userName'];
-                            String query = _searchController.text.toLowerCase();
                             String department = data['department'] ?? '';
                             DateTime? timeIn =
                                 (data['timeIn'] as Timestamp?)?.toDate();
-                            return userName.toLowerCase().contains(query) &&
-                                (_selectedDepartment.isEmpty ||
-                                    department == _selectedDepartment) &&
-                                (_startDate == null ||
-                                    timeIn!.isAfter(_startDate!)) &&
-                                (_endDate == null ||
-                                    timeIn!.isBefore(
+
+                            String query = _searchController.text.toLowerCase();
+                            bool matchesSearchQuery =
+                                userName.toLowerCase().contains(query);
+                            bool matchesDepartment =
+                                _selectedDepartment.isEmpty ||
+                                    department == _selectedDepartment;
+                            bool isAfterStartDate = _startDate == null ||
+                                (timeIn != null && timeIn.isAfter(_startDate!));
+                            bool isBeforeEndDate = _endDate == null ||
+                                (timeIn != null &&
+                                    timeIn.isBefore(
                                         _endDate!.add(Duration(days: 1))));
+
+                            return matchesSearchQuery &&
+                                matchesDepartment &&
+                                isAfterStartDate &&
+                                isBeforeEndDate;
                           }).toList();
 
-                          int startIndex = _currentPage * _itemsPerPage;
+                          // Pagination logic
+                          int startIndex = (_currentPage - 1) * _itemsPerPage;
                           int endIndex = startIndex + _itemsPerPage;
+
+                          // Ensure endIndex does not exceed the length of filteredDocs
                           if (endIndex > filteredDocs.length) {
                             endIndex = filteredDocs.length;
                           }
 
-                          int _pagenumber = _currentPage + 1;
+                          // Ensure startIndex is within the bounds of filteredDocs
+                          if (startIndex >= 0 &&
+                              endIndex >= 0 &&
+                              startIndex < filteredDocs.length &&
+                              endIndex <= filteredDocs.length) {
+                            filteredDocs =
+                                filteredDocs.sublist(startIndex, endIndex);
+                          } else {
+                            // Handle invalid index range
+                            print("Invalid index range");
+                          }
 
-                          List<DocumentSnapshot> pageItems =
-                              filteredDocs.sublist(startIndex, endIndex);
-
-                          return ListView.builder(
-                            itemCount:
-                                (pageItems.length / _itemsPerPage).ceil() + 1,
-                            itemBuilder: (context, index) {
-                              if (index == 0) {
-                                return SizedBox(
-                                  height: 0,
-                                );
-                              } else {
-                                int startIndex = (index - 1) * _itemsPerPage;
-                                int endIndex = startIndex + _itemsPerPage;
-                                if (endIndex > pageItems.length) {
-                                  endIndex = pageItems.length;
-                                }
-                                return Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    DataTable(
-                                      columns: [
-                                        ColumnInput('Name'),
-                                        ColumnInput('Time in'),
-                                        ColumnInput('Time out'),
-                                        ColumnInput('Department')
-                                      ],
-                                      rows: List<DataRow>.generate(
-                                          endIndex - startIndex, (i) {
-                                        int dataIndex = startIndex + i;
-                                        Map<String, dynamic> data =
-                                            pageItems[dataIndex].data()
-                                                as Map<String, dynamic>;
-                                        Color? rowColor = index % 2 == 0
-                                            ? Colors.white
-                                            : Colors.grey[
-                                                200]; // Alternating row colors
-                                        index++; //
-                                        return DataRow(
-                                            color:
-                                                MaterialStateColor.resolveWith(
-                                                    (states) => rowColor!),
-                                            cells: [
-                                              DataCell(Container(
-                                                width: 100,
-                                                child: Text(data['userName'] ??
-                                                    'Unknown'),
-                                              )),
-                                              DataCell(Container(
-                                                width: 150,
-                                                child: Text(_formatTimestamp(
-                                                    data['timeIn'])),
-                                              )),
-                                              DataCell(Container(
-                                                width: 150,
-                                                child: Text(_formatTimestamp(
-                                                    data['timeOut'])),
-                                              )),
-                                              DataCell(Container(
-                                                width: 100,
-                                                child: Text(
-                                                    data['department'] ??
-                                                        'Unknown'),
-                                              )),
-                                            ]);
-                                      }),
-                                    ),
-                                    Divider(),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              _startDate = null;
-                                              _endDate = null;
-                                            });
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                          ),
-                                          child: Text(
-                                            'Previous',
-                                            style:
-                                                TextStyle(color: Colors.black),
+                          return SizedBox(
+                            height: 600,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  DataTable(
+                                    columns: const [
+                                      DataColumn(label: Text('Name')),
+                                      DataColumn(label: Text('Time in')),
+                                      DataColumn(label: Text('Time out')),
+                                      DataColumn(label: Text('Department')),
+                                    ],
+                                    rows: List.generate(filteredDocs.length,
+                                        (index) {
+                                      DocumentSnapshot document =
+                                          filteredDocs[index];
+                                      Map<String, dynamic> data = document
+                                          .data() as Map<String, dynamic>;
+                                      Color? rowColor = index % 2 == 0
+                                          ? Colors.white
+                                          : Colors.grey[200];
+                                      index++;
+                                      return DataRow(
+                                        color: MaterialStateColor.resolveWith(
+                                            (states) => rowColor!),
+                                        cells: [
+                                          DataCell(Container(
+                                            width: 100,
+                                            child: Text(
+                                                data['userName'] ?? 'Unknown'),
+                                          )),
+                                          DataCell(Container(
+                                            width: 150,
+                                            child: Text(_formatTimestamp(
+                                                data['timeIn'])),
+                                          )),
+                                          DataCell(Container(
+                                            width: 150,
+                                            child: Text(_formatTimestamp(
+                                                data['timeOut'])),
+                                          )),
+                                          DataCell(Container(
+                                            width: 100,
+                                            child: Text(data['department'] ??
+                                                'Unknown'),
+                                          )),
+                                        ],
+                                      );
+                                    }),
+                                  ),
+                                  Divider(),
+                                  SizedBox(height: 5),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed: _previousPage,
+                                        style: ElevatedButton.styleFrom(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                           ),
                                         ),
-                                        SizedBox(
-                                          width: 5,
+                                        child: Text('Previous'),
+                                      ),
+                                      SizedBox(width: 10),
+                                      Container(
+                                        height: 35,
+                                        padding: EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border: Border.all(
+                                              color: Colors.grey.shade200),
                                         ),
-                                        SizedBox(width: 10),
-                                        Container(
-                                            height: 35,
-                                            padding: EdgeInsets.all(8),
-                                            decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                border: Border.all(
-                                                    color:
-                                                        Colors.grey.shade200)),
-                                            child: Text('$_pagenumber')),
-                                        SizedBox(width: 10),
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            if (_currentPage <
-                                                (filteredDocs.length /
-                                                            _itemsPerPage)
-                                                        .ceil() -
-                                                    1) {
-                                              setState(() {
-                                                _currentPage++;
-                                              });
-                                            }
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                          ),
-                                          child: Text(
-                                            'Next',
-                                            style:
-                                                TextStyle(color: Colors.black),
+                                        child: Text('$_currentPage'),
+                                      ),
+                                      SizedBox(width: 10),
+                                      ElevatedButton(
+                                        onPressed: _nextPage,
+                                        style: ElevatedButton.styleFrom(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                           ),
                                         ),
-                                      ],
-                                    )
-                                  ],
-                                );
-                              }
-                            },
+                                        child: Text('Next'),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -511,6 +520,66 @@ class _AttendancePageState extends State<AttendancePage> {
       ),
     );
   }
+}
+
+Widget _buildShimmerLoading() {
+  return SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: ShimmerPackage.Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: DataTable(
+        columns: const [
+          DataColumn(
+            label: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('ID', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label:
+                Text('Username', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Type', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Department',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Shift', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label:
+                Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label:
+                Text('Status', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          // Added column for Status
+        ],
+        rows: List.generate(
+          10, // You can change this to the number of shimmer rows you want
+          (index) => DataRow(cells: [
+            DataCell(Container(width: 40, height: 16, color: Colors.white)),
+            DataCell(Container(width: 60, height: 16, color: Colors.white)),
+            DataCell(Container(width: 120, height: 16, color: Colors.white)),
+            DataCell(Container(width: 80, height: 16, color: Colors.white)),
+            DataCell(Container(width: 80, height: 16, color: Colors.white)),
+            DataCell(Container(width: 100, height: 16, color: Colors.white)),
+            DataCell(Container(width: 60, height: 16, color: Colors.white)),
+            DataCell(Container(width: 60, height: 16, color: Colors.white)),
+            DataCell(Container(width: 60, height: 16, color: Colors.white)),
+          ]),
+        ),
+      ),
+    ),
+  );
 }
 
 String _formatTimestamp(dynamic timestamp) {

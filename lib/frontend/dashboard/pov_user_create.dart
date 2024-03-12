@@ -29,7 +29,8 @@ class User {
   String taxCode;
   String employeeId;
   String mobilenum;
-  int salary;
+  double salary;
+  bool isActive;
   User(
       {required this.department,
       required this.email,
@@ -46,7 +47,11 @@ class User {
       required this.tin,
       required this.taxCode,
       required this.employeeId,
-      required this.mobilenum});
+      required this.mobilenum,
+      required this.isActive
+      });
+      
+        
 }
 
 class PovUser extends StatefulWidget {
@@ -60,14 +65,16 @@ class _UserState extends State<PovUser> {
   int _currentPage = 1;
   int _pageSize = 5; // Default page size
 
-  late int _totalUsers;
   late Future<void> Function(int, DocumentSnapshot?) _fetchUsersWithPagination;
   DateTime? selectedDate;
   DateTime? selectedTime;
   DateTime? selectedDateTime;
   bool passwordVisible = false;
   int index = 0;
+  List<DocumentSnapshot> _allDocs = []; // Store all fetched documents
+  List<DocumentSnapshot> _displayedDocs = []; // Documents to display on the current page
 
+  final TextEditingController _searchController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController salaryController = TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
@@ -93,18 +100,12 @@ class _UserState extends State<PovUser> {
   }
 
   Future<QuerySnapshot> _fetchUsers(
-    int limit,
+    int pageSize,
     DocumentSnapshot? startAfterDocument,
   ) async {
     try {
-      Query query = FirebaseFirestore.instance
-          .collection('User')
-          .orderBy('email')
-          .limit(limit);
-
-      if (startAfterDocument != null) {
-        query = query.startAfterDocument(startAfterDocument);
-      }
+      Query query =
+          FirebaseFirestore.instance.collection('User');
 
       return await query.get();
     } catch (e) {
@@ -131,11 +132,28 @@ class _UserState extends State<PovUser> {
     });
   }
 
+  void searchUsers(String query) {
+    // Perform the search logic here
+    // Query the "User" collection in Firestore based on the provided search value
+    // For example:
+    FirebaseFirestore.instance
+        .collection('User')
+        .where('fname', isEqualTo: query) // Search by first name
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      // Process the querySnapshot to get the search results
+      // You can update the UI with the search results
+      // For example, update a ListView with the search results
+    }).catchError((error) {
+      // Handle errors gracefully
+      print('Error searching users: $error');
+    });
+  }
+
 // Initialize _lastVisibleSnapshot as null
   DocumentSnapshot? _lastVisibleSnapshot;
 
 // Initialize _users as an empty list
-  List<DocumentSnapshot> _users = [];
 
   @override
   Widget build(BuildContext context) {
@@ -204,20 +222,26 @@ class _UserState extends State<PovUser> {
                                         padding: EdgeInsets.all(5),
                                         underline: SizedBox(),
                                         value: _pageSize,
-                                        items: [5, 10, 15, 25].map((value) {
+                                        items: [5, 10, 15, 25].map((_pageSize) {
                                           return DropdownMenuItem<int>(
-                                            value: value,
-                                            child: Text(value.toString()),
+                                            value: _pageSize,
+                                            child: Text(_pageSize.toString()),
                                           );
                                         }).toList(),
                                         onChanged: (newValue) {
-                                          setState(() {
-                                            _pageSize = newValue!;
-                                            _currentPage =
-                                                1; // Reset page number when changing page size
-                                            _fetchUsersWithPagination(
-                                                _pageSize, null);
-                                          });
+                                          if (newValue != null) {
+                                            if ([5, 10, 15, 25]
+                                                .contains(newValue)) {
+                                              setState(() {
+                                                _pageSize = newValue;
+                                              });
+                                            } else {
+                                              // Handle case where the selected value is not in the predefined range
+                                              // For example, you can show a dialog, display a message, or perform any appropriate action.
+                                              print(
+                                                  "Selected value is not in the predefined range.");
+                                            }
+                                          }
                                         },
                                       ),
                                     ),
@@ -225,35 +249,47 @@ class _UserState extends State<PovUser> {
                                 ),
                               ),
                               Flexible(
-                                child: Container(
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: Colors.black.withOpacity(0.5),
-                                    ),
-                                  ),
-                                  child: const Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
+                                  child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
-                                      Padding(
+                                      Container(
+                                        width:
+                                            MediaQuery.of(context).size.width >
+                                                    600
+                                                ? 400
+                                                : 50,
+                                        height: 30,
+                                        margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
                                         padding:
-                                            const EdgeInsets.only(left: 5.0),
-                                        child: Icon(Icons.search),
-                                      ),
-                                      Expanded(
+                                            EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color:
+                                                Colors.black.withOpacity(0.5),
+                                          ),
+                                        ),
                                         child: TextField(
+                                          controller: _searchController,
                                           textAlign: TextAlign.start,
-                                          decoration: InputDecoration(
-                                            contentPadding: EdgeInsets.only(
-                                                bottom: 15, left: 5),
+                                          decoration: const InputDecoration(
+                                            contentPadding:
+                                                EdgeInsets.only(bottom: 15),
+                                            prefixIcon: Icon(Icons.search),
                                             border: InputBorder.none,
                                             hintText: 'Search',
                                           ),
-                                        ),
+                                          onChanged: (value) {
+                                          setState(() {
+                                             
+                                            _fetchUsers(_pageSize,
+                                                _lastVisibleSnapshot); // Trigger user fetching with pagination
+                                          });
+                                        },
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               SizedBox(width: 5),
@@ -310,11 +346,12 @@ class _UserState extends State<PovUser> {
                                               color: Colors.white),
                                         ),
                                       ],
-                                    )),
-                              ),
-                            ],
+                                    )
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
                         Divider(),
                         FutureBuilder(
                           future: _fetchUsers(_pageSize, _lastVisibleSnapshot),
@@ -330,6 +367,34 @@ class _UserState extends State<PovUser> {
                             }
                             if (snapshot.data!.docs.isEmpty) {
                               return Text('No users found.');
+                            }
+
+                            if (snapshot.data != null &&
+                                snapshot.data!.docs != null) {
+                              _allDocs = snapshot.data!.docs;
+
+                              int startIndex = (_currentPage - 1) * _pageSize ;
+                              int endIndex = startIndex + _pageSize ;
+
+                              // Ensure endIndex does not exceed the length of _allDocs
+                              if (endIndex > _allDocs.length) {
+                                endIndex = _allDocs.length;
+                              }
+
+                              // Ensure startIndex is within the bounds of _allDocs
+                              if (startIndex >= 0 &&
+                                  endIndex >= 0 &&
+                                  startIndex < _allDocs.length &&
+                                  endIndex <= _allDocs.length) {
+                                _displayedDocs =
+                                    _allDocs.sublist(startIndex, endIndex);
+                              } else {
+                                // Handle invalid index range
+                                print("Invalid index range");
+                              }
+                            } else {
+                              // Handle null data or null docs
+                              print("Snapshot data or docs is null");
                             }
                             return SizedBox(
                                 height: 600,
@@ -385,31 +450,37 @@ class _UserState extends State<PovUser> {
                                       ),
                                       // Added column for Status
                                     ],
-                                    rows: snapshot.data!.docs
-                                        .map((DocumentSnapshot document) {
-                                      Map<String, dynamic> data = document
-                                          .data()! as Map<String, dynamic>;
-                                      DateTime? startShift =
-                                          data['startShift'] != null
-                                              ? (data['startShift']
-                                                      as Timestamp)
-                                                  .toDate()
-                                              : null;
-                                      String shift = getShiftText(startShift);
-                                      String userId = document.id;
-                                      bool isActive = data['isActive'] ?? false;
+                                    rows: List.generate(
+                                      _displayedDocs.length,
+                                      (index) {
+                                        DocumentSnapshot document =
+                                            _displayedDocs[index];
+                                        Map<String, dynamic> data = document
+                                            .data()! as Map<String, dynamic>;
+                                        DateTime? startShift =
+                                            data['startShift'] != null
+                                                ? (data['startShift']
+                                                        as Timestamp)
+                                                    .toDate()
+                                                : null;
+                                        String shift = getShiftText(startShift);
+                                        String userId = document.id;
+                                        bool isActive =
+                                            data['isActive'] ?? false;
 
-                                      Color? rowColor = index % 2 == 0
-                                          ? Colors.white
-                                          : Colors.grey[
-                                              200]; // Alternating row colors
-                                      index++; //
+                                        // Calculate the real index based on the current page and page size
+                                        int realIndex =  index + 1;
 
-                                      return DataRow(
+                                        Color? rowColor = realIndex % 2 == 0
+                                            ? Colors.white
+                                            : Colors.grey[200];
+
+                                        return DataRow(
                                           color: MaterialStateColor.resolveWith(
                                               (states) => rowColor!),
                                           cells: [
-                                            DataCell(Text(index.toString())),
+                                            DataCell(
+                                                Text(realIndex.toString())),
                                             DataCell(Text(
                                                 data['employeeId'].toString())),
                                             DataCell(Text(
@@ -427,24 +498,18 @@ class _UserState extends State<PovUser> {
                                                 activeColor: Colors.green,
                                                 onChanged: (value) async {
                                                   if (!value) {
-                                                    // Perform password verification only when deactivating the account
                                                     bool verificationResult =
                                                         await passwordVerification(
                                                             context);
-                                                    showToast(
-                                                        "User Deactivated");
-
-                                                    // Check if verification was successful before updating the account status
                                                     if (verificationResult) {
-                                                      // If verification is successful, update the account status
                                                       updateAccountStatus(
                                                           userId, value);
+                                                      showToast(
+                                                          "User Deactivated");
                                                     } else {
-                                                      // Handle the scenario when verification is unsuccessful or canceled
-                                                      // For example, show a message to the user or perform other actions
+                                                      // Handle unsuccessful or canceled verification
                                                     }
                                                   } else {
-                                                    // If activating the account, directly update the account status
                                                     updateAccountStatus(
                                                         userId, value);
                                                     showToast("User Activated");
@@ -469,7 +534,7 @@ class _UserState extends State<PovUser> {
                                                               8),
                                                     ),
                                                   ),
-                                                  child: const Row(
+                                                  child: Row(
                                                     mainAxisAlignment:
                                                         MainAxisAlignment
                                                             .spaceBetween,
@@ -489,10 +554,13 @@ class _UserState extends State<PovUser> {
                                                 ),
                                               ),
                                             ),
-                                          ]);
-                                    }).toList(),
+                                          ],
+                                        );
+                                      },
+                                    ),
                                   ),
-                                ));
+                                )
+                              );
                           },
                         ),
                         Divider(),
@@ -587,7 +655,7 @@ class _UserState extends State<PovUser> {
             // Added column for Status
           ],
           rows: List.generate(
-            5, // You can change this to the number of shimmer rows you want
+            10, // You can change this to the number of shimmer rows you want
             (index) => DataRow(cells: [
               DataCell(Container(width: 40, height: 16, color: Colors.white)),
               DataCell(Container(width: 60, height: 16, color: Colors.white)),
@@ -622,21 +690,35 @@ class _UserState extends State<PovUser> {
     }
   }
 
-  void editUserDetails(String userId, Map<String, dynamic> userData) {
+void editUserDetails(String userId, Map<String, dynamic> userData) {
     TextEditingController firstNameController =
-        TextEditingController(text: userData['fname']);
+        TextEditingController(text: userData['fname'].toString());
     TextEditingController middleNameController =
-        TextEditingController(text: userData['mname']);
+        TextEditingController(text: userData['mname'].toString());
     TextEditingController lastNameController =
-        TextEditingController(text: userData['lname']);
+        TextEditingController(text: userData['lname'].toString());
     TextEditingController usernameController =
-        TextEditingController(text: userData['username']);
+        TextEditingController(text: userData['username'].toString());
+    TextEditingController emailController =
+        TextEditingController(text: userData['email'].toString());
+    TextEditingController mobilenumController =
+        TextEditingController(text: userData['mobilenum'].toString());
+    TextEditingController employeeIdController =
+        TextEditingController(text: userData['employeeId'].toString());
+    TextEditingController tinController =
+        TextEditingController(text: userData['tin'].toString());
+    TextEditingController sssController =
+        TextEditingController(text: userData['sss'].toString());
+    TextEditingController taxCodeController =
+        TextEditingController(text: userData['taxCode'].toString());
+    TextEditingController roleController =
+        TextEditingController(text: userData['role'].toString());
     TextEditingController salaryController =
-        TextEditingController(text: userData['salary']);
+        TextEditingController(text: userData['salary'].toString());
     TextEditingController typeEmployeeController =
-        TextEditingController(text: userData['typeEmployee']);
+        TextEditingController(text: userData['typeEmployee'].toString());
     TextEditingController departmentController =
-        TextEditingController(text: userData['department']);
+        TextEditingController(text: userData['department'].toString());
     DateTime? startShift = userData['startShift'] != null
         ? (userData['startShift'] as Timestamp).toDate()
         : null;
@@ -644,63 +726,241 @@ class _UserState extends State<PovUser> {
         ? (userData['endShift'] as Timestamp).toDate()
         : null;
 
+
+    List<String> departmentChoices = ['IT', 'HR', 'ACCOUNTANCY', 'SERVICING'];
+    List<String> roleChoices = ['Employee', 'Admin'];
+    List<String> employeeTypeChoices = ['Regular', 'Contractual'];
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         DateTime? startselectedShift = startShift;
         DateTime? endselectedShift = endShift;
+        String selectedDepartment = userData['department'] ?? '';
+        String selectedRole = userData['role'] ?? '';
+        String selectedEmployeeType = userData['typeEmployee'] ?? '';
+
+        if (!departmentChoices.contains(selectedDepartment)) {
+          selectedDepartment = departmentChoices.first;
+        }
+
+        if (!roleChoices.contains(selectedRole)) {
+          selectedRole = roleChoices.first;
+        }
+
+        if (!employeeTypeChoices.contains(selectedEmployeeType)) {
+          selectedEmployeeType = employeeTypeChoices.first;
+        }
+
         return AlertDialog(
           title: Text('Edit User Details'),
           content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: firstNameController,
-                  decoration: const InputDecoration(labelText: 'First Name'),
-                ),
-                TextFormField(
-                  controller: middleNameController,
-                  decoration: const InputDecoration(labelText: 'Middle Name'),
-                ),
-                TextFormField(
-                  controller: lastNameController,
-                  decoration: const InputDecoration(labelText: 'Last Name'),
-                ),
-                TextFormField(
-                  controller: usernameController,
-                  decoration: const InputDecoration(labelText: 'Username'),
-                ),
-                TextFormField(
-                  controller: salaryController,
-                  decoration: const InputDecoration(labelText: 'Username'),
-                ),
-                TextFormField(
-                  controller: typeEmployeeController,
-                  decoration: const InputDecoration(labelText: 'Employee Type'),
-                ),
-                TextFormField(
-                  controller: departmentController,
-                  decoration: const InputDecoration(labelText: 'Department'),
-                ),
-                DateTimeField(
-                  decoration: const InputDecoration(labelText: 'Start Shift'),
-                  initialDate: startselectedShift,
-                  mode: DateTimeFieldPickerMode.time,
-                  onChanged: (value) {
-                    startselectedShift = value;
-                  },
-                ),
-                DateTimeField(
-                  decoration: InputDecoration(labelText: 'End Shift'),
-                  initialDate: endselectedShift,
-                  mode: DateTimeFieldPickerMode.time,
-                  onChanged: (value) {
-                    endselectedShift = value;
-                  },
-                ),
-              ],
+            child: Container(
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: firstNameController,
+                          decoration:
+                              const InputDecoration(labelText: 'First Name'),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: TextFormField(
+                          controller: middleNameController,
+                          decoration:
+                              const InputDecoration(labelText: 'Middle Name'),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: TextFormField(
+                          controller: lastNameController,
+                          decoration:
+                              const InputDecoration(labelText: 'Last Name'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: usernameController,
+                          decoration:
+                              const InputDecoration(labelText: 'Username'),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: TextFormField(
+                          controller: salaryController,
+                          decoration:
+                              const InputDecoration(labelText: 'Salary'),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: TextFormField(
+                          controller: emailController,
+                          decoration: const InputDecoration(labelText: 'Email'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: mobilenumController,
+                          decoration:
+                              const InputDecoration(labelText: 'Mobile Number'),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: TextFormField(
+                          controller: employeeIdController,
+                          decoration:
+                              const InputDecoration(labelText: 'Employee ID'),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: TextFormField(
+                          controller: tinController,
+                          decoration: const InputDecoration(labelText: 'Tin'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: sssController,
+                          decoration: const InputDecoration(labelText: 'SSS'),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: TextFormField(
+                          controller: taxCodeController,
+                          decoration:
+                              const InputDecoration(labelText: 'Tax Code'),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: typeEmployeeController,
+                          decoration:
+                              const InputDecoration(labelText: 'Employee Type'),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: TextFormField(
+                          controller: departmentController,
+                          decoration:
+                              const InputDecoration(labelText: 'Department'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DateTimeField(
+                          decoration:
+                              const InputDecoration(labelText: 'Start Shift'),
+                          initialDate:
+                              startselectedShift, // Assign initial value here
+                          mode: DateTimeFieldPickerMode.time,
+                          onChanged: (value) {
+                            startselectedShift = value;
+                          },
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: DateTimeField(
+                          decoration: InputDecoration(labelText: 'End Shift'),
+                          initialDate:
+                              endselectedShift, // Assign initial value here
+                          mode: DateTimeFieldPickerMode.time,
+                          onChanged: (value) {
+                            endselectedShift = value;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  // Department Dropdown
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(labelText: 'Department'),
+                    value: selectedDepartment,
+                    items: departmentChoices.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      selectedDepartment = newValue!;
+                    },
+                  ),
+                  SizedBox(height: 10),
+
+                  // Role Dropdown
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(labelText: 'Role'),
+                    value: selectedRole,
+                    items: roleChoices.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      selectedRole = newValue!;
+                    },
+                  ),
+                  SizedBox(height: 10),
+
+                  // Employee Type Dropdown
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(labelText: 'Employee Type'),
+                    value: selectedEmployeeType,
+                    items: employeeTypeChoices.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      selectedEmployeeType = newValue!;
+                    },
+                  ),
+                  SizedBox(height: 10),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -712,8 +972,15 @@ class _UserState extends State<PovUser> {
                   'lname': lastNameController.text,
                   'salary': salaryController.text,
                   'username': usernameController.text,
-                  'typeEmployee': typeEmployeeController.text,
-                  'department': departmentController.text,
+                  'email': emailController.text,
+                  'mobilenum': mobilenumController.text,
+                  'employeeId': employeeIdController.text,
+                  'sss': sssController.text,
+                  'tin': tinController.text,
+                  'taxCode': taxCodeController.text,
+                  'role': selectedRole,
+                  'typeEmployee': selectedEmployeeType,
+                  'department': selectedDepartment,
                   'startShift': startselectedShift,
                   'endShift': endselectedShift,
                 };
@@ -1475,7 +1742,7 @@ class _UserState extends State<PovUser> {
           email: emailController.text, password: passwordController.text);
       // Create the user object with the entered data
       User newUser = User(
-        salary: int.parse(salaryController.text),
+        salary: double.parse(salaryController.text),
         department: selectedDep,
         fname: firstNameController.text,
         mname: middleNameController.text,
@@ -1491,6 +1758,7 @@ class _UserState extends State<PovUser> {
         taxCode: taxCodeController.text,
         employeeId: employeeIdController.text,
         mobilenum: mobilenumController.text,
+        isActive: true,
       );
 
       await addUser(
@@ -1510,6 +1778,7 @@ class _UserState extends State<PovUser> {
         newUser.taxCode,
         newUser.employeeId,
         newUser.mobilenum,
+        newUser.isActive,
       );
 
       Navigator.pop(context); // Close the dialog or navigate to the next screen

@@ -57,7 +57,7 @@ class _LoginState extends State<Login> {
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12)),
                         child: Image.asset(
-                          'assets/images/nextbpologo.png',
+                          'assets/images/nextbpologo-removebg.png',
                         ),
                       ),
                       const SizedBox(
