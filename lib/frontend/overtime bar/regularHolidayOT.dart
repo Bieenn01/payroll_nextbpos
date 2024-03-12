@@ -44,67 +44,71 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: Container(
-                  margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Text(
-                              "Regular Holiday Overtime",
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
+              child: SingleChildScrollView(
+                child: Container(
+                    margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Text(
+                                "Regular Holiday Overtime",
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      dateFilterSearchRow(context, styleFrom),
-                      Divider(),
-                      _buildTable(),
-                      SizedBox(height: 10),
-                      Divider(),
-                      SizedBox(height: 5),
-                      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text('Previous'),
+                          ],
                         ),
-                        SizedBox(width: 10),
-                        Container(
-                            height: 35,
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                border:
-                                    Border.all(color: Colors.grey.shade200)),
-                            child: Text('$_currentPage')),
-                        SizedBox(width: 10),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text('Next'),
-                        ),
-                      ]),
-                      SizedBox(height: 20),
-                    ],
-                  )),
+                        dateFilterSearchRow(context, styleFrom),
+                        Divider(),
+                        _buildTable(),
+                        SizedBox(height: 10),
+                        Divider(),
+                        SizedBox(height: 5),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {},
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: Text('Previous'),
+                              ),
+                              SizedBox(width: 10),
+                              Container(
+                                  height: 35,
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                          color: Colors.grey.shade200)),
+                                  child: Text('$_currentPage')),
+                              SizedBox(width: 10),
+                              ElevatedButton(
+                                onPressed: () {},
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: Text('Next'),
+                              ),
+                            ]),
+                        SizedBox(height: 20),
+                      ],
+                    )),
+              ),
             ),
           ],
         ),

@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_field/date_field.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
 class TopBar extends StatefulWidget {
@@ -74,105 +76,107 @@ class _TopBarState extends State<TopBar> {
     return Scaffold(
       body: Container(
         color: Colors.teal.shade700,
-        child: Container(
-          margin: const EdgeInsets.all(15),
-          padding: const EdgeInsets.all(15),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      timeFormat,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+        child: Expanded(
+          child: Container(
+            margin: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        timeFormat,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    Text(
-                      date,
-                      style: const TextStyle(
-                        fontSize: 15,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              InkWell(
-                onTap: () {
-                  showMenu(
-                    context: context,
-                    position: const RelativeRect.fromLTRB(80, 100, 50, 0),
-                    items: const [
-                      PopupMenuItem(
-                        child: Text('Log out'),
-                        value: 'log_out',
+                      Text(
+                        date,
+                        style: const TextStyle(
+                          fontSize: 15,
+                        ),
                       ),
                     ],
-                    elevation: 8.0,
-                  ).then((value) {
-                    if (value == 'account_list') {
-                      // Handle account list selection
-                    } else if (value == 'log_out') {
-                      // Handle log out selection
-                    }
-                  });
-                },
-                child: Container(
-                  padding: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                      border: Border(
-                          left:
-                              BorderSide(color: Colors.grey.withOpacity(0.5)))),
-                  child: MediaQuery.of(context).size.width > 600
-                      ? Row(
-                          children: [
-                            CircleAvatar(
-                              child: Icon(
-                                Icons.person,
-                              ),
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _userName,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  _role,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_drop_down),
-                          ],
-                        )
-                      : CircleAvatar(
-                          child: Icon(
-                            Icons.person,
-                          ),
-                        ),
+                  ),
                 ),
-              ),
-            ],
+                InkWell(
+                  onTap: () {
+                    showMenu(
+                      context: context,
+                      position: const RelativeRect.fromLTRB(80, 100, 50, 0),
+                      items: const [
+                        PopupMenuItem(
+                          child: Text('Log out'),
+                          value: 'log_out',
+                        ),
+                      ],
+                      elevation: 8.0,
+                    ).then((value) {
+                      if (value == 'account_list') {
+                        // Handle account list selection
+                      } else if (value == 'log_out') {
+                        // Handle log out selection
+                      }
+                    });
+                  },
+                  child: Container(
+                    padding: EdgeInsets.fromLTRB(5, 2, 2, 2),
+                    decoration: BoxDecoration(
+                        border: Border(
+                            left: BorderSide(
+                                color: Colors.grey.withOpacity(0.5)))),
+                    child: MediaQuery.of(context).size.width > 600
+                        ? Row(
+                            children: [
+                              CircleAvatar(
+                                child: Icon(
+                                  Icons.person,
+                                ),
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _userName,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    _role,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(width: 8),
+                              Icon(Icons.arrow_drop_down),
+                            ],
+                          )
+                        : CircleAvatar(
+                            child: Icon(
+                              Icons.person,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

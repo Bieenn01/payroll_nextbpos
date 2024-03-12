@@ -169,7 +169,7 @@ class _UserState extends State<PovUser> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Row(
+                        const Row(
                           children: [
                             Padding(
                               padding: const EdgeInsets.all(10.0),
@@ -184,7 +184,7 @@ class _UserState extends State<PovUser> {
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 10),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Flexible(
                                 child: Container(
@@ -225,98 +225,118 @@ class _UserState extends State<PovUser> {
                                 ),
                               ),
                               Flexible(
-                                child: Container(
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: Colors.black.withOpacity(0.5),
-                                    ),
-                                  ),
-                                  child: const Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 5.0),
-                                        child: Icon(Icons.search),
-                                      ),
-                                      Expanded(
-                                        child: TextField(
-                                          textAlign: TextAlign.start,
-                                          decoration: InputDecoration(
-                                            contentPadding: EdgeInsets.only(
-                                                bottom: 15, left: 5),
-                                            border: InputBorder.none,
-                                            hintText: 'Search',
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Flexible(
+                                      flex: 2,
+                                      child: Container(
+                                        height: 30,
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color:
+                                                Colors.black.withOpacity(0.5),
                                           ),
                                         ),
+                                        child: const Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: [
+                                            Icon(Icons.search),
+                                            Expanded(
+                                              child: TextField(
+                                                textAlign: TextAlign.start,
+                                                decoration: InputDecoration(
+                                                  contentPadding:
+                                                      EdgeInsets.only(
+                                                          bottom: 15, left: 5),
+                                                  border: InputBorder.none,
+                                                  hintText: 'Search',
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 5),
-                              Flexible(
-                                child: Container(
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                      color: Colors.teal,
-                                      border: Border.all(
-                                          color: Colors.teal.shade900
-                                              .withOpacity(0.5)),
-                                      borderRadius: BorderRadius.circular(8)),
-                                  child: ElevatedButton(
-                                    onPressed: (() {
-                                      print(MediaQuery.of(context).size.width);
-                                      createAccount(context);
-                                    }),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.teal,
                                     ),
-                                    child:
-                                        MediaQuery.of(context).size.width > 600
-                                            ? Text(
-                                                "+ Add New",
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.w400,
-                                                    letterSpacing: 1,
-                                                    color: Colors.white),
-                                              )
-                                            : Text('+'),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 5),
-                              Flexible(
-                                child: Container(
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                      color: Colors.teal,
-                                      border: Border.all(
-                                          color: Colors.teal.shade900
-                                              .withOpacity(0.5)),
-                                      borderRadius: BorderRadius.circular(8)),
-                                  child: ElevatedButton(
-                                      onPressed: (() {}),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.teal,
+                                    SizedBox(width: 5),
+                                    Flexible(
+                                      flex: 1,
+                                      child: Container(
+                                        height: 30,
+                                        decoration: BoxDecoration(
+                                            color: Colors.teal,
+                                            border: Border.all(
+                                                color: Colors.teal.shade900
+                                                    .withOpacity(0.5)),
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
+                                        child: ElevatedButton(
+                                          onPressed: (() {
+                                            print(MediaQuery.of(context)
+                                                .size
+                                                .width);
+                                            createAccount(context);
+                                          }),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.teal,
+                                          ),
+                                          child: MediaQuery.of(context)
+                                                      .size
+                                                      .width >
+                                                  600
+                                              ? const Text(
+                                                  "+ Add New",
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                      letterSpacing: 1,
+                                                      color: Colors.white),
+                                                )
+                                              : const Text('+'),
+                                        ),
                                       ),
-                                      child: const Row(
-                                        children: [
-                                          Icon(
-                                            Icons.cloud_download_outlined,
-                                            color: Colors.white,
-                                          ),
-                                          Text(
-                                            "  Export",
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 1,
-                                                color: Colors.white),
-                                          ),
-                                        ],
-                                      )),
+                                    ),
+                                    SizedBox(width: 5),
+                                    Flexible(
+                                      flex: 1,
+                                      child: Container(
+                                        height: 30,
+                                        margin: EdgeInsets.all(0),
+                                        padding: EdgeInsets.all(0),
+                                        decoration: BoxDecoration(
+                                            color: Colors.teal,
+                                            border: Border.all(
+                                                color: Colors.teal.shade900
+                                                    .withOpacity(0.5)),
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
+                                        child: ElevatedButton(
+                                            onPressed: (() {}),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.teal,
+                                            ),
+                                            child: const Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.cloud_download_outlined,
+                                                  color: Colors.white,
+                                                ),
+                                                Text(
+                                                  "  Export",
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                      letterSpacing: 1,
+                                                      color: Colors.white),
+                                                ),
+                                              ],
+                                            )),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -381,9 +401,22 @@ class _UserState extends State<PovUser> {
                                       ),
 
                                       DataColumn(
-                                        label: Text('Active Status',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
+                                        label: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text('Active',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                            Text('Status',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                          ],
+                                        ),
                                       ),
                                       DataColumn(
                                         label: Text('Action',
@@ -429,34 +462,43 @@ class _UserState extends State<PovUser> {
                                                 data['department'].toString())),
                                             DataCell(Text(shift)),
                                             DataCell(
-                                              Switch(
-                                                value: isActive,
-                                                activeColor: Colors.green,
-                                                onChanged: (value) async {
-                                                  if (!value) {
-                                                    // Perform password verification only when deactivating the account
-                                                    bool verificationResult =
-                                                        await passwordVerification(
-                                                            context);
-                                                    showToast(
-                                                        "User Deactivated");
+                                              SizedBox(
+                                                width: 50,
+                                                height: 30,
+                                                child: FittedBox(
+                                                  fit: BoxFit.fill,
+                                                  child: Switch(
+                                                    value: isActive,
+                                                    activeColor: Colors.green,
+                                                    onChanged: (value) async {
+                                                      if (!value) {
+                                                        // Perform password verification only when deactivating the account
+                                                        bool
+                                                            verificationResult =
+                                                            await passwordVerification(
+                                                                context);
+                                                        showToast(
+                                                            "User Deactivated");
 
-                                                    // Check if verification was successful before updating the account status
-                                                    if (verificationResult) {
-                                                      // If verification is successful, update the account status
-                                                      updateAccountStatus(
-                                                          userId, value);
-                                                    } else {
-                                                      // Handle the scenario when verification is unsuccessful or canceled
-                                                      // For example, show a message to the user or perform other actions
-                                                    }
-                                                  } else {
-                                                    // If activating the account, directly update the account status
-                                                    updateAccountStatus(
-                                                        userId, value);
-                                                    showToast("User Activated");
-                                                  }
-                                                },
+                                                        // Check if verification was successful before updating the account status
+                                                        if (verificationResult) {
+                                                          // If verification is successful, update the account status
+                                                          updateAccountStatus(
+                                                              userId, value);
+                                                        } else {
+                                                          // Handle the scenario when verification is unsuccessful or canceled
+                                                          // For example, show a message to the user or perform other actions
+                                                        }
+                                                      } else {
+                                                        // If activating the account, directly update the account status
+                                                        updateAccountStatus(
+                                                            userId, value);
+                                                        showToast(
+                                                            "User Activated");
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                             DataCell(
