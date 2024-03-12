@@ -753,37 +753,87 @@ void editUserDetails(String userId, Map<String, dynamic> userData) {
         }
 
         return AlertDialog(
-          title: Text('Edit User Details'),
+          surfaceTintColor: Colors.white,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Edit User Details',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 25,
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                icon: Icon(Icons.close),
+              )
+            ],
+          ),
           content: SingleChildScrollView(
             child: Container(
-              width: double.infinity,
+              width: 1170,
+              margin: EdgeInsets.all(10),
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(8)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Text(
+                    'Personal Information :',
+                    style: catergoryStyle(),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
                   Row(
                     children: [
                       Expanded(
-                        child: TextFormField(
-                          controller: firstNameController,
-                          decoration:
-                              const InputDecoration(labelText: 'First Name'),
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          padding: EdgeInsets.only(left: 5),
+                          decoration: boxdecoration(),
+                          child: TextFormField(
+                            controller: firstNameController,
+                            decoration: const InputDecoration(
+                                labelText: 'First Name',
+                                border: InputBorder.none),
+                          ),
                         ),
                       ),
                       SizedBox(width: 10),
                       Expanded(
-                        child: TextFormField(
-                          controller: middleNameController,
-                          decoration:
-                              const InputDecoration(labelText: 'Middle Name'),
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          decoration: boxdecoration(),
+                          padding: EdgeInsets.only(left: 5),
+                          child: TextFormField(
+                            controller: middleNameController,
+                            decoration: const InputDecoration(
+                                labelText: 'Middle Name',
+                                border: InputBorder.none),
+                          ),
                         ),
                       ),
                       SizedBox(width: 10),
                       Expanded(
-                        child: TextFormField(
-                          controller: lastNameController,
-                          decoration:
-                              const InputDecoration(labelText: 'Last Name'),
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          decoration: boxdecoration(),
+                          padding: EdgeInsets.only(left: 5),
+                          child: TextFormField(
+                            controller: lastNameController,
+                            decoration: const InputDecoration(
+                                labelText: 'Last Name',
+                                border: InputBorder.none),
+                          ),
                         ),
                       ),
                     ],
@@ -792,172 +842,282 @@ void editUserDetails(String userId, Map<String, dynamic> userData) {
                   Row(
                     children: [
                       Expanded(
-                        child: TextFormField(
-                          controller: usernameController,
-                          decoration:
-                              const InputDecoration(labelText: 'Username'),
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          padding: EdgeInsets.only(left: 5),
+                          decoration: boxdecoration(),
+                          child: TextFormField(
+                            controller: mobilenumController,
+                            decoration: const InputDecoration(
+                                labelText: 'Mobile Number',
+                                border: InputBorder.none),
+                          ),
                         ),
                       ),
                       SizedBox(width: 10),
                       Expanded(
-                        child: TextFormField(
-                          controller: salaryController,
-                          decoration:
-                              const InputDecoration(labelText: 'Salary'),
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          decoration: boxdecoration(),
+                          padding: EdgeInsets.only(left: 5),
+                          child: TextFormField(
+                            controller: employeeIdController,
+                            decoration: const InputDecoration(
+                                labelText: 'Employee ID',
+                                border: InputBorder.none),
+                          ),
                         ),
                       ),
-                      SizedBox(width: 10),
                       Expanded(
-                        child: TextFormField(
-                          controller: emailController,
-                          decoration: const InputDecoration(labelText: 'Email'),
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          decoration: boxdecoration(),
+                          padding: EdgeInsets.only(left: 5),
+                          child: TextFormField(
+                            controller: salaryController,
+                            decoration: const InputDecoration(
+                                labelText: 'Salary', border: InputBorder.none),
+                          ),
                         ),
                       ),
                     ],
                   ),
                   SizedBox(height: 10),
+
+                  Text(
+                    'Employment Information :',
+                    style: catergoryStyle(),
+                  ),
+
                   Row(
                     children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: mobilenumController,
-                          decoration:
-                              const InputDecoration(labelText: 'Mobile Number'),
+                      Flexible(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          decoration: boxdecoration(),
+                          padding: EdgeInsets.only(left: 5),
+                          child: DropdownButtonFormField<String>(
+                            decoration: InputDecoration(
+                              labelText: 'Department',
+                              border: InputBorder.none,
+                            ),
+                            value: selectedDepartment,
+                            items: departmentChoices.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              selectedDepartment = newValue!;
+                            },
+                          ),
                         ),
                       ),
                       SizedBox(width: 10),
-                      Expanded(
-                        child: TextFormField(
-                          controller: employeeIdController,
-                          decoration:
-                              const InputDecoration(labelText: 'Employee ID'),
+
+                      // Role Dropdown
+                      Flexible(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          decoration: boxdecoration(),
+                          padding: EdgeInsets.only(left: 5),
+                          child: DropdownButtonFormField<String>(
+                            decoration: InputDecoration(
+                              labelText: 'Role',
+                              border: InputBorder.none,
+                            ),
+                            value: selectedRole,
+                            items: roleChoices.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              selectedRole = newValue!;
+                            },
+                          ),
                         ),
                       ),
                       SizedBox(width: 10),
-                      Expanded(
-                        child: TextFormField(
-                          controller: tinController,
-                          decoration: const InputDecoration(labelText: 'Tin'),
+                      // Employee Type Dropdown
+                      Flexible(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          decoration: boxdecoration(),
+                          padding: EdgeInsets.only(left: 5),
+                          child: DropdownButtonFormField<String>(
+                            decoration: InputDecoration(
+                              labelText: 'Employee Type',
+                              border: InputBorder.none,
+                            ),
+                            value: selectedEmployeeType,
+                            items: employeeTypeChoices.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              selectedEmployeeType = newValue!;
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Shift'),
+                            Container(
+                              width: 150,
+                              height: 40,
+                              padding: EdgeInsets.only(left: 5),
+                              decoration: boxdecoration(),
+                              child: DateTimeField(
+                                decoration: const InputDecoration(
+                                    suffixIcon: Icon(Icons.timer),
+                                    border: InputBorder.none,
+                                    labelText: 'Start Shift'),
+                                initialDate:
+                                    startselectedShift, // Assign initial value here
+                                mode: DateTimeFieldPickerMode.time,
+                                onChanged: (value) {
+                                  startselectedShift = value;
+                                },
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Container(
+                              width: 150,
+                              height: 40,
+                              padding: EdgeInsets.only(left: 5),
+                              decoration: boxdecoration(),
+                              child: DateTimeField(
+                                decoration: InputDecoration(
+                                    suffixIcon: Icon(Icons.timer),
+                                    border: InputBorder.none,
+                                    labelText: 'End Shift'),
+                                initialDate:
+                                    endselectedShift, // Assign initial value here
+                                mode: DateTimeFieldPickerMode.time,
+                                onChanged: (value) {
+                                  endselectedShift = value;
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: sssController,
-                          decoration: const InputDecoration(labelText: 'SSS'),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: TextFormField(
-                          controller: taxCodeController,
-                          decoration:
-                              const InputDecoration(labelText: 'Tax Code'),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: typeEmployeeController,
-                          decoration:
-                              const InputDecoration(labelText: 'Employee Type'),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: TextFormField(
-                          controller: departmentController,
-                          decoration:
-                              const InputDecoration(labelText: 'Department'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DateTimeField(
-                          decoration:
-                              const InputDecoration(labelText: 'Start Shift'),
-                          initialDate:
-                              startselectedShift, // Assign initial value here
-                          mode: DateTimeFieldPickerMode.time,
-                          onChanged: (value) {
-                            startselectedShift = value;
-                          },
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: DateTimeField(
-                          decoration: InputDecoration(labelText: 'End Shift'),
-                          initialDate:
-                              endselectedShift, // Assign initial value here
-                          mode: DateTimeFieldPickerMode.time,
-                          onChanged: (value) {
-                            endselectedShift = value;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10),
+
                   // Department Dropdown
-                  DropdownButtonFormField<String>(
-                    decoration: InputDecoration(labelText: 'Department'),
-                    value: selectedDepartment,
-                    items: departmentChoices.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      selectedDepartment = newValue!;
-                    },
-                  ),
-                  SizedBox(height: 10),
 
-                  // Role Dropdown
-                  DropdownButtonFormField<String>(
-                    decoration: InputDecoration(labelText: 'Role'),
-                    value: selectedRole,
-                    items: roleChoices.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      selectedRole = newValue!;
-                    },
+                  Text(
+                    'Tax and Identification Information',
+                    style: catergoryStyle(),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          padding: EdgeInsets.only(left: 5),
+                          decoration: boxdecoration(),
+                          child: TextFormField(
+                            controller: sssController,
+                            decoration: const InputDecoration(
+                                labelText: 'SSS', border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          padding: EdgeInsets.only(left: 5),
+                          decoration: boxdecoration(),
+                          child: TextFormField(
+                            controller: taxCodeController,
+                            decoration: const InputDecoration(
+                                labelText: 'Tax Code',
+                                border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          padding: EdgeInsets.only(left: 5),
+                          decoration: boxdecoration(),
+                          child: TextFormField(
+                            controller: tinController,
+                            decoration: const InputDecoration(
+                                labelText: 'Tin', border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    'Account Information',
+                    style: catergoryStyle(),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          padding: EdgeInsets.only(left: 5),
+                          decoration: boxdecoration(),
+                          child: TextFormField(
+                            controller: usernameController,
+                            decoration: const InputDecoration(
+                                labelText: 'Username',
+                                border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Container(
+                          width: 280,
+                          height: 60,
+                          padding: EdgeInsets.only(left: 5),
+                          decoration: boxdecoration(),
+                          child: TextFormField(
+                            controller: emailController,
+                            decoration: const InputDecoration(
+                                labelText: 'Email', border: InputBorder.none),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
 
-                  // Employee Type Dropdown
-                  DropdownButtonFormField<String>(
-                    decoration: InputDecoration(labelText: 'Employee Type'),
-                    value: selectedEmployeeType,
-                    items: employeeTypeChoices.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      selectedEmployeeType = newValue!;
-                    },
-                  ),
                   SizedBox(height: 10),
                 ],
               ),
