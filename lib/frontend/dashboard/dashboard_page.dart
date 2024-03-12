@@ -18,58 +18,106 @@ class _DashboardState extends State<Dashboard> {
       body: Center(
         child: Container(
           color: Colors.teal.shade700,
-          padding: const EdgeInsets.all(8),
-          child: Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: MediaQuery.of(context).size.width > 600
-                          ? smallContainer(
-                              '416',
-                              Icons.supervisor_account_rounded,
-                              'Total Employees')
-                          : flexcontainer(
-                              '416', Icons.supervisor_account_rounded),
-                    ),
-                    Expanded(
-                      child: MediaQuery.of(context).size.width > 600
-                          ? smallContainer('360', Icons.access_time, 'On Time')
-                          : flexcontainer(
-                              '416', Icons.supervisor_account_rounded),
-                    ),
-                    Expanded(
-                      child: MediaQuery.of(context).size.width > 600
-                          ? smallContainer(
-                              '62', Icons.more_time_sharp, 'Late Arrival')
-                          : flexcontainer(
-                              '416', Icons.supervisor_account_rounded),
-                    ),
-                    Expanded(
-                      child: MediaQuery.of(context).size.width > 600
-                          ? smallContainer('360', Icons.list_alt, 'Check Out')
-                          : flexcontainer('360', Icons.list_alt),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Expanded(
-                  child: MediaQuery.of(context).size.width > 800
-                      ? Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child: Column(
+          child: Column(
+            children: [
+              Expanded(
+                child: Container(
+                  child: Column(
+                    children: [
+                      Flexible(
+                        flex: MediaQuery.of(context).size.width > 800 ? 1 : 3,
+                        child: MediaQuery.of(context).size.width > 800
+                            ? Row(
+                                children: [
+                                  Expanded(
+                                      child: smallContainer(
+                                          '416',
+                                          Icons.supervisor_account_rounded,
+                                          'Total Employees')),
+                                  Expanded(
+                                      child: smallContainer(
+                                          '360', Icons.access_time, 'On Time')),
+                                  Expanded(
+                                      child: smallContainer(
+                                          '62',
+                                          Icons.more_time_sharp,
+                                          'Late Arrival')),
+                                  Expanded(
+                                    child: smallContainer(
+                                        '360', Icons.list_alt, 'Check Out'),
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                          child: smallContainer(
+                                              '416',
+                                              Icons.supervisor_account_rounded,
+                                              'Total Employees')),
+                                      Expanded(
+                                          child: smallContainer('360',
+                                              Icons.access_time, 'On Time')),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                          child: smallContainer(
+                                              '62',
+                                              Icons.more_time_sharp,
+                                              'Late Arrival')),
+                                      Expanded(
+                                        child: smallContainer(
+                                            '360', Icons.list_alt, 'Check Out'),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                      ),
+                      Expanded(
+                        flex: MediaQuery.of(context).size.width > 800 ? 5 : 7,
+                        child: MediaQuery.of(context).size.width > 1100
+                            ? Row(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        Expanded(
+                                          child: Container(
+                                            padding: const EdgeInsets.all(8),
+                                            margin: EdgeInsets.fromLTRB(
+                                                10, 10, 10, 10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.stretch,
+                                              children: [
+                                                Expanded(
+                                                    child: UserTimedInToday()),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
                                     child: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      margin:
-                                          EdgeInsets.fromLTRB(10, 10, 10, 10),
+                                      margin: const EdgeInsets.fromLTRB(
+                                          15, 0, 15, 0),
+                                      padding: const EdgeInsets.fromLTRB(
+                                          15, 0, 15, 0),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(15),
@@ -78,106 +126,96 @@ class _DashboardState extends State<Dashboard> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.stretch,
                                         children: [
-                                          Expanded(child: UserTimedInToday()),
+                                          Expanded(
+                                            flex: 5,
+                                            child: Container(
+                                              margin: const EdgeInsets.fromLTRB(
+                                                  30, 10, 20, 30),
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  _navigateToCalendarPageWithDialog(
+                                                      context);
+                                                },
+                                                child: CalendarPage(),
+                                              ),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
                                   ),
                                 ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Container(
-                                margin: const EdgeInsets.all(10),
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
+                              )
+                            : Container(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
                                   children: [
+                                    Flexible(
+                                      flex: 3,
+                                      child: Container(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            Expanded(
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(8),
+                                                margin: EdgeInsets.fromLTRB(
+                                                    10, 0, 10, 10),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(15),
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment
+                                                          .stretch,
+                                                  children: [
+                                                    Expanded(
+                                                        child:
+                                                            UserTimedInToday()),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
                                     Expanded(
                                       flex: 5,
                                       child: Container(
-                                        margin: const EdgeInsets.fromLTRB(
-                                            30, 10, 20, 30),
+                                        margin:
+                                            EdgeInsets.fromLTRB(10, 0, 10, 10),
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                        ),
                                         child: GestureDetector(
                                           onTap: () {
                                             _navigateToCalendarPageWithDialog(
                                                 context);
                                           },
-                                          child: CalendarPage(),
+                                          child:
+                                              SizedBox(child: CalendarPage()),
                                         ),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ),
-                          ],
-                        )
-                      : Container(
-                          child: Column(
-                            children: [
-                              Flexible(
-                                flex: 3,
-                                child: Container(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Expanded(
-                                        child: Container(
-                                          padding: const EdgeInsets.all(8),
-                                          margin: EdgeInsets.all(0),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.stretch,
-                                            children: [
-                                              Expanded(
-                                                  child: UserTimedInToday()),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                height: 5,
-                              ),
-                              Expanded(
-                                flex: 5,
-                                child: Container(
-                                  margin: const EdgeInsets.all(0),
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      _navigateToCalendarPageWithDialog(
-                                          context);
-                                    },
-                                    child: SizedBox(child: CalendarPage()),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -211,7 +249,7 @@ class _DashboardState extends State<Dashboard> {
 
   Widget smallContainer(String total, IconData icon, String title) {
     return Container(
-      margin: const EdgeInsets.all(8),
+      margin: const EdgeInsets.fromLTRB(10, 0, 10, 10),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Colors.white,

@@ -7,6 +7,7 @@ import 'package:project_payroll_nextbpo/backend/jsonfiles/regularOT.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/restDayOT.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/specialHolidayOT.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/attendace_page.dart';
+import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_mobile.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_page.dart';
 import 'package:project_payroll_nextbpo/frontend/holiday/holiday.dart';
 import 'package:project_payroll_nextbpo/frontend/holiday/specialholiday.dart';
@@ -33,8 +34,7 @@ class ScreensView extends StatelessWidget {
             children: [
               Container(height: 120, child: TopBar()),
               Flexible(
-                flex: 7,
-                child: Dashboard(),
+                child: DashboardMobile(),
               ),
             ],
           ),
@@ -47,7 +47,7 @@ class ScreensView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 130, child: TopBar()),
+              Container(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: RegularOTPage(),
@@ -62,7 +62,7 @@ class ScreensView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 130, child: TopBar()),
+              Container(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: RegularOTPage(),
@@ -77,7 +77,7 @@ class ScreensView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 130, child: TopBar()),
+              Container(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: RestDayOTPage(),
@@ -92,7 +92,7 @@ class ScreensView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 130, child: TopBar()),
+              Container(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: SpecialHolidayOTPage(),
@@ -107,7 +107,7 @@ class ScreensView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 130, child: TopBar()),
+              Container(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: RegularHolidayOTPage(),
@@ -123,7 +123,7 @@ class ScreensView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 130, child: TopBar()),
+              Container(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: AttendancePage(),
@@ -141,7 +141,7 @@ class ScreensView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 130, child: TopBar()),
+              Container(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: Container(
@@ -162,7 +162,7 @@ class ScreensView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 130, child: TopBar()),
+              Container(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: HolidayPage(),
@@ -177,7 +177,7 @@ class ScreensView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 130, child: TopBar()),
+              Container(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: HolidayPage(),
@@ -192,7 +192,7 @@ class ScreensView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 130, child: TopBar()),
+              Container(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: SpecialHolidayPage(),
@@ -267,7 +267,7 @@ class ScreensView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(height: 130, child: TopBar()),
+          Container(height: 120, child: TopBar()),
           Flexible(
             flex: 7,
             child: PovUser(),

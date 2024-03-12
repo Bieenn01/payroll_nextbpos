@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:project_payroll_nextbpo/frontend/raw%20backend/userTimeOutToday.dart';
 
@@ -13,6 +15,8 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
   late Stream<QuerySnapshot> _userRecordsStream;
 
   bool table = false;
+
+  String selectedDepartment = 'All';
 
   @override
   void initState() {
@@ -97,7 +101,7 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
           )
         ],
       ),
-      body: table == false ? TimeInTable() : TimeoutTable(),
+      body: table == false ? TimeIn2Table() : TimeoutTable(),
     );
   }
 
@@ -123,51 +127,198 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
 
         final List<DocumentSnapshot> documents = snapshot.data!.docs;
         final int rowsPerPage = 10; // Number of rows per page
+        List<DocumentSnapshot> filteredDocuments = documents;
+        if (selectedDepartment != 'All') {
+          filteredDocuments = documents
+              .where((doc) => doc['department'] == selectedDepartment)
+              .toList();
+        }
 
         return Expanded(
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            child: DataTable(
-              columns: const [
-                DataColumn(
-                  label: Text(
-                    '#',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+          child: SingleChildScrollView(
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              child: DataTable(
+                dataRowMinHeight: 30,
+                dataRowMaxHeight: 65,
+                columns: [
+                  DataColumn(
+                    label: Text(
+                      '#',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'Name',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  DataColumn(
+                    label: Text(
+                      'Name',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'Time-Out',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  DataColumn(
+                    label: Text(
+                      'Time-Out',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'Department',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  DataColumn(
+                    label: PopupMenuButton<String>(
+                      child: Row(
+                        children: [
+                          Text(
+                            'Department',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Icon(Icons.arrow_drop_down)
+                        ],
+                      ),
+                      onSelected: (String value) {
+                        setState(() {
+                          selectedDepartment = value;
+                        });
+                      },
+                      itemBuilder: (BuildContext context) => [
+                        'All', // Default option
+                        'IT',
+                        'HR',
+                        'ACCOUNTING',
+                        'SERVICING',
+                      ].map((String value) {
+                        return PopupMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                    ),
                   ),
+                ],
+                rows: List<DataRow>.generate(
+                  filteredDocuments.length, // Use filteredDocuments.length here
+                  (index) {
+                    final document = filteredDocuments[index];
+                    return DataRow(
+                      cells: [
+                        DataCell(Text((index + 1).toString())),
+                        DataCell(Text(
+                          document['userName'].toString(),
+                        )),
+                        DataCell(Text(_formatTimestamp(document['timeOut']),
+                            style: TextStyle(fontWeight: FontWeight.bold))),
+                        DataCell(Text(document['department'].toString())),
+                      ],
+                    );
+                  },
                 ),
-              ],
-              rows: List<DataRow>.generate(
-                documents.length,
-                (index) {
-                  final document = documents[index];
-                  return DataRow(
-                    cells: [
-                      DataCell(Text('#')),
-                      DataCell(Text(document['userName'].toString())),
-                      DataCell(Text(_formatTimestamp(
-                          snapshot.data!.docs[index]['timeOut']))),
-                      DataCell(Text(document['department'].toString())),
-                    ],
-                  );
-                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  StreamBuilder<QuerySnapshot<Object?>> TimeIn2Table() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _userRecordsStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        }
+        if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
+          return Center(
+            child: Text('No users timed in today.'),
+          );
+        }
+
+        final List<DocumentSnapshot> documents = snapshot.data!.docs;
+        final int rowsPerPage = 10; // Number of rows per page
+        List<DocumentSnapshot> filteredDocuments = documents;
+        if (selectedDepartment != 'All') {
+          filteredDocuments = documents
+              .where((doc) => doc['department'] == selectedDepartment)
+              .toList();
+        }
+
+        return Expanded(
+          child: SingleChildScrollView(
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              child: DataTable(
+                dataRowMinHeight: 30,
+                dataRowMaxHeight: 65,
+                columns: [
+                  DataColumn(
+                    label: Text(
+                      '#',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Name',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Time-In',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  DataColumn(
+                    label: PopupMenuButton<String>(
+                      child: Row(
+                        children: [
+                          Text(
+                            'Department',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Icon(Icons.arrow_drop_down)
+                        ],
+                      ),
+                      onSelected: (String value) {
+                        setState(() {
+                          selectedDepartment = value;
+                        });
+                      },
+                      itemBuilder: (BuildContext context) => [
+                        'All', // Default option
+                        'IT',
+                        'HR',
+                        'ACCOUNTING',
+                        'SERVICING',
+                      ].map((String value) {
+                        return PopupMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+                rows: List<DataRow>.generate(
+                  filteredDocuments.length, // Use filteredDocuments.length here
+                  (index) {
+                    final document = filteredDocuments[index];
+                    return DataRow(
+                      cells: [
+                        DataCell(Text((index + 1).toString())),
+                        DataCell(Text(
+                          document['userName'].toString(),
+                        )),
+                        DataCell(Text(_formatTimestamp(document['timeIn']),
+                            style: TextStyle(fontWeight: FontWeight.bold))),
+                        DataCell(Text(document['department'].toString())),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -199,12 +350,10 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
         return Expanded(
           child: Container(
             width: MediaQuery.of(context).size.width,
-            color: Colors.white,
             child: SingleChildScrollView(
               child: DataTable(
-                // rowsPerPage: _rowsPerPage, // Remove this line
-                // onSelectAll: (isSelected) {}, // Remove this line
-                // source: _UserRecordsDataSource(snapshot.data!.docs), // Remove this line
+                dataRowMinHeight: 30,
+                dataRowMaxHeight: 65,
                 columns: const [
                   DataColumn(
                     label: Text(
@@ -235,10 +384,14 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
                   snapshot.data!.docs.length,
                   (index) => DataRow(
                     cells: [
-                      DataCell(Text('#')),
-                      DataCell(Text(snapshot.data!.docs[index]['userName'])),
-                      DataCell(Text(_formatTimestamp(
-                          snapshot.data!.docs[index]['timeIn']))),
+                      DataCell(Text((index + 1).toString())),
+                      DataCell(Flexible(
+                          child: Text(snapshot.data!.docs[index]['userName']))),
+                      DataCell(Text(
+                          _formatTimestamp(
+                            snapshot.data!.docs[index]['timeIn'],
+                          ),
+                          style: TextStyle(fontWeight: FontWeight.bold))),
                       DataCell(Text(snapshot.data!.docs[index]['department'])),
                     ],
                   ),

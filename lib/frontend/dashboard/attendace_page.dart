@@ -382,6 +382,7 @@ class _AttendancePageState extends State<AttendancePage> {
                                   children: [
                                     DataTable(
                                       columns: [
+                                        ColumnInput('#'),
                                         ColumnInput('Name'),
                                         ColumnInput('Time in'),
                                         ColumnInput('Time out'),
@@ -403,6 +404,8 @@ class _AttendancePageState extends State<AttendancePage> {
                                                 MaterialStateColor.resolveWith(
                                                     (states) => rowColor!),
                                             cells: [
+                                              DataCell(Text(
+                                                  (dataIndex + 1).toString())),
                                               DataCell(Container(
                                                 width: 100,
                                                 child: Text(data['userName'] ??
