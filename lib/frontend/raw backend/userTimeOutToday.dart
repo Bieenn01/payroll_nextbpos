@@ -35,37 +35,69 @@ class _UserTimedOutTodayState extends State<UserTimedOutToday> {
       appBar: AppBar(
         title: Text('Users Timed Out Today'),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: _userRecordsStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
-          }
-          if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-            return Center(
-              child: Text('No users timed out today.'),
-            );
-          }
+      body: TimeoutTable(),
+    );
+  }
 
-          return PaginatedDataTable(
-            header: Text(''),
-            columns: [
-              DataColumn(label: Text('User Name')),
-              DataColumn(label: Text('Time Out')),
-              DataColumn(label: Text('Department')),
-            ],
-            source: _UserRecordsDataSource(context, snapshot.data!.docs),
-            rowsPerPage: 5,
+  StreamBuilder<QuerySnapshot<Object?>> TimeoutTable() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _userRecordsStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: CircularProgressIndicator(),
           );
-        },
-      ),
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        }
+        if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
+          return Center(
+            child: Text('No users timed in today.'),
+          );
+        }
+
+        final List<DocumentSnapshot> documents = snapshot.data!.docs;
+        final int rowsPerPage = 10; // Number of rows per page
+
+        return DataTable(
+          columns: const [
+            DataColumn(
+              label: Text(
+                'Name',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Time-In',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Department',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+          rows: List<DataRow>.generate(
+            documents.length,
+            (index) {
+              final document = documents[index];
+              return DataRow(
+                cells: [
+                  DataCell(Text(document['userName'].toString())),
+                  DataCell(Text(document['timeIn'].toString())),
+                  DataCell(Text(document['department'].toString())),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

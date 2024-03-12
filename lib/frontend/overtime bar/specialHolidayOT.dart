@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-class HolidayPage extends StatefulWidget {
-  const HolidayPage({Key? key}) : super(key: key);
+class SpecialHolidayOTPage extends StatefulWidget {
+  const SpecialHolidayOTPage({Key? key}) : super(key: key);
 
   @override
-  State<HolidayPage> createState() => _HolidayPageState();
+  State<SpecialHolidayOTPage> createState() => _SpecialHolidayOTPage();
 }
 
-class _HolidayPageState extends State<HolidayPage> {
+class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
   late List<String> _selectedOvertimeTypes;
+
   TextEditingController _searchController = TextEditingController();
   int _itemsPerPage = 5;
   int _currentPage = 0;
   int indexRow = 0;
+
   DateTime? fromDate;
   DateTime? toDate;
   bool endPicked = false;
@@ -59,7 +61,7 @@ class _HolidayPageState extends State<HolidayPage> {
                             Padding(
                               padding: const EdgeInsets.all(10.0),
                               child: Text(
-                                "Holiday Overtime",
+                                "Special Holiday Overtime",
                                 style: TextStyle(
                                     fontSize: 20, fontWeight: FontWeight.bold),
                               ),
@@ -340,9 +342,35 @@ class _HolidayPageState extends State<HolidayPage> {
     ]);
   }
 
+  Widget _buildDateFilter() {
+    return Row(
+      children: [
+        ElevatedButton(
+          onPressed: () => _selectDate2(context, true),
+          child: Text(fromDate != null
+              ? DateFormat('yyyy-MM-dd').format(fromDate!)
+              : 'From'),
+        ),
+        ElevatedButton(
+          onPressed: () => _selectDate2(context, false),
+          child: Text(
+              toDate != null ? DateFormat('yyyy-MM-dd').format(toDate!) : 'To'),
+        ),
+        ElevatedButton(
+          onPressed: () => setState(() {
+            fromDate = null;
+            toDate = null;
+          }),
+          child: Text('Show All'),
+        ),
+      ],
+    );
+  }
+
   Widget _buildTable() {
     return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection('Holiday').snapshots(),
+      stream:
+          FirebaseFirestore.instance.collection('SpecialHolidayOT').snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (!snapshot.hasData) {
           return Center(child: CircularProgressIndicator());
@@ -372,12 +400,9 @@ class _HolidayPageState extends State<HolidayPage> {
             Timestamp bTimestamp = b['timeIn'];
             return bTimestamp.compareTo(aTimestamp);
           });
-          // Sort the documents by timestamp in descending order
-          overtimeDocs.sort((a, b) =>
-              (b['timeIn'] as Timestamp).compareTo(a['timeIn'] as Timestamp));
-
           const textStyle = TextStyle(fontWeight: FontWeight.bold);
-          return Container(
+
+          return SizedBox(
             height: 600,
             child: SingleChildScrollView(
               child: DataTable(
@@ -386,17 +411,37 @@ class _HolidayPageState extends State<HolidayPage> {
                   DataColumn(label: Text('Employee ID', style: textStyle)),
                   DataColumn(label: Text('Name', style: textStyle)),
                   DataColumn(label: Text('Department', style: textStyle)),
-                  DataColumn(
-                      label: Text('Total Hours (h:m)', style: textStyle)),
-                  DataColumn(label: Text('Holiday Pay', style: textStyle)),
-                  DataColumn(label: Text('Holiday Type', style: textStyle)),
+                  DataColumn(label: Text('Total Hours (h:m)')),
+                  DataColumn(label: Text('Overtime Pay', style: textStyle)),
+                  DataColumn(label: Text('Overtime Type', style: textStyle)),
                   DataColumn(label: Text('Action', style: textStyle)),
                 ],
                 rows: List.generate(overtimeDocs.length, (index) {
                   DocumentSnapshot overtimeDoc = overtimeDocs[index];
                   Map<String, dynamic> overtimeData =
                       overtimeDoc.data() as Map<String, dynamic>;
-                  _selectedOvertimeTypes.add('Regular Holiday');
+                  _selectedOvertimeTypes.add('Regular');
+                  FutureBuilder<double>(
+                    future: calculateSpecialHolidayOT(
+                      overtimeData['userId'],
+                      Duration(
+                        hours: overtimeData['hours_overtime'],
+                        minutes: overtimeData['minute_overtime'],
+                      ),
+                    ),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Text(
+                            'Calculating...'); // Or any loading indicator
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        double overtimePay = snapshot.data ??
+                            0; // Use snapshot.data, default to 0 if null
+                        return Text(overtimePay.toStringAsFixed(2));
+                      }
+                    },
+                  );
                   Color? rowColor = indexRow % 2 == 0
                       ? Colors.white
                       : Colors.grey[200]; // Alternating row colors
@@ -408,10 +453,13 @@ class _HolidayPageState extends State<HolidayPage> {
                       cells: [
                         DataCell(Text('#')),
                         DataCell(Text(overtimeDoc.id)),
-                        DataCell(Text(
-                            overtimeData['userName'] ?? 'Not Available Yet')),
-                        DataCell(Text(
-                            overtimeData['department'] ?? 'Not Available Yet')),
+                        DataCell(
+                          Text(overtimeData['userName'] ?? 'Not Available Yet'),
+                        ),
+                        DataCell(
+                          Text(overtimeData['department'] ??
+                              'Not Available Yet'),
+                        ),
                         DataCell(
                           Container(
                             width: 100,
@@ -424,16 +472,16 @@ class _HolidayPageState extends State<HolidayPage> {
                                   child: Row(
                                     children: [
                                       Text(
-                                        overtimeData['regular_hours']
+                                        overtimeData['hours_overtime']
                                                 ?.toString() ??
                                             'Not Available Yet',
                                         style: textStyle,
                                       ),
                                       Text(':'),
                                       Text(
-                                        overtimeData['regular_minute']
+                                        overtimeData['minute_overtime']
                                                 ?.toString() ??
-                                            '0',
+                                            'Not Available Yet',
                                         style: textStyle,
                                       ),
                                     ],
@@ -448,14 +496,13 @@ class _HolidayPageState extends State<HolidayPage> {
                                   locale: 'en_PH',
                                   symbol: '₱ ',
                                   decimalDigits: 2)
-                              .format(overtimeData['holidayPay'] ?? 0.0)),
+                              .format(overtimeData['overtimePay'] ?? 0.0)),
                         ),
                         DataCell(
                           DropdownButton<String>(
                             value: _selectedOvertimeTypes[index],
                             items: <String>[
-                              'Regular Holiday',
-                              'Special Holiday',
+                              'Regular',
                             ].map<DropdownMenuItem<String>>((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
@@ -463,14 +510,8 @@ class _HolidayPageState extends State<HolidayPage> {
                               );
                             }).toList(),
                             onChanged: (String? newValue) async {
-                              if (newValue == 'Special Holiday') {
+                              if (newValue == 'Regular') {
                                 await _showConfirmationDialog(overtimeDoc);
-                              }
-                              setState(() {
-                                _selectedOvertimeTypes[index] = newValue!;
-                              });
-                              if (newValue == 'Regular Holiday') {
-                                await _showConfirmationDialog2(overtimeDoc);
                               }
                               setState(() {
                                 _selectedOvertimeTypes[index] = newValue!;
@@ -479,23 +520,36 @@ class _HolidayPageState extends State<HolidayPage> {
                           ),
                         ),
                         DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.delete,
-                                    color: Colors.red), // Setting color to red
-                                onPressed: () async {
-                                  await _showConfirmationDialog3(overtimeDoc);
-                                },
+                          Container(
+                            width: 100,
+                            padding: EdgeInsets.all(0),
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                await _showConfirmationDialog4(overtimeDoc);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.all(5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
-                              IconButton(
-                                icon: Icon(Icons.visibility,
-                                    color: Colors.blue), // Setting color to red
-                                onPressed: () async {
-                                  await _showConfirmationDialog4(overtimeDoc);
-                                },
+                              child: const Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Icon(
+                                    Icons.visibility,
+                                    color: Colors.blue,
+                                    size: 15,
+                                  ),
+                                  Text(
+                                    'View Logs',
+                                    style: TextStyle(
+                                        fontSize: 10, color: Colors.blue),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ]);
@@ -508,44 +562,37 @@ class _HolidayPageState extends State<HolidayPage> {
     );
   }
 
-  Future<void> moveRecordToSpecialHoliday(DocumentSnapshot overtimeDoc) async {
+  Future<double> calculateSpecialHolidayOT(
+    String userId,
+    Duration duration,
+  ) async {
+    final daysInMonth = 22;
+    final overTimeRate = 1.95;
+
+    final daysWorked = duration.inDays;
+    final overtimeHours = duration.inMinutes - 1 - (daysWorked * 8);
+
     try {
-      if (overtimeDoc.exists) {
-        Map<String, dynamic> overtimeData = Map<String, dynamic>.from(
-            overtimeDoc.data() as Map<String, dynamic>);
+      var userData =
+          await FirebaseFirestore.instance.collection('User').doc(userId).get();
+      double? monthlySalary = userData.data()?['monthly_salary'];
 
-        // Check if all required fields are present
-        if (overtimeData.containsKey('monthly_salary') &&
-            overtimeData.containsKey('regular_minute')) {
-          final monthlySalary = overtimeData['monthly_salary'];
-          final overtimeMinute = overtimeData['regular_minute'];
-          final overtimeRate = 1.0;
-          final daysInMonth = 22;
-
-          // Set holidayPay
-          overtimeData['holidayPay'] =
-              (monthlySalary / daysInMonth / 8 * overtimeMinute * overtimeRate);
-
-          // Add to SpecialHoliday collection
-          await FirebaseFirestore.instance
-              .collection('SpecialHoliday')
-              .add(overtimeData);
-        } else {
-          print('Required fields are missing in the Firestore document');
-        }
-      } else {
-        print('Document does not exist');
+      if (monthlySalary == null) {
+        // Return 0 if monthlySalary is null
+        return 0;
       }
-    } catch (e) {
-      print('Error moving record to SpecialHoliday collection: $e');
-    }
-  }
 
-  Future<void> deleteRecordFromOvertime(DocumentSnapshot overtimeDoc) async {
-    try {
-      await overtimeDoc.reference.delete();
-    } catch (e) {
-      print('Error deleting record from Overtime collection: $e');
+      double specialHolidayOTPay = 0;
+
+      if (duration.inMinutes > 1) {
+        specialHolidayOTPay =
+            (monthlySalary / daysInMonth / 8 * overtimeHours * overTimeRate);
+      }
+
+      return specialHolidayOTPay;
+    } catch (error) {
+      print('Error retrieving monthly salary: $error');
+      return 0;
     }
   }
 
@@ -560,142 +607,39 @@ class _HolidayPageState extends State<HolidayPage> {
     }
   }
 
-  Future<void> _showConfirmationDialog(DocumentSnapshot overtimeDoc) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button for close dialog!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirmation'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Are you sure you want to proceed?'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Confirm'),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await moveRecordToSpecialHoliday(overtimeDoc);
-                await deleteRecordFromOvertime(overtimeDoc);
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> updateHolidayPay(DocumentSnapshot overtimeDoc) async {
+  Future<void> deleteRecordFromSpecialOT(DocumentSnapshot overtimeDoc) async {
     try {
-      if (overtimeDoc.exists) {
-        Map<String, dynamic> overtimeData = Map<String, dynamic>.from(
-            overtimeDoc.data() as Map<String, dynamic>);
-
-        // Check if all required fields are present
-        if (overtimeData.containsKey('monthly_salary') &&
-            overtimeData.containsKey('regular_minute')) {
-          final monthlySalary = overtimeData['monthly_salary'];
-          final overtimeMinute = overtimeData['regular_minute'];
-          final overtimeRate = 0.3;
-          final daysInMonth = 22;
-
-          // Update holidayPay
-          double holidayPay =
-              (monthlySalary / daysInMonth / 8 * overtimeMinute * overtimeRate);
-          await overtimeDoc.reference.update({'holidayPay': holidayPay});
-        } else {
-          print('Required fields are missing in the Firestore document');
-        }
-      } else {
-        print('Document does not exist');
-      }
+      await overtimeDoc.reference.delete();
     } catch (e) {
-      print('Error updating holidayPay: $e');
+      print('Error deleting record from Overtime collection: $e');
     }
   }
 
-  Future<void> _showConfirmationDialog2(DocumentSnapshot overtimeDoc) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button for close dialog!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirmation'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Are you sure you want to proceed?'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Confirm'),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await updateHolidayPay(overtimeDoc);
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+  Future<void> moveRecordToRegularOT(DocumentSnapshot overtimeDoc) async {
+    try {
+      Map<String, dynamic> overtimeData =
+          Map<String, dynamic>.from(overtimeDoc.data() as Map<String, dynamic>);
 
-  Future<void> _showConfirmationDialog3(DocumentSnapshot overtimeDoc) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button for close dialog!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirmation'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Are you sure you want to proceed?'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Confirm'),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await deleteRecordFromOvertime(overtimeDoc);
-              },
-            ),
-          ],
-        );
-      },
-    );
+      final monthlySalary = overtimeData['monthly_salary'];
+      final overtimeMinute = overtimeData['minute_overtime'];
+      final overtimeRate = 1.25;
+      final daysInMonth = 22;
+
+      // Set overtimePay to null
+      overtimeData['overtimePay'] =
+          (monthlySalary / daysInMonth / 8 * overtimeMinute * overtimeRate);
+      //dri ibutang ang formula para mapasa dayon didto paglahos
+      // Add to SpecialHolidayOT collection
+      await FirebaseFirestore.instance.collection('Overtime').add(overtimeData);
+    } catch (e) {
+      print('Error moving record to SpecialHolidayOT collection: $e');
+    }
   }
 
   Future<void> _showConfirmationDialog4(DocumentSnapshot overtimeDoc) async {
     String userId = overtimeDoc['userId'];
     QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
-        .collection('Holiday')
+        .collection('SpecialHolidayOT')
         .where('userId', isEqualTo: userId)
         .get();
 
@@ -706,7 +650,24 @@ class _HolidayPageState extends State<HolidayPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Regular Holiday Logs'),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Special Holiday Overtime Logs',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  icon: Icon(
+                    Icons.close,
+                    size: 15,
+                  )),
+            ],
+          ),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -716,7 +677,7 @@ class _HolidayPageState extends State<HolidayPage> {
                     'Name', overtimeDoc['userName'] ?? 'Not Available'),
                 _buildInfoRow(
                     'Department', overtimeDoc['department'] ?? 'Not Available'),
-                SizedBox(height: 10),
+                Divider(),
                 _buildOvertimeTable(userOvertimeDocs),
               ],
             ),
@@ -734,6 +695,16 @@ class _HolidayPageState extends State<HolidayPage> {
     );
   }
 
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label + ':', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text(value),
+      ],
+    );
+  }
+
   Widget _buildOvertimeTable(List<DocumentSnapshot> overtimeDocs) {
     // Sort documents by timestamp in descending order
     overtimeDocs.sort((a, b) {
@@ -742,55 +713,65 @@ class _HolidayPageState extends State<HolidayPage> {
       return bTimestamp.compareTo(aTimestamp);
     });
 
+    int index = 0;
     return Container(
       height: 300,
       decoration: BoxDecoration(
           color: Colors.white, borderRadius: BorderRadius.circular(8)),
-      child: DataTable(
-        columns: const [
-          DataColumn(
-              label: Text('#', style: TextStyle(fontWeight: FontWeight.bold))),
-          DataColumn(
-              label:
-                  Text('Date', style: TextStyle(fontWeight: FontWeight.bold))),
-          DataColumn(
-              label: Text('Time In',
-                  style: TextStyle(fontWeight: FontWeight.bold))),
-          DataColumn(
-              label: Text('Time Out',
-                  style: TextStyle(fontWeight: FontWeight.bold))),
-          DataColumn(
-              label: Text('Total Hours (h:m)',
-                  style: TextStyle(fontWeight: FontWeight.bold))),
-        ],
-        rows: overtimeDocs.map((overtimeDoc) {
-          return DataRow(cells: [
-            DataCell(Text('#')),
-            DataCell(Text(_formatDate(overtimeDoc['timeIn']))),
-            DataCell(Text(_formatTime(overtimeDoc['timeIn']))),
-            DataCell(Text(_formatTime(overtimeDoc['timeOut']))),
-            DataCell(Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  child: Row(
+      child: SingleChildScrollView(
+        child: DataTable(
+          columns: const [
+            DataColumn(
+                label:
+                    Text('#', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(
+                label: Text('Date',
+                    style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(
+                label: Text('Time In',
+                    style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(
+                label: Text('Time Out',
+                    style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(
+                label: Text('Total Hours (h:m)',
+                    style: TextStyle(fontWeight: FontWeight.bold))),
+          ],
+          rows: overtimeDocs.map((overtimeDoc) {
+            Color? rowColor = index % 2 == 0
+                ? Colors.grey[200]
+                : Colors.transparent; // Alternating row colors
+            index++;
+            return DataRow(
+                color: MaterialStateColor.resolveWith((states) => rowColor!),
+                cells: [
+                  DataCell(Text('#')),
+                  DataCell(Text(_formatDate(overtimeDoc['timeIn']))),
+                  DataCell(Text(_formatTime(overtimeDoc['timeIn']))),
+                  DataCell(Text(_formatTime(overtimeDoc['timeOut']))),
+                  DataCell(Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                          overtimeDoc['regular_hours']?.toString() ??
-                              'Not Available Yet',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text(':'),
-                      Text(
-                          overtimeDoc['regular_minute']?.toString() ??
-                              'Not Available Yet',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Container(
+                        child: Row(
+                          children: [
+                            Text(
+                                overtimeDoc['hours_overtime']?.toString() ??
+                                    'Not Available Yet',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text(':'),
+                            Text(
+                                overtimeDoc['minute_overtime']?.toString() ??
+                                    'Not Available Yet',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      )
                     ],
-                  ),
-                )
-              ],
-            )),
-          ]);
-        }).toList(),
+                  )),
+                ]);
+          }).toList(),
+        ),
       ),
     );
   }
@@ -847,13 +828,57 @@ class _HolidayPageState extends State<HolidayPage> {
     }
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label + ':', style: TextStyle(fontWeight: FontWeight.bold)),
-        Text(value),
-      ],
+  Future<void> _selectDate(BuildContext context, bool isFromDate) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        if (isFromDate) {
+          fromDate = pickedDate;
+        } else {
+          toDate = pickedDate;
+        }
+      });
+    }
+  }
+
+  Future<void> _showConfirmationDialog(DocumentSnapshot overtimeDoc) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button for close dialog!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmation'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Are you sure you want to proceed?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Confirm'),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await moveRecordToRegularOT(overtimeDoc);
+                await deleteRecordFromSpecialOT(overtimeDoc);
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
