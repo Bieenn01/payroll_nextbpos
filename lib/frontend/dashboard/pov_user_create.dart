@@ -1146,7 +1146,8 @@ void editUserDetails(String userId, Map<String, dynamic> userData) {
                 };
                 await updateUserDetails(userId, updatedUserData);
                 Navigator.of(context).pop();
-
+                showSuccess(context, 'Updated',
+                    '');
                 setState(() {});
               },
               child: Text('Save'),
