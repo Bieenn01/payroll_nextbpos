@@ -10,8 +10,14 @@ import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_st
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/menu_navigation.dart';
 import 'package:project_payroll_nextbpo/frontend/login.dart';
 
-class SidebarMenu extends StatelessWidget {
+class SidebarMenu extends StatefulWidget {
   const SidebarMenu({Key? key}) : super(key: key);
+
+  @override
+  _SidebarMenuState createState() => _SidebarMenuState();
+}
+
+class _SidebarMenuState extends State<SidebarMenu> {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
@@ -181,9 +187,9 @@ class SidebarMenu extends StatelessWidget {
                       ),
                     ),
                     //menu
-                    Expanded(
-                      child: ScreensView(menu: state.menu),
-                    ),
+                    //Expanded(
+                      //child: ScreensView(menu: state.menu),
+                    //),
                   ],
                 );
               } else if (state is SidebarMenuError) {
