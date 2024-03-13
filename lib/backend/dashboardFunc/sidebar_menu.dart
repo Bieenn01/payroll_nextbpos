@@ -11,14 +11,20 @@ import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/menu_navig
 import 'package:project_payroll_nextbpo/frontend/login.dart';
 
 class SidebarMenu extends StatefulWidget {
-  const SidebarMenu({Key? key}) : super(key: key);
-
   @override
   _SidebarMenuState createState() => _SidebarMenuState();
+  const SidebarMenu({Key? key}) : super(key: key);
 }
 
 class _SidebarMenuState extends State<SidebarMenu> {
-  @override
+  Map<String, bool> expansionState = {};
+  late List<bool> _isExpandedList;
+
+  void initState() {
+    super.initState();
+    _isExpandedList = List<bool>.filled(menuTree.length, true);
+  }
+
   Widget build(BuildContext context) {
     return ScreenUtilInit(
       builder: (BuildContext context, Widget? child) => MultiBlocProvider(
@@ -74,7 +80,10 @@ class _SidebarMenuState extends State<SidebarMenu> {
                               child: TreeView.simple(
                                 tree: menuTree,
                                 indentation: const Indentation(width: 0),
+                                // All nodes are expanded initially
+                                
                                 expansionIndicatorBuilder: (context, node) {
+                                  // Always show rightDown indicator as all nodes are expanded
                                   return ChevronIndicator.rightDown(
                                     alignment: Alignment.centerLeft,
                                     tree: node,
@@ -203,7 +212,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
                   ),
                 );
               } else {
-                return const SizedBox.shrink();
+                return const SizedBox.expand();
               }
             },
           ),
@@ -211,4 +220,5 @@ class _SidebarMenuState extends State<SidebarMenu> {
       ),
     );
   }
+  
 }
