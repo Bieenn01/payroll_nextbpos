@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/main_calendar.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/userTimeInToday.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DashboardMobile extends StatefulWidget {
   const DashboardMobile({super.key});
@@ -12,6 +13,55 @@ class DashboardMobile extends StatefulWidget {
 }
 
 class _DashboardMobileState extends State<DashboardMobile> {
+    int totalEmployees = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchEmployeeCount();
+  }
+  
+  Future<void> fetchEmployeeCount() async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('User') // Change this to your collection name
+          .get();
+
+      setState(() {
+        totalEmployees = querySnapshot.size;
+      });
+    } catch (e) {
+      print("Error fetching employee count: $e");
+    }
+  }
+   Future<int> countDocumentsForToday() async {
+    DateTime now = DateTime.now();
+    DateTime startOfDay = DateTime(now.year, now.month, now.day);
+    DateTime endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('Records')
+        .where('timeIn', isGreaterThanOrEqualTo: startOfDay)
+        .where('timeIn', isLessThanOrEqualTo: endOfDay)
+        .get();
+
+    return querySnapshot.size;
+  }
+
+   Future<int> countendDocumentsForToday() async {
+    DateTime now = DateTime.now();
+    DateTime startOfDay = DateTime(now.year, now.month, now.day);
+    DateTime endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('Records')
+        .where('timeOut', isGreaterThanOrEqualTo: startOfDay)
+        .where('timeOut', isLessThanOrEqualTo: endOfDay)
+        .get();
+
+    return querySnapshot.size;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,28 +168,40 @@ class _DashboardMobileState extends State<DashboardMobile> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Flexible(
-                  flex: 1,
-                  child: Container(
-                    height: 120,
-                    padding: EdgeInsets.all(8),
-                    decoration: container1Decoration(),
-                    child: smallContainerRow('416',
-                        Icons.supervisor_account_rounded, 'Total Employees'),
-                  ),
+      flex: 1,
+      child: Container(
+        height: 120,
+        padding: EdgeInsets.all(8),
+        decoration: container1Decoration(),
+        child: smallContainerRow(
+          '$totalEmployees',
+          Icons.supervisor_account_rounded,
+          'Total Employees',
+        ),)
                 ),
                 SizedBox(
                   width: 5,
                 ),
-                Flexible(
-                  flex: 1,
-                  child: Container(
-                    height: 120,
-                    padding: EdgeInsets.all(8),
-                    decoration: container1Decoration(),
-                    child:
-                        smallContainerRow('360', Icons.access_time, 'On Time'),
-                  ),
-                ),
+         Flexible(
+      flex: 1,
+      child: Container(
+        height: 120,
+        padding: EdgeInsets.all(8),
+        decoration: container1Decoration(),
+        child: FutureBuilder(
+          future: countDocumentsForToday(),
+          builder: (context, AsyncSnapshot<int> snapshot) {
+            if (snapshot.data == null || snapshot.data == 0) {
+              return smallContainerRow('0', Icons.access_time, 'Time in');
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else {
+              return smallContainerRow(snapshot.data.toString(), Icons.access_time, 'Time in');
+            }
+          },
+        ),
+      ),
+    ),
                 SizedBox(
                   width: 5,
                 ),
@@ -156,16 +218,26 @@ class _DashboardMobileState extends State<DashboardMobile> {
                 SizedBox(
                   width: 5,
                 ),
-                Flexible(
-                  flex: 1,
-                  child: Container(
-                    height: 120,
-                    padding: EdgeInsets.all(8),
-                    decoration: container1Decoration(),
-                    child:
-                        smallContainerRow('360', Icons.list_alt, 'Check Out'),
-                  ),
-                )
+               Flexible(
+      flex: 1,
+      child: Container(
+        height: 120,
+        padding: EdgeInsets.all(8),
+        decoration: container1Decoration(),
+        child: FutureBuilder(
+          future: countendDocumentsForToday(),
+          builder: (context, AsyncSnapshot<int> snapshot) {
+            if (snapshot.data == null || snapshot.data == 0) {
+              return smallContainerRow('0', Icons.access_time, 'Time out');
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else {
+              return smallContainerRow(snapshot.data.toString(), Icons.access_time, 'Time out');
+            }
+          },
+        ),
+      ),
+    ),
               ],
             )
           : Column(
@@ -173,31 +245,41 @@ class _DashboardMobileState extends State<DashboardMobile> {
               children: [
                 Row(
                   children: [
-                    Flexible(
-                      flex: 1,
-                      child: Container(
-                        height: 90,
-                        padding: EdgeInsets.all(8),
-                        decoration: container1Decoration(),
-                        child: smallContainer(
-                            '416',
-                            Icons.supervisor_account_rounded,
-                            'Total Employees'),
-                      ),
-                    ),
+                  Flexible(
+      flex: 1,
+      child: Container(
+        height: 120,
+        padding: EdgeInsets.all(8),
+        decoration: container1Decoration(),
+        child: smallContainerRow(
+          '$totalEmployees',
+          Icons.supervisor_account_rounded,
+          'Total Employees',
+        ),)
+                ),
                     SizedBox(
                       width: 5,
                     ),
-                    Flexible(
-                      flex: 1,
-                      child: Container(
-                        height: 90,
-                        padding: EdgeInsets.all(8),
-                        decoration: container1Decoration(),
-                        child:
-                            smallContainer('360', Icons.access_time, 'On Time'),
-                      ),
-                    )
+                      Flexible(
+      flex: 1,
+      child: Container(
+        height: 120,
+        padding: EdgeInsets.all(8),
+        decoration: container1Decoration(),
+        child: FutureBuilder(
+          future: countDocumentsForToday(),
+          builder: (context, AsyncSnapshot<int> snapshot) {
+            if (snapshot.data == null || snapshot.data == 0) {
+              return smallContainerRow('0', Icons.access_time, 'Time in');
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else {
+              return smallContainerRow(snapshot.data.toString(), Icons.access_time, 'Time in');
+            }
+          },
+        ),
+      ),
+    ),
                   ],
                 ),
                 SizedBox(
@@ -219,15 +301,25 @@ class _DashboardMobileState extends State<DashboardMobile> {
                       width: 5,
                     ),
                     Flexible(
-                      flex: 1,
-                      child: Container(
-                        height: 90,
-                        padding: EdgeInsets.all(8),
-                        decoration: container1Decoration(),
-                        child:
-                            smallContainer('360', Icons.list_alt, 'Check Out'),
-                      ),
-                    )
+      flex: 1,
+      child: Container(
+        height: 120,
+        padding: EdgeInsets.all(8),
+        decoration: container1Decoration(),
+        child: FutureBuilder(
+          future: countendDocumentsForToday(),
+          builder: (context, AsyncSnapshot<int> snapshot) {
+            if (snapshot.data == null || snapshot.data == 0) {
+              return smallContainerRow('0', Icons.access_time, 'Time out');
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else {
+              return smallContainerRow(snapshot.data.toString(), Icons.access_time, 'Time out');
+            }
+          },
+        ),
+      ),
+    ),
                   ],
                 )
               ],
