@@ -113,9 +113,11 @@ class _UserState extends State<PovUser> {
 
   void _nextPage() {
     setState(() {
-      _currentPage++;
-      // Call your function to fetch users with pagination for the next page
-      _fetchUsersWithPagination(_pageSize, _lastVisibleSnapshot);
+          if (_currentPage <= _pageSize) {
+        _currentPage++;
+        // Call your function to fetch users with pagination for the previous page
+        _fetchUsersWithPagination(_pageSize, _lastVisibleSnapshot);
+      }
     });
   }
 
