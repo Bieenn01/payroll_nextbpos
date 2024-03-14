@@ -717,7 +717,10 @@ class _HolidayPageState extends State<HolidayPage> {
                 _buildInfoRow(
                     'Department', overtimeDoc['department'] ?? 'Not Available'),
                 SizedBox(height: 10),
-                _buildOvertimeTable(userOvertimeDocs),
+                Container(
+                    height: 300,
+                    child: SingleChildScrollView(
+                        child: _buildOvertimeTable(userOvertimeDocs))),
               ],
             ),
           ),
@@ -743,7 +746,6 @@ class _HolidayPageState extends State<HolidayPage> {
     });
 
     return Container(
-      height: 300,
       decoration: BoxDecoration(
           color: Colors.white, borderRadius: BorderRadius.circular(8)),
       child: DataTable(
