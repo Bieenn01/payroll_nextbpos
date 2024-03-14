@@ -63,21 +63,21 @@ class _LoginState extends State<Login> {
                       const SizedBox(
                         height: 20,
                       ),
-                      Divider(),
+                      const Divider(),
                       const SizedBox(
                         height: 20,
                       ),
-                      Row(
+                      const Row(
                         mainAxisAlignment: MainAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
-                            'Log in to your Account',
+                            'Welcome Back, \nPlease Enter Your Details',
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                              color: Colors.black,
-                              fontSize: 20,
-                            ),
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                                color: Colors.black,
+                                fontSize: 20,
+                                fontFamily: 'Lexend'),
                           ),
                         ],
                       ),
@@ -140,7 +140,7 @@ class _LoginState extends State<Login> {
                             login(context);
                           }),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal.shade900,
+                            backgroundColor: const Color.fromARGB(255, 233, 240, 239),
                             padding: const EdgeInsets.all(18.0),
                             minimumSize: const Size(200, 50),
                             maximumSize: const Size(200, 50),
