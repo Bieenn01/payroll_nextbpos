@@ -30,9 +30,11 @@ class _AttendancePageState extends State<AttendancePage> {
 
   void _nextPage() {
     setState(() {
-      _currentPage++;
+      if (_currentPage <= _itemsPerPage) {
+        _currentPage++;
       // Call your function to fetch users with pagination for the next page
       _fetchUserRecords(_itemsPerPage);
+    }
     });
   }
 
