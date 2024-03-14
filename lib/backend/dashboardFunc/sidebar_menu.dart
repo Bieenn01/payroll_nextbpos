@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:animated_tree_view/animated_tree_view.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/animated_tree_view.dart';
-import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_bloc.dart';
+import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_bloc.dart'; 
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_event.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_state.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/menu_navigation.dart';
@@ -17,13 +17,6 @@ class SidebarMenu extends StatefulWidget {
 }
 
 class _SidebarMenuState extends State<SidebarMenu> {
-  Map<String, bool> expansionState = {};
-  late List<bool> _isExpandedList;
-
-  void initState() {
-    super.initState();
-    _isExpandedList = List<bool>.filled(menuTree.length, true);
-  }
 
   Widget build(BuildContext context) {
     return ScreenUtilInit(
@@ -196,9 +189,9 @@ class _SidebarMenuState extends State<SidebarMenu> {
                       ),
                     ),
                     //menu
-                    //Expanded(
-                      //child: ScreensView(menu: state.menu),
-                    //),
+                    Expanded(
+                      child: ScreensView(menu: state.menu),
+                    ),
                   ],
                 );
               } else if (state is SidebarMenuError) {
