@@ -24,10 +24,6 @@ final menuTree = TreeNode.root()
         data:
             Icons.person_add_alt_1, // You can use appropriate logout icon here
       ),
-      TreeNode(
-        key: 'Logout', // Logout menu item
-        data: Icons.logout, // You can use appropriate logout icon here
-      ),
     ],
   );
   
