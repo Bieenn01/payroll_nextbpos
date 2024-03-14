@@ -1,32 +1,29 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:project_payroll_nextbpo/backend/widgets/toast_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_dashboard.dart';
+import 'package:project_payroll_nextbpo/backend/widgets/toast_widget.dart';
 
 class Login extends StatefulWidget {
-  Login({super.key});
+  Login({Key? key}) : super(key: key);
 
   @override
-  State<Login> createState() => _LoginState();
+  _LoginState createState() => _LoginState();
 }
 
 class _LoginState extends State<Login> {
   final emailController = TextEditingController();
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
-  FocusNode myFocusNode = new FocusNode();
+  FocusNode myFocusNode = FocusNode();
   bool passwordVisible = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: (Container(
-        color: Colors.teal.shade100,
-        child: (Row(
+      body: Container(
+        color: const Color(0x7f588157),
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -67,25 +64,45 @@ class _LoginState extends State<Login> {
                       const SizedBox(
                         height: 20,
                       ),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Welcome Back, \nPlease Enter Your Details',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                                color: Colors.black,
-                                fontSize: 20,
-                                fontFamily: 'Lexend'),
+                      const Positioned(
+                        left: 950,
+                        top: 259,
+                        child: Text(
+                          'Log In ',
+                          textAlign: TextAlign.left,
+                          style: TextStyle(
+                              decoration: TextDecoration.none,
+                              fontSize: 25,
+                              color: Color(0xff000000),
+                              fontFamily: 'Roboto',
+                              fontWeight: FontWeight.bold),
+                          maxLines: 9999,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const Positioned(
+                        left: 950,
+                        top: 301,
+                        child: Text(
+                          'Welcome Back \nPlease Enter Your Details ',
+                          textAlign: TextAlign.left,
+                          style: TextStyle(
+                            decoration: TextDecoration.none,
+                            fontSize: 18, // Reduced font size
+                            height: 1, // Adjusted line height
+                            color: Color(0xff000000),
+                            fontFamily: 'Lexend-ExtraLight',
+                            fontWeight: FontWeight.normal,
                           ),
-                        ],
+                          maxLines: 9999,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       const SizedBox(
                         height: 20,
                       ),
                       Container(
-                        padding: EdgeInsets.fromLTRB(15, 5, 5, 5),
+                        padding: const EdgeInsets.fromLTRB(15, 5, 5, 5),
                         decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12)),
@@ -104,13 +121,17 @@ class _LoginState extends State<Login> {
                         height: 10,
                       ),
                       Container(
-                        padding: EdgeInsets.fromLTRB(15, 5, 5, 5),
+                        padding: const EdgeInsets.fromLTRB(15, 5, 5, 5),
                         decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12)),
-                        child: TextField(
+                        child: TextFormField(
                           obscureText: !passwordVisible,
                           controller: passwordController,
+                          onFieldSubmitted: (_) {
+                            // Call the login function when the user submits the password field
+                            login(context);
+                          },
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             labelText: 'Password',
@@ -134,21 +155,26 @@ class _LoginState extends State<Login> {
                       const SizedBox(
                         height: 20,
                       ),
-                      Container(
-                        child: ElevatedButton(
-                          onPressed: (() {
-                            login(context);
-                          }),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(255, 233, 240, 239),
-                            padding: const EdgeInsets.all(18.0),
-                            minimumSize: const Size(200, 50),
-                            maximumSize: const Size(200, 50),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+                      ElevatedButton(
+                        onPressed: () {
+                          login(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 25, 49, 33),
+                          padding: const EdgeInsets.all(18.0),
+                          minimumSize: const Size(200, 50),
+                          maximumSize: const Size(200, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Text("LOG IN"),
+                        ),
+                        child: const Text(
+                          "LOG IN",
+                          style: TextStyle(
+                            color:
+                                Colors.white, // Change the text color to white
+                          ),
                         ),
                       ),
                     ],
@@ -157,8 +183,8 @@ class _LoginState extends State<Login> {
               ),
             ),
           ],
-        )),
-      )),
+        ),
+      ),
     );
   }
 
