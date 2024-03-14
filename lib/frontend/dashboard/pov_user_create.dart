@@ -278,8 +278,7 @@ class _UserState extends State<PovUser> {
                                         ),
                                         onChanged: (value) {
                                           setState(() {
-                                            _fetchUsers(_pageSize,
-                                                _lastVisibleSnapshot); // Trigger user fetching with pagination
+                                             // Trigger user fetching with pagination
                                           });
                                         },
                                       ),
@@ -380,8 +379,22 @@ class _UserState extends State<PovUser> {
                                   endIndex >= 0 &&
                                   startIndex < _allDocs.length &&
                                   endIndex <= _allDocs.length) {
-                                _displayedDocs =
-                                    _allDocs.sublist(startIndex, endIndex);
+                                _displayedDocs = _allDocs
+                                    .sublist(startIndex, endIndex)
+                                    .where((document) {
+                                  Map<String, dynamic> data =
+                                      document.data() as Map<String, dynamic>;
+                                  String fname = data['fname'];
+                                  String mname = data['mname'];
+                                  String lname = data['lname'];
+                                  String query =
+                                      _searchController.text.toLowerCase();
+                                  bool matchesSearchQuery =
+                                      fname.toLowerCase().contains(query) ||
+                                          mname.toLowerCase().contains(query) ||
+                                          lname.toLowerCase().contains(query);
+                                  return matchesSearchQuery;
+                                }).toList();
                               } else {
                                 // Handle invalid index range
                                 print("Invalid index range");
