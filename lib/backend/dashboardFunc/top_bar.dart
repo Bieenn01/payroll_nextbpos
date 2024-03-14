@@ -1,14 +1,11 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:date_field/date_field.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:project_payroll_nextbpo/frontend/login.dart'; // Import your login page file
 
 class TopBar extends StatefulWidget {
   const TopBar({Key? key});
@@ -87,8 +84,7 @@ class _TopBarState extends State<TopBar> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                    child: Column(
+                Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -106,7 +102,7 @@ class _TopBarState extends State<TopBar> {
                       ),
                     ),
                   ],
-                )),
+                ),
                 InkWell(
                   onTap: () {
                     showMenu(
@@ -114,34 +110,43 @@ class _TopBarState extends State<TopBar> {
                       position: const RelativeRect.fromLTRB(80, 100, 50, 0),
                       items: const [
                         PopupMenuItem(
-                          child: Text('Log out'),
                           value: 'log_out',
+                          child: Text('Log out'),
                         ),
                       ],
                       elevation: 8.0,
                     ).then((value) {
-                      if (value == 'account_list') {
-                        // Handle account list selection
-                      } else if (value == 'log_out') {
+                      if (value == 'log_out') {
                         // Handle log out selection
+                        FirebaseAuth.instance.signOut(); // Sign out the user
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  Login()), // Navigate back to the login page
+                          (route) =>
+                              false, // Remove all existing routes from the navigation stack
+                        );
                       }
                     });
                   },
                   child: Container(
-                    padding: EdgeInsets.fromLTRB(5, 2, 2, 2),
+                    padding: const EdgeInsets.fromLTRB(5, 2, 2, 2),
                     decoration: BoxDecoration(
-                        border: Border(
-                            left: BorderSide(
-                                color: Colors.grey.withOpacity(0.5)))),
+                      border: Border(
+                        left: BorderSide(
+                          color: Colors.grey.withOpacity(0.5),
+                        ),
+                      ),
+                    ),
                     child: MediaQuery.of(context).size.width > 600
                         ? Row(
                             children: [
-                              CircleAvatar(
+                              const CircleAvatar(
                                 child: Icon(
                                   Icons.person,
                                 ),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 width: 10,
                               ),
                               Column(
@@ -150,24 +155,24 @@ class _TopBarState extends State<TopBar> {
                                 children: [
                                   Text(
                                     _userName,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   Text(
                                     _role,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 10,
                                     ),
                                   ),
                                 ],
                               ),
-                              SizedBox(width: 8),
-                              Icon(Icons.arrow_drop_down),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.arrow_drop_down),
                             ],
                           )
-                        : CircleAvatar(
+                        : const CircleAvatar(
                             child: Icon(
                               Icons.person,
                             ),
