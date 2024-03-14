@@ -54,6 +54,7 @@ dependencies:
   holiday_event_api: ^1.0.2
   flutter_datetime_picker: ^1.5.1
   shimmer: ^3.0.0
+  flutter_multi_formatter: ^2.12.4
 
 dev_dependencies:
   flutter_test:
