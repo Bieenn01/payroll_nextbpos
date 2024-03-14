@@ -239,7 +239,7 @@ class ScreensView extends StatelessWidget {
               ),
               Flexible(
                 flex: 7,
-                child: Dashboard(),
+                child: DashboardMobile(),
               ),
             ],
           ),

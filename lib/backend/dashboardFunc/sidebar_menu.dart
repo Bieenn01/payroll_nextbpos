@@ -4,15 +4,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:animated_tree_view/animated_tree_view.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/animated_tree_view.dart';
-import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_bloc.dart';
+import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_bloc.dart'; 
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_event.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_state.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/menu_navigation.dart';
 import 'package:project_payroll_nextbpo/frontend/login.dart';
 
-class SidebarMenu extends StatelessWidget {
-  const SidebarMenu({Key? key}) : super(key: key);
+class SidebarMenu extends StatefulWidget {
   @override
+  _SidebarMenuState createState() => _SidebarMenuState();
+  const SidebarMenu({Key? key}) : super(key: key);
+}
+
+class _SidebarMenuState extends State<SidebarMenu> {
+
   Widget build(BuildContext context) {
     return ScreenUtilInit(
       builder: (BuildContext context, Widget? child) => MultiBlocProvider(
@@ -68,6 +73,8 @@ class SidebarMenu extends StatelessWidget {
                               child: TreeView.simple(
                                 tree: menuTree,
                                 indentation: const Indentation(width: 0),
+                                expansionBehavior: ExpansionBehavior.collapseOthersAndSnapToTop,
+                                showRootNode: false ,
                                 expansionIndicatorBuilder: (context, node) {
                                   return ChevronIndicator.rightDown(
                                     alignment: Alignment.centerLeft,
@@ -197,7 +204,7 @@ class SidebarMenu extends StatelessWidget {
                   ),
                 );
               } else {
-                return const SizedBox.shrink();
+                return const SizedBox.expand();
               }
             },
           ),
@@ -205,4 +212,5 @@ class SidebarMenu extends StatelessWidget {
       ),
     );
   }
+  
 }
