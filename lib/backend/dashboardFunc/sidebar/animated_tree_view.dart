@@ -19,7 +19,6 @@ final menuTree = TreeNode.root()
         ]),
       TreeNode(key: "Logs", data: Icons.analytics),
       TreeNode(key: "Calendar", data: Icons.edit_calendar_outlined),
-      TreeNode(key: "Settings", data: Icons.settings),
       TreeNode(
         key: 'Add Account', // Logout menu item
         data:
