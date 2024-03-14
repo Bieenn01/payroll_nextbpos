@@ -73,10 +73,9 @@ class _SidebarMenuState extends State<SidebarMenu> {
                               child: TreeView.simple(
                                 tree: menuTree,
                                 indentation: const Indentation(width: 0),
-                                // All nodes are expanded initially
-                                
+                                expansionBehavior: ExpansionBehavior.collapseOthersAndSnapToTop,
+                                showRootNode: false ,
                                 expansionIndicatorBuilder: (context, node) {
-                                  // Always show rightDown indicator as all nodes are expanded
                                   return ChevronIndicator.rightDown(
                                     alignment: Alignment.centerLeft,
                                     tree: node,

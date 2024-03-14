@@ -93,6 +93,7 @@ class _UserState extends State<PovUser> {
   @override
   void initState() {
     super.initState();
+    searchUsers;
     _fetchUsersWithPagination = _fetchUsers;
     _fetchUsersWithPagination(_pageSize, null);
   }
