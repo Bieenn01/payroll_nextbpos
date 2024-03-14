@@ -121,7 +121,7 @@ class _UserState extends State<PovUser> {
 
   void _nextPage() {
     setState(() {
-          if (_currentPage <= _pageSize) {
+      if (_currentPage <= _pageSize) {
         _currentPage++;
         // Call your function to fetch users with pagination for the previous page
         _fetchUsersWithPagination(_pageSize, _lastVisibleSnapshot);
@@ -832,7 +832,7 @@ class _UserState extends State<PovUser> {
         ? (userData['endShift'] as Timestamp).toDate()
         : null;
 
-    List<String> departmentChoices = ['IT', 'HR', 'ACCOUNTANCY', 'SERVICING'];
+    List<String> departmentChoices = ['IT', 'HR', 'ACCOUNTING', 'SERVICING'];
     List<String> roleChoices = ['Employee', 'Admin'];
     List<String> employeeTypeChoices = ['Regular', 'Contractual'];
 
@@ -1635,7 +1635,7 @@ class _UserState extends State<PovUser> {
                                       dropdownMenuEntries: [
                                         'IT',
                                         'HR',
-                                        'ACCOUNTANCY',
+                                        'ACCOUNTING',
                                         'SERVICING'
                                       ].map<DropdownMenuEntry<String>>(
                                           (String value) {
