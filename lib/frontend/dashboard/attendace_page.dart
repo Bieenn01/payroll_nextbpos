@@ -104,202 +104,188 @@ class _AttendancePageState extends State<AttendancePage> {
                       height: 5,
                     ),
                     Divider(),
-                    Expanded(
-                      child: FutureBuilder(
-                        future: _fetchUserRecords(_itemsPerPage),
-                        builder:
-                            (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return _buildShimmerLoading();
-                          }
-                          if (snapshot.hasError) {
-                            return Center(
-                              child: Text('Error: ${snapshot.error}'),
-                            );
-                          }
-                          if (!snapshot.hasData) {
-                            return Center(
-                              child: Text('No user records available.'),
-                            );
-                          }
-
-                          List<DocumentSnapshot> userRecords =
-                              snapshot.data!.docs;
-
-                          List<DocumentSnapshot> filteredDocs =
-                              userRecords.where((document) {
-                            Map<String, dynamic> data =
-                                document.data() as Map<String, dynamic>;
-                            String userName = data['userName'];
-                            String department = data['department'] ?? '';
-                            DateTime? timeIn =
-                                (data['timeIn'] as Timestamp?)?.toDate();
-
-                            String query = _searchController.text.toLowerCase();
-                            bool matchesSearchQuery =
-                                userName.toLowerCase().contains(query);
-                            bool matchesDepartment =
-                                _selectedDepartment.isEmpty ||
-                                    department == _selectedDepartment;
-                            bool isAfterStartDate = _startDate == null ||
-                                (timeIn != null && timeIn.isAfter(_startDate!));
-                            bool isBeforeEndDate = _endDate == null ||
-                                (timeIn != null &&
-                                    timeIn.isBefore(
-                                        _endDate!.add(Duration(days: 1))));
-
-                            return matchesSearchQuery &&
-                                matchesDepartment &&
-                                isAfterStartDate &&
-                                isBeforeEndDate;
-                          }).toList();
-
-                          // Pagination logic
-                          int startIndex = (_currentPage - 1) * _itemsPerPage;
-                          int endIndex = startIndex + _itemsPerPage;
-
-                          // Ensure endIndex does not exceed the length of filteredDocs
-                          if (endIndex > filteredDocs.length) {
-                            endIndex = filteredDocs.length;
-                          }
-
-                          // Ensure startIndex is within the bounds of filteredDocs
-                          if (startIndex >= 0 &&
-                              endIndex >= 0 &&
-                              startIndex < filteredDocs.length &&
-                              endIndex <= filteredDocs.length) {
-                            filteredDocs =
-                                filteredDocs.sublist(startIndex, endIndex);
-                          } else {
-                            // Handle invalid index range
-                            print("Invalid index range");
-                          }
-
-                          var dataTable = DataTable(
-                            columns: const [
-                              DataColumn(label: Text('#')),
-                              DataColumn(label: Text('Name')),
-                              DataColumn(label: Text('Time in')),
-                              DataColumn(label: Text('Time out')),
-                              DataColumn(label: Text('Department')),
-                            ],
-                            rows: List.generate(filteredDocs.length, (index) {
-                              DocumentSnapshot document = filteredDocs[index];
-                              Map<String, dynamic> data =
-                                  document.data() as Map<String, dynamic>;
-                              Color? rowColor = index % 2 == 0
-                                  ? Colors.white
-                                  : Colors.grey[200];
-                              index++;
-                              return DataRow(
-                                color: MaterialStateColor.resolveWith(
-                                    (states) => rowColor!),
-                                cells: [
-                                  DataCell(Text((index).toString())),
-                                  DataCell(Container(
-                                    width: 100,
-                                    child: Text(data['userName'] ?? 'Unknown'),
-                                  )),
-                                  DataCell(Container(
-                                    width: 150,
-                                    child:
-                                        Text(_formatTimestamp(data['timeIn'])),
-                                  )),
-                                  DataCell(Container(
-                                    width: 150,
-                                    child:
-                                        Text(_formatTimestamp(data['timeOut'])),
-                                  )),
-                                  DataCell(Container(
-                                    width: 100,
-                                    child:
-                                        Text(data['department'] ?? 'Unknown'),
-                                  )),
-                                ],
-                              );
-                            }),
-                          );
-                          var row = Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              ElevatedButton(
-                                onPressed: _previousPage,
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: Text('Previous'),
-                              ),
-                              SizedBox(width: 10),
-                              Container(
-                                height: 35,
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  border:
-                                      Border.all(color: Colors.grey.shade200),
-                                ),
-                                child: Text('$_currentPage'),
-                              ),
-                              SizedBox(width: 10),
-                              ElevatedButton(
-                                onPressed: _nextPage,
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: Text('Next'),
-                              ),
-                            ],
-                          );
-                          return MediaQuery.of(context).size.width > 1300
-                              ? SizedBox(
-                                  height: 600,
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.vertical,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        dataTable,
-                                        Divider(),
-                                        SizedBox(height: 5),
-                                        row,
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              : SizedBox(
-                                  height: 600,
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.vertical,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          dataTable,
-                                          Divider(),
-                                          SizedBox(height: 5),
-                                          row,
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                );
-                        },
-                      ),
-                    ),
+                    datatable(),
                   ],
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Expanded datatable() {
+    return Expanded(
+      child: FutureBuilder(
+        future: _fetchUserRecords(_itemsPerPage),
+        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return _buildShimmerLoading();
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          }
+          if (!snapshot.hasData) {
+            return Center(
+              child: Text('No user records available.'),
+            );
+          }
+
+          List<DocumentSnapshot> userRecords = snapshot.data!.docs;
+
+          List<DocumentSnapshot> filteredDocs = userRecords.where((document) {
+            Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+            String userName = data['userName'];
+            String department = data['department'] ?? '';
+            DateTime? timeIn = (data['timeIn'] as Timestamp?)?.toDate();
+
+            String query = _searchController.text.toLowerCase();
+            bool matchesSearchQuery = userName.toLowerCase().contains(query);
+            bool matchesDepartment = _selectedDepartment.isEmpty ||
+                department == _selectedDepartment;
+            bool isAfterStartDate = _startDate == null ||
+                (timeIn != null && timeIn.isAfter(_startDate!));
+            bool isBeforeEndDate = _endDate == null ||
+                (timeIn != null &&
+                    timeIn.isBefore(_endDate!.add(Duration(days: 1))));
+
+            return matchesSearchQuery &&
+                matchesDepartment &&
+                isAfterStartDate &&
+                isBeforeEndDate;
+          }).toList();
+
+          // Pagination logic
+          int startIndex = (_currentPage - 1) * _itemsPerPage;
+          int endIndex = startIndex + _itemsPerPage;
+
+          // Ensure endIndex does not exceed the length of filteredDocs
+          if (endIndex > filteredDocs.length) {
+            endIndex = filteredDocs.length;
+          }
+
+          // Ensure startIndex is within the bounds of filteredDocs
+          if (startIndex >= 0 &&
+              endIndex >= 0 &&
+              startIndex < filteredDocs.length &&
+              endIndex <= filteredDocs.length) {
+            filteredDocs = filteredDocs.sublist(startIndex, endIndex);
+          } else {
+            // Handle invalid index range
+            print("Invalid index range");
+          }
+
+          var dataTable = DataTable(
+            columns: const [
+              DataColumn(label: Text('#')),
+              DataColumn(label: Text('Name')),
+              DataColumn(label: Text('Time in')),
+              DataColumn(label: Text('Time out')),
+              DataColumn(label: Text('Department')),
+            ],
+            rows: List.generate(filteredDocs.length, (index) {
+              DocumentSnapshot document = filteredDocs[index];
+              Map<String, dynamic> data =
+                  document.data() as Map<String, dynamic>;
+              Color? rowColor =
+                  index % 2 == 0 ? Colors.white : Colors.grey[200];
+              index++;
+              return DataRow(
+                color: MaterialStateColor.resolveWith((states) => rowColor!),
+                cells: [
+                  DataCell(Text((index).toString())),
+                  DataCell(Container(
+                    width: 100,
+                    child: Text(data['userName'] ?? 'Unknown'),
+                  )),
+                  DataCell(Container(
+                    width: 150,
+                    child: Text(_formatTimestamp(data['timeIn'])),
+                  )),
+                  DataCell(Container(
+                    width: 150,
+                    child: Text(_formatTimestamp(data['timeOut'])),
+                  )),
+                  DataCell(Container(
+                    width: 100,
+                    child: Text(data['department'] ?? 'Unknown'),
+                  )),
+                ],
+              );
+            }),
+          );
+          var row = Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ElevatedButton(
+                onPressed: _previousPage,
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text('Previous'),
+              ),
+              SizedBox(width: 10),
+              Container(
+                height: 35,
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Text('$_currentPage'),
+              ),
+              SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: _nextPage,
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text('Next'),
+              ),
+            ],
+          );
+          return MediaQuery.of(context).size.width > 1300
+              ? SizedBox(
+                  height: 600,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        dataTable,
+                        Divider(),
+                        SizedBox(height: 5),
+                        row,
+                      ],
+                    ),
+                  ),
+                )
+              : SizedBox(
+                  height: 600,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          dataTable,
+                          Divider(),
+                          SizedBox(height: 5),
+                          row,
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+        },
       ),
     );
   }
