@@ -251,7 +251,7 @@ class _AttendancePageState extends State<AttendancePage> {
               ),
             ],
           );
-          return MediaQuery.of(context).size.width > 1300
+          return MediaQuery.of(context).size.width > 1000
               ? SizedBox(
                   height: 600,
                   child: SingleChildScrollView(
@@ -274,7 +274,6 @@ class _AttendancePageState extends State<AttendancePage> {
                     child: SingleChildScrollView(
                       scrollDirection: Axis.vertical,
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           dataTable,
                           Divider(),

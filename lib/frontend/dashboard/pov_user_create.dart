@@ -555,6 +555,7 @@ class _UserState extends State<PovUser> {
           ),
           Flexible(
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Flexible(
                   child: Row(
