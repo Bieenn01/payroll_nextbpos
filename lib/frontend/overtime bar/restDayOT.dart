@@ -15,12 +15,6 @@ class _RestDayOTPage extends State<RestDayOTPage> {
   int _itemsPerPage = 5;
   int _currentPage = 0;
   int indexRow = 0;
-  bool _sortAscending = false;
-
-  bool sortPay = false;
-  bool table = false;
-
-  String selectedDepartment = 'All';
 
   DateTime? fromDate;
   DateTime? toDate;
@@ -50,40 +44,38 @@ class _RestDayOTPage extends State<RestDayOTPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: SingleChildScrollView(
-                child: Container(
-                    margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Text(
-                                "Rest Day Overtime",
-                                style: TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                              ),
+              child: Container(
+                  margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Text(
+                              "Rest Day Overtime",
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
                             ),
-                          ],
-                        ),
-                        dateFilterSearchRow(context, styleFrom),
-                        Divider(),
-                        _buildTable(),
-                        SizedBox(height: 10),
-                        Divider(),
-                        SizedBox(height: 5),
-                        pagination(),
-                        SizedBox(height: 20),
-                      ],
-                    )),
-              ),
+                          ),
+                        ],
+                      ),
+                      dateFilterSearchRow(context, styleFrom),
+                      Divider(),
+                      _buildTable(),
+                      SizedBox(height: 10),
+                      Divider(),
+                      SizedBox(height: 5),
+                      pagination(),
+                      SizedBox(height: 20),
+                    ],
+                  )),
             ),
           ],
         ),
@@ -138,42 +130,17 @@ class _RestDayOTPage extends State<RestDayOTPage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Flexible(
-                    child: MediaQuery.of(context).size.width > 600
-                        ? Row(
-                            children: [
-                              Text('Show entries: '),
-                              Container(
-                                width: 70,
-                                height: 30,
-                                padding: EdgeInsets.only(left: 10),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                        color: Colors.grey.shade200)),
-                                child: DropdownButton<int>(
-                                  padding: EdgeInsets.all(5),
-                                  underline: SizedBox(),
-                                  value: _itemsPerPage,
-                                  items: [5, 10, 15, 20, 25]
-                                      .map<DropdownMenuItem<int>>(
-                                    (int value) {
-                                      return DropdownMenuItem<int>(
-                                        value: value,
-                                        child: Text('$value'),
-                                      );
-                                    },
-                                  ).toList(),
-                                  onChanged: (int? newValue) {
-                                    setState(() {
-                                      _itemsPerPage = newValue!;
-                                    });
-                                  },
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                            ],
-                          )
-                        : DropdownButton<int>(
+                    child: Row(
+                      children: [
+                        Text('Show entries: '),
+                        Container(
+                          width: 70,
+                          height: 30,
+                          padding: EdgeInsets.only(left: 10),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade200)),
+                          child: DropdownButton<int>(
                             padding: EdgeInsets.all(5),
                             underline: SizedBox(),
                             value: _itemsPerPage,
@@ -192,6 +159,18 @@ class _RestDayOTPage extends State<RestDayOTPage> {
                               });
                             },
                           ),
+                        ),
+                        SizedBox(width: 10),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await _computeAndAddToOvertimePay();
+                      },
+                      child: Text('Compute and Add to RestdayOT Pay'),
+                    ),
                   ),
                   Flexible(
                     child: Row(
@@ -201,7 +180,7 @@ class _RestDayOTPage extends State<RestDayOTPage> {
                           child: Container(
                             width: MediaQuery.of(context).size.width > 600
                                 ? 400
-                                : 100,
+                                : 50,
                             height: 30,
                             margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
                             padding: EdgeInsets.fromLTRB(3, 0, 0, 0),
@@ -229,7 +208,7 @@ class _RestDayOTPage extends State<RestDayOTPage> {
                         Flexible(
                           child: Container(
                             width: MediaQuery.of(context).size.width > 600
-                                ? 230
+                                ? 150
                                 : 80,
                             padding: EdgeInsets.all(2),
                             child: ElevatedButton(
@@ -248,56 +227,34 @@ class _RestDayOTPage extends State<RestDayOTPage> {
                                 }
                               },
                               style: styleFrom,
-                              child: MediaQuery.of(context).size.width > 800
+                              child: MediaQuery.of(context).size.width > 600
                                   ? Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Flexible(
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                'From: ',
-                                                style: TextStyle(
+                                        Row(
+                                          children: [
+                                            const Text(
+                                              'From: ',
+                                              style: TextStyle(
                                                   color: Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      1100
-                                                  ? Text(
-                                                      fromDate != null
-                                                          ? DateFormat(
-                                                                  'yyyy-MM-dd')
-                                                              .format(fromDate!)
-                                                          : 'Select',
-                                                      style: TextStyle(
-                                                        color:
-                                                            startPicked == !true
-                                                                ? Colors.black
-                                                                : Colors.teal
-                                                                    .shade800,
-                                                      ),
-                                                    )
-                                                  : Text(
-                                                      fromDate != null
-                                                          ? DateFormat('MM-dd')
-                                                              .format(fromDate!)
-                                                          : '',
-                                                      style: TextStyle(
-                                                        color:
-                                                            startPicked == !true
-                                                                ? Colors.black
-                                                                : Colors.teal
-                                                                    .shade800,
-                                                      ),
-                                                    ),
-                                            ],
-                                          ),
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            Text(
+                                              fromDate != null
+                                                  ? DateFormat('yyyy-MM-dd')
+                                                      .format(fromDate!)
+                                                  : 'Select Date',
+                                              style: TextStyle(
+                                                  color: startPicked == !true
+                                                      ? Colors.black
+                                                      : Colors.teal.shade800),
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(width: 3),
+                                        const SizedBox(
+                                          width: 3,
+                                        ),
                                         const Icon(
                                           Icons.calendar_month,
                                           color: Colors.black,
@@ -308,7 +265,6 @@ class _RestDayOTPage extends State<RestDayOTPage> {
                                   : const Icon(
                                       Icons.calendar_month,
                                       color: Colors.black,
-                                      size: 20,
                                     ),
                             ),
                           ),
@@ -336,56 +292,34 @@ class _RestDayOTPage extends State<RestDayOTPage> {
                                 }
                               },
                               style: styleFrom,
-                              child: MediaQuery.of(context).size.width > 800
+                              child: MediaQuery.of(context).size.width > 600
                                   ? Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Flexible(
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                'To: ',
-                                                style: TextStyle(
+                                        Row(
+                                          children: [
+                                            const Text(
+                                              'To: ',
+                                              style: TextStyle(
                                                   color: Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      1100
-                                                  ? Text(
-                                                      toDate != null
-                                                          ? DateFormat(
-                                                                  'yyyy-MM-dd')
-                                                              .format(toDate!)
-                                                          : 'Select',
-                                                      style: TextStyle(
-                                                        color:
-                                                            endPicked == !true
-                                                                ? Colors.black
-                                                                : Colors.teal
-                                                                    .shade800,
-                                                      ),
-                                                    )
-                                                  : Text(
-                                                      toDate != null
-                                                          ? DateFormat('MM-dd')
-                                                              .format(toDate!)
-                                                          : '',
-                                                      style: TextStyle(
-                                                        color:
-                                                            endPicked == !true
-                                                                ? Colors.black
-                                                                : Colors.teal
-                                                                    .shade800,
-                                                      ),
-                                                    ),
-                                            ],
-                                          ),
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            Text(
+                                              toDate != null
+                                                  ? DateFormat('yyyy-MM-dd')
+                                                      .format(toDate!)
+                                                  : 'Select Date',
+                                              style: TextStyle(
+                                                  color: endPicked == !true
+                                                      ? Colors.black
+                                                      : Colors.teal.shade800),
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(width: 3),
+                                        const SizedBox(
+                                          width: 3,
+                                        ),
                                         const Icon(
                                           Icons.calendar_month,
                                           color: Colors.black,
@@ -396,7 +330,6 @@ class _RestDayOTPage extends State<RestDayOTPage> {
                                   : const Icon(
                                       Icons.calendar_month,
                                       color: Colors.black,
-                                      size: 20,
                                     ),
                             ),
                           ),
@@ -424,18 +357,6 @@ class _RestDayOTPage extends State<RestDayOTPage> {
           return Center(child: Text('No data available yet'));
         } else {
           List<DocumentSnapshot> overtimeDocs = snapshot.data!.docs;
-          //sort overtime pay asc and desc order
-          _sortAscending
-              ? overtimeDocs.sort((a, b) {
-                  double overtimePayA = a['overtimePay'] ?? 0.0;
-                  double overtimePayB = b['overtimePay'] ?? 0.0;
-                  return overtimePayA.compareTo(overtimePayB);
-                })
-              : overtimeDocs.sort((b, a) {
-                  double overtimePayA = a['overtimePay'] ?? 0.0;
-                  double overtimePayB = b['overtimePay'] ?? 0.0;
-                  return overtimePayA.compareTo(overtimePayB);
-                });
 
           overtimeDocs = overtimeDocs.where((doc) {
             DateTime timeIn = doc['timeIn'].toDate();
@@ -452,253 +373,181 @@ class _RestDayOTPage extends State<RestDayOTPage> {
             }
             return true;
           }).toList();
-
-          List<DocumentSnapshot> filteredDocuments = overtimeDocs;
-          if (selectedDepartment != 'All') {
-            filteredDocuments = overtimeDocs
-                .where((doc) => doc['department'] == selectedDepartment)
-                .toList();
+          if (_searchController.text.isNotEmpty) {
+            String searchText = _searchController.text.toLowerCase();
+            overtimeDocs = overtimeDocs.where((doc) {
+              String employeeId = doc['employeeId'].toString().toLowerCase();
+              String userName = doc['userName'].toString().toLowerCase();
+              return employeeId.contains(searchText) ||
+                  userName.contains(searchText);
+            }).toList();
           }
-
           // Sort documents by timestamp in descending order
-          // overtimeDocs.sort((a, b) {
-          //   Timestamp aTimestamp = a['timeIn'];
-          //   Timestamp bTimestamp = b['timeIn'];
-          //   return bTimestamp.compareTo(aTimestamp);
-          // });
+          overtimeDocs.sort((a, b) {
+            Timestamp aTimestamp = a['timeIn'];
+            Timestamp bTimestamp = b['timeIn'];
+            return bTimestamp.compareTo(aTimestamp);
+          });
 
           const textStyle = TextStyle(fontWeight: FontWeight.bold);
 
-          var dataTable = DataTable(
-            columns: [
-              const DataColumn(label: Text('#', style: textStyle)),
-              const DataColumn(label: Text('Employee ID', style: textStyle)),
-              const DataColumn(label: Text('Name', style: textStyle)),
-              DataColumn(
-                label: PopupMenuButton<String>(
-                  child: const Row(
-                    children: [
-                      Text(
-                        'Department',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+          return SizedBox(
+            height: 610,
+            child: SingleChildScrollView(
+              child: DataTable(
+                columns: const [
+                  DataColumn(label: Text('#', style: textStyle)),
+                  DataColumn(label: Text('Employee ID', style: textStyle)),
+                  DataColumn(label: Text('Name', style: textStyle)),
+                  DataColumn(label: Text('Department', style: textStyle)),
+                  DataColumn(
+                      label: Text('Total Hours (h:m)', style: textStyle)),
+                  DataColumn(label: Text('Overtime Pay', style: textStyle)),
+                  DataColumn(label: Text('Overtime Type', style: textStyle)),
+                  DataColumn(label: Text('Action', style: textStyle)),
+                ],
+                rows: List.generate(overtimeDocs.length, (index) {
+                  DocumentSnapshot overtimeDoc = overtimeDocs[index];
+                  Map<String, dynamic> overtimeData =
+                      overtimeDoc.data() as Map<String, dynamic>;
+                  _selectedOvertimeTypes.add('Regular');
+                  FutureBuilder<double>(
+                    future: calculateRestDayOT(
+                      overtimeData['userId'],
+                      Duration(
+                        hours: overtimeData['hours_overtime'],
+                        minutes: overtimeData['minute_overtime'],
                       ),
-                      Icon(Icons.arrow_drop_down)
-                    ],
-                  ),
-                  onSelected: (String value) {
-                    setState(() {
-                      selectedDepartment = value;
-                    });
-                  },
-                  itemBuilder: (BuildContext context) => [
-                    'All', // Default option
-                    'IT',
-                    'HR',
-                    'ACCOUNTING',
-                    'SERVICING',
-                  ].map((String value) {
-                    return PopupMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-              ),
-              const DataColumn(
-                  label: Text('Total Hours (h:m)', style: textStyle)),
-              DataColumn(
-                label: Container(
-                  width: 100,
-                  padding: EdgeInsets.all(0),
-                  child: InkWell(
-                    onTap: () {
-                      setState(() {
-                        _sortAscending = !_sortAscending;
-                      });
+                    ),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Text(
+                            'Calculating...'); // Or any loading indicator
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        double overtimePay = snapshot.data ??
+                            0; // Use snapshot.data, default to 0 if null
+                        return Text(overtimePay.toStringAsFixed(2));
+                      }
                     },
-                    child: Flexible(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Overtime Pay',
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold)),
-                          const SizedBox(
-                              width:
-                                  4), // Add some space between the text and the icon
-                          Flexible(
-                            child: Icon(
-                              _sortAscending
-                                  ? Icons.arrow_drop_down
-                                  : Icons.arrow_drop_up,
-                              size: 20,
+                  );
+                  Color? rowColor = indexRow % 2 == 0
+                      ? Colors.white
+                      : Colors.grey[200]; // Alternating row colors
+                  indexRow++; //
+
+                  return DataRow(
+                      color:
+                          MaterialStateColor.resolveWith((states) => rowColor!),
+                      cells: [
+                        DataCell(Text('#')),
+                        DataCell(Text(overtimeData['employeeId'])),
+                        DataCell(
+                          Text(overtimeData['userName'] ?? 'Not Available Yet'),
+                        ),
+                        DataCell(
+                          Text(overtimeData['department'] ??
+                              'Not Available Yet'),
+                        ),
+                        DataCell(
+                          Container(
+                            width: 100,
+                            decoration:
+                                BoxDecoration(color: Colors.amber.shade200),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        overtimeData['hours_overtime']
+                                                ?.toString() ??
+                                            'Not Available Yet',
+                                        style: textStyle,
+                                      ),
+                                      Text(':'),
+                                      Text(
+                                        overtimeData['minute_overtime']
+                                                ?.toString() ??
+                                            'Not Available Yet',
+                                        style: textStyle,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const DataColumn(label: Text('Overtime Type', style: textStyle)),
-              const DataColumn(label: Text('Action', style: textStyle)),
-            ],
-            rows: List.generate(filteredDocuments.length, (index) {
-              DocumentSnapshot overtimeDoc = filteredDocuments[index];
-              Map<String, dynamic> overtimeData =
-                  overtimeDoc.data() as Map<String, dynamic>;
-              _selectedOvertimeTypes.add('Regular');
-              FutureBuilder<double>(
-                future: calculateRestDayOT(
-                  overtimeData['userId'],
-                  Duration(
-                    hours: overtimeData['hours_overtime'],
-                    minutes: overtimeData['minute_overtime'],
-                  ),
-                ),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Text('Calculating...'); // Or any loading indicator
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else {
-                    double overtimePay = snapshot.data ??
-                        0; // Use snapshot.data, default to 0 if null
-                    return Text(overtimePay.toStringAsFixed(2));
-                  }
-                },
-              );
-              Color? rowColor = indexRow % 2 == 0
-                  ? Colors.white
-                  : Colors.grey[200]; // Alternating row colors
-              indexRow++; //
-
-              return DataRow(
-                  color: MaterialStateColor.resolveWith((states) => rowColor!),
-                  cells: [
-                    DataCell(Text((index + 1).toString())),
-                    DataCell(Text(overtimeDoc.id)),
-                    DataCell(
-                      Text(overtimeData['userName'] ?? 'Not Available Yet'),
-                    ),
-                    DataCell(
-                      Text(overtimeData['department'] ?? 'Not Available Yet'),
-                    ),
-                    DataCell(
-                      Container(
-                        width: 100,
-                        decoration: BoxDecoration(color: Colors.amber.shade200),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              child: Row(
+                        ),
+                        DataCell(
+                          Text(NumberFormat.currency(
+                                  locale: 'en_PH',
+                                  symbol: '₱ ',
+                                  decimalDigits: 2)
+                              .format(overtimeData['overtimePay'] ?? 0.0)),
+                        ),
+                        DataCell(
+                          DropdownButton<String>(
+                            value: _selectedOvertimeTypes[index],
+                            items: <String>[
+                              'Regular',
+                            ].map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) async {
+                              if (newValue == 'Regular') {
+                                await moveRecordToRegularOT(overtimeDoc);
+                                await deleteRecordFromRestdayOT(overtimeDoc);
+                              }
+                              setState(() {
+                                _selectedOvertimeTypes[index] = newValue!;
+                              });
+                            },
+                          ),
+                        ),
+                        DataCell(
+                          Container(
+                            width: 100,
+                            padding: EdgeInsets.all(0),
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                await _showConfirmationDialog4(overtimeDoc);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.all(5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  Text(
-                                    overtimeData['hours_overtime']
-                                            ?.toString() ??
-                                        'Not Available Yet',
-                                    style: textStyle,
+                                  Icon(
+                                    Icons.visibility,
+                                    color: Colors.blue,
+                                    size: 15,
                                   ),
-                                  Text(':'),
                                   Text(
-                                    overtimeData['minute_overtime']
-                                            ?.toString() ??
-                                        'Not Available Yet',
-                                    style: textStyle,
+                                    'View Logs',
+                                    style: TextStyle(
+                                        fontSize: 10, color: Colors.blue),
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Text(NumberFormat.currency(
-                              locale: 'en_PH', symbol: '₱ ', decimalDigits: 2)
-                          .format(overtimeData['overtimePay'] ?? 0.0)),
-                    ),
-                    DataCell(
-                      DropdownButton<String>(
-                        value: _selectedOvertimeTypes[index],
-                        items: <String>[
-                          'Regular',
-                        ].map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) async {
-                          if (newValue == 'Regular') {
-                            await moveRecordToRegularOT(overtimeDoc);
-                            await deleteRecordFromRestdayOT(overtimeDoc);
-                          }
-                          setState(() {
-                            _selectedOvertimeTypes[index] = newValue!;
-                          });
-                        },
-                      ),
-                    ),
-                    DataCell(
-                      Container(
-                        width: 100,
-                        padding: EdgeInsets.all(0),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            await _showConfirmationDialog4(overtimeDoc);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.all(5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Icon(
-                                Icons.visibility,
-                                color: Colors.blue,
-                                size: 15,
-                              ),
-                              Text(
-                                'View Logs',
-                                style:
-                                    TextStyle(fontSize: 10, color: Colors.blue),
-                              ),
-                            ],
                           ),
                         ),
-                      ),
-                    ),
-                  ]);
-            }),
+                      ]);
+                }),
+              ),
+            ),
           );
-          return MediaQuery.of(context).size.width > 1300
-              ? SizedBox(
-                  height: 600,
-                  child: SingleChildScrollView(
-                    child: Flexible(
-                      child: dataTable,
-                    ),
-                  ),
-                )
-              : SizedBox(
-                  height: 600,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: Flexible(
-                        child: dataTable,
-                      ),
-                    ),
-                  ),
-                );
         }
       },
     );
@@ -806,20 +655,112 @@ class _RestDayOTPage extends State<RestDayOTPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow('Employee ID', userId),
+                _buildInfoRow('Employee ID', overtimeDoc['employeeId']),
                 _buildInfoRow(
                     'Name', overtimeDoc['userName'] ?? 'Not Available'),
                 _buildInfoRow(
                     'Department', overtimeDoc['department'] ?? 'Not Available'),
                 Divider(),
-                Container(
-                    height: 300,
-                    child: SingleChildScrollView(
-                        child: _buildOvertimeTable(userOvertimeDocs))),
+                _buildOvertimeTable(userOvertimeDocs),
               ],
             ),
           ),
           actions: <Widget>[
+            TextButton(
+              child: Text('Total Overtime Pay'),
+              onPressed: () async {
+                try {
+                  // Show a loading indicator
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext context) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    },
+                  );
+
+                  // Delay Firestore operations by a very short duration
+                  await Future.delayed(Duration(milliseconds: 10));
+
+                  // Calculate total overtime pay
+                  double totalRDOTPay = 0;
+                  for (var overtimeDoc in userOvertimeDocs) {
+                    if (overtimeDoc['overtimePay'] != null) {
+                      totalRDOTPay += overtimeDoc['overtimePay'];
+                    }
+                  }
+
+                  // Update total_overtimePay in the Overtime collection
+                  // Update total_overtimePay in the Overtime collection
+                  DocumentReference userOvertimeDocRef = FirebaseFirestore
+                      .instance
+                      .collection('RestdayOTPay')
+                      .doc(userId);
+
+// Get user details
+                  final userDoc = await FirebaseFirestore.instance
+                      .collection('User')
+                      .doc(userId)
+                      .get();
+                  final userData = userDoc.data() as Map<String, dynamic>;
+
+// Check if the document exists
+                  var docSnapshot = await userOvertimeDocRef.get();
+                  if (docSnapshot.exists) {
+                    // If the document exists, update it
+                    await userOvertimeDocRef.update({
+                      'total_restDayOTPay': totalRDOTPay,
+                      'employeeId': userData['employeeId'],
+                      'userName':
+                          '${userData['fname']} ${userData['mname']} ${userData['lname']}',
+                      'department': userData['department'],
+                    });
+                  } else {
+                    // If the document doesn't exist, create a new one
+                    await userOvertimeDocRef.set({
+                      'total_restDayOTPay': totalRDOTPay,
+                      'userId': userId,
+                      'employeeId': userData['employeeId'],
+                      'userName':
+                          '${userData['fname']} ${userData['mname']} ${userData['lname']}',
+                      'department': userData['department'],
+                    });
+                  }
+
+                  // Dismiss the loading indicator
+                  Navigator.of(context).pop();
+
+                  // Dismiss the dialog
+                  Navigator.of(context).pop();
+                } catch (e) {
+                  // Handle any errors
+                  print('Error updating total overtime pay: $e');
+                  // Dismiss the loading indicator
+                  Navigator.of(context).pop();
+                  // Show an error message
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Error'),
+                        content: Text(
+                            'Failed to update total overtime pay. Please try again.'),
+                        actions: [
+                          TextButton(
+                            child: Text('OK'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+              },
+            ),
             TextButton(
               child: Text('Done'),
               onPressed: () {
@@ -853,6 +794,7 @@ class _RestDayOTPage extends State<RestDayOTPage> {
     int index = 0;
 
     return Container(
+      height: 300,
       decoration: BoxDecoration(
           color: Colors.white, borderRadius: BorderRadius.circular(8)),
       child: SingleChildScrollView(
@@ -873,6 +815,9 @@ class _RestDayOTPage extends State<RestDayOTPage> {
             DataColumn(
                 label: Text('Total Hours (h:m)',
                     style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(
+              label: Text('Overtime Pay'),
+            ),
           ],
           rows: overtimeDocs.map((overtimeDoc) {
             Color? rowColor = index % 2 == 0
@@ -882,7 +827,7 @@ class _RestDayOTPage extends State<RestDayOTPage> {
             return DataRow(
                 color: MaterialStateColor.resolveWith((states) => rowColor!),
                 cells: [
-                  DataCell(Text((index).toString())),
+                  DataCell(Text('#')),
                   DataCell(Text(_formatDate(overtimeDoc['timeIn']))),
                   DataCell(Text(_formatTime(overtimeDoc['timeIn']))),
                   DataCell(Text(_formatTime(overtimeDoc['timeOut']))),
@@ -906,6 +851,9 @@ class _RestDayOTPage extends State<RestDayOTPage> {
                       )
                     ],
                   )),
+                  DataCell(
+                    Text(overtimeDoc['overtimePay'].toString()),
+                  ),
                 ]);
           }).toList(),
         ),
@@ -970,6 +918,71 @@ class _RestDayOTPage extends State<RestDayOTPage> {
       await overtimeDoc.reference.delete();
     } catch (e) {
       print('Error deleting record from Overtime collection: $e');
+    }
+  }
+
+  Future<void> _computeAndAddToOvertimePay() async {
+    try {
+      // Get the list of all users from Firestore
+      QuerySnapshot usersSnapshot =
+          await FirebaseFirestore.instance.collection('User').get();
+
+      // Loop through each user
+      for (var userDoc in usersSnapshot.docs) {
+        String userId = userDoc.id;
+
+        // Fetch all overtime records for the current user
+        QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
+            .collection('RestdayOT')
+            .where('userId', isEqualTo: userId)
+            .get();
+
+        // List to store overtime documents
+        List<DocumentSnapshot> userOvertimeDocs = overtimeSnapshot.docs;
+
+        // Calculate total overtime pay for the current user
+        double totalRDOTPay = 0;
+        for (var overtimeDoc in userOvertimeDocs) {
+          if (overtimeDoc['overtimePay'] != null) {
+            totalRDOTPay += overtimeDoc['overtimePay'];
+          }
+        }
+
+        // Get user details
+        final userData = userDoc.data() as Map<String, dynamic>;
+
+        // Update total_overtimePay in the OvertimePay collection
+        DocumentReference userOvertimeDocRef =
+            FirebaseFirestore.instance.collection('RestdayOTPay').doc(userId);
+
+        // Check if the document exists
+        var docSnapshot = await userOvertimeDocRef.get();
+        if (docSnapshot.exists) {
+          // If the document exists, update it
+          await userOvertimeDocRef.update({
+            'total_restDayOTPay': totalRDOTPay,
+            'employeeId': userData['employeeId'],
+            'userName':
+                '${userData['fname']} ${userData['mname']} ${userData['lname']}',
+            'department': userData['department'],
+          });
+        } else {
+          // If the document doesn't exist, create a new one
+          await userOvertimeDocRef.set({
+            'total_restDayOTPay': totalRDOTPay,
+            'userId': userId,
+            'employeeId': userData['employeeId'],
+            'userName':
+                '${userData['fname']} ${userData['mname']} ${userData['lname']}',
+            'department': userData['department'],
+          });
+        }
+      }
+      // Show a success message
+      print('Total overtime pay computed and added to OvertimePay collection');
+    } catch (e) {
+      // Handle any errors
+      print('Error computing and adding to OvertimePay collection: $e');
     }
   }
 }
