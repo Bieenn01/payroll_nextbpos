@@ -114,7 +114,7 @@ class _UserState extends State<PovUser> {
 
   void _nextPage() {
     setState(() {
-          if (_currentPage <= _pageSize) {
+      if (_currentPage <= _pageSize) {
         _currentPage++;
         // Call your function to fetch users with pagination for the previous page
         _fetchUsersWithPagination(_pageSize, _lastVisibleSnapshot);
@@ -173,7 +173,6 @@ class _UserState extends State<PovUser> {
         child: Container(
           color: Colors.teal.shade700,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
                 child: SingleChildScrollView(
@@ -199,450 +198,12 @@ class _UserState extends State<PovUser> {
                             ),
                           ],
                         ),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Flexible(
-                                child: Container(
-                                  height: 30,
-                                  child: Row(children: [
-                                    Text('Show entries: '),
-                                    Container(
-                                      width: 70,
-                                      height: 30,
-                                      padding: EdgeInsets.only(left: 10),
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          border: Border.all(
-                                              color: Colors.grey.shade200)),
-                                      child: DropdownButton<int>(
-                                        padding: EdgeInsets.all(5),
-                                        underline: SizedBox(),
-                                        value: _pageSize,
-                                        items: [5, 10, 15, 25].map((_pageSize) {
-                                          return DropdownMenuItem<int>(
-                                            value: _pageSize,
-                                            child: Text(_pageSize.toString()),
-                                          );
-                                        }).toList(),
-                                        onChanged: (newValue) {
-                                          if (newValue != null) {
-                                            if ([5, 10, 15, 25]
-                                                .contains(newValue)) {
-                                              setState(() {
-                                                _pageSize = newValue;
-                                              });
-                                            } else {
-                                              // Handle case where the selected value is not in the predefined range
-                                              // For example, you can show a dialog, display a message, or perform any appropriate action.
-                                              print(
-                                                  "Selected value is not in the predefined range.");
-                                            }
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                  ]),
-                                ),
-                              ),
-                              Flexible(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Container(
-                                      width: MediaQuery.of(context).size.width >
-                                              600
-                                          ? 400
-                                          : 50,
-                                      height: 30,
-                                      margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
-                                      padding: EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: Colors.black.withOpacity(0.5),
-                                        ),
-                                      ),
-                                      child: TextField(
-                                        controller: _searchController,
-                                        textAlign: TextAlign.start,
-                                        decoration: const InputDecoration(
-                                          contentPadding:
-                                              EdgeInsets.only(bottom: 15),
-                                          prefixIcon: Icon(Icons.search),
-                                          border: InputBorder.none,
-                                          hintText: 'Search',
-                                        ),
-                                        onChanged: (value) {
-                                          setState(() {
-                                             // Trigger user fetching with pagination
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(width: 5),
-                              Container(
-                                height: 30,
-                                decoration: BoxDecoration(
-                                    color: Colors.teal,
-                                    border: Border.all(
-                                        color: Colors.teal.shade900
-                                            .withOpacity(0.5)),
-                                    borderRadius: BorderRadius.circular(8)),
-                                child: ElevatedButton(
-                                  onPressed: (() {
-                                    print(MediaQuery.of(context).size.width);
-                                    createAccount(context);
-                                  }),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.teal,
-                                  ),
-                                  child: Text(
-                                    "+ Add New",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        letterSpacing: 1,
-                                        color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 5),
-                              Container(
-                                height: 30,
-                                decoration: BoxDecoration(
-                                    color: Colors.teal,
-                                    border: Border.all(
-                                        color: Colors.teal.shade900
-                                            .withOpacity(0.5)),
-                                    borderRadius: BorderRadius.circular(8)),
-                                child: ElevatedButton(
-                                    onPressed: (() {}),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.teal,
-                                    ),
-                                    child: const Row(
-                                      children: [
-                                        Icon(
-                                          Icons.cloud_download_outlined,
-                                          color: Colors.white,
-                                        ),
-                                        Text(
-                                          "  Export",
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w400,
-                                              letterSpacing: 1,
-                                              color: Colors.white),
-                                        ),
-                                      ],
-                                    )),
-                              ),
-                            ],
-                          ),
-                        ),
+                        searchFilter(context),
                         Divider(),
-                        FutureBuilder(
-                          future: _fetchUsers(_pageSize, _lastVisibleSnapshot),
-                          builder:
-                              (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                            if (snapshot.connectionState ==
-                                    ConnectionState.waiting ||
-                                snapshot.data == null) {
-                              return _buildShimmerLoading(); // Show shimmer loading while waiting for data
-                            }
-                            if (snapshot.hasError) {
-                              return Text('Error: ${snapshot.error}');
-                            }
-                            if (snapshot.data!.docs.isEmpty) {
-                              return Text('No users found.');
-                            }
-
-                            if (snapshot.data != null &&
-                                snapshot.data!.docs != null) {
-                              _allDocs = snapshot.data!.docs;
-
-                              int startIndex = (_currentPage - 1) * _pageSize;
-                              int endIndex = startIndex + _pageSize;
-
-                              // Ensure endIndex does not exceed the length of _allDocs
-                              if (endIndex > _allDocs.length) {
-                                endIndex = _allDocs.length;
-                              }
-
-                              // Ensure startIndex is within the bounds of _allDocs
-                              if (startIndex >= 0 &&
-                                  endIndex >= 0 &&
-                                  startIndex < _allDocs.length &&
-                                  endIndex <= _allDocs.length) {
-                                _displayedDocs = _allDocs
-                                    .sublist(startIndex, endIndex)
-                                    .where((document) {
-                                  Map<String, dynamic> data =
-                                      document.data() as Map<String, dynamic>;
-                                  String fname = data['fname'];
-                                  String mname = data['mname'];
-                                  String lname = data['lname'];
-                                  String query =
-                                      _searchController.text.toLowerCase();
-                                  bool matchesSearchQuery =
-                                      fname.toLowerCase().contains(query) ||
-                                          mname.toLowerCase().contains(query) ||
-                                          lname.toLowerCase().contains(query);
-                                  return matchesSearchQuery;
-                                }).toList();
-                              } else {
-                                // Handle invalid index range
-                                print("Invalid index range");
-                              }
-                            } else {
-                              // Handle null data or null docs
-                              print("Snapshot data or docs is null");
-                            }
-                            return SizedBox(
-                                height: 600,
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.vertical,
-                                  child: DataTable(
-                                    columns: const [
-                                      DataColumn(
-                                        label: Flexible(
-                                          child: Text('#',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                      ),
-                                      DataColumn(
-                                        label: Flexible(
-                                          child: Text('ID',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                      ),
-                                      DataColumn(
-                                        label: Flexible(
-                                          child: Text('Name',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                      ),
-                                      DataColumn(
-                                        label: Flexible(
-                                          child: Text('Username',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                      ),
-                                      DataColumn(
-                                        label: Flexible(
-                                          child: Text('Type',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                      ),
-                                      DataColumn(
-                                        label: Flexible(
-                                          child: Text('Department',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                      ),
-                                      DataColumn(
-                                        label: Flexible(
-                                          child: Text('Shift',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                      ),
-
-                                      DataColumn(
-                                        label: Flexible(
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.end,
-                                            children: [
-                                              Text('Active',
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold)),
-                                              Text('Status',
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold)),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      DataColumn(
-                                        label: Flexible(
-                                          child: Text('Action',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                      ),
-                                      // Added column for Status
-                                    ],
-                                    rows: List.generate(
-                                      _displayedDocs.length,
-                                      (index) {
-                                        DocumentSnapshot document =
-                                            _displayedDocs[index];
-                                        Map<String, dynamic> data = document
-                                            .data()! as Map<String, dynamic>;
-                                        DateTime? startShift =
-                                            data['startShift'] != null
-                                                ? (data['startShift']
-                                                        as Timestamp)
-                                                    .toDate()
-                                                : null;
-                                        String shift = getShiftText(startShift);
-                                        String userId = document.id;
-                                        bool isActive =
-                                            data['isActive'] ?? false;
-
-                                        // Calculate the real index based on the current page and page size
-                                        int realIndex = index + 1;
-
-                                        Color? rowColor = realIndex % 2 == 0
-                                            ? Colors.white
-                                            : Colors.grey[200];
-
-                                        return DataRow(
-                                          color: MaterialStateColor.resolveWith(
-                                              (states) => rowColor!),
-                                          cells: [
-                                            DataCell(
-                                                Text(realIndex.toString())),
-                                            DataCell(Text(
-                                                data['employeeId'].toString())),
-                                            DataCell(Text(
-                                                '${data['fname']} ${data['mname']} ${data['lname']}')),
-                                            DataCell(Text(
-                                                data['username'].toString())),
-                                            DataCell(Text(data['typeEmployee']
-                                                .toString())),
-                                            DataCell(Text(
-                                                data['department'].toString())),
-                                            DataCell(Text(shift)),
-                                            DataCell(
-                                              SizedBox(
-                                                width: 50,
-                                                height: 30,
-                                                child: FittedBox(
-                                                  fit: BoxFit.fill,
-                                                  child: Switch(
-                                                    value: isActive,
-                                                    activeColor: Colors.green,
-                                                    onChanged: (value) async {
-                                                      if (!value) {
-                                                        bool
-                                                            verificationResult =
-                                                            await passwordVerification(
-                                                                context);
-                                                        if (verificationResult) {
-                                                          updateAccountStatus(
-                                                              userId, value);
-                                                          showToast(
-                                                              "User Deactivated");
-                                                        } else {
-                                                          // Handle unsuccessful or canceled verification
-                                                        }
-                                                      } else {
-                                                        updateAccountStatus(
-                                                            userId, value);
-                                                        showToast(
-                                                            "User Activated");
-                                                      }
-                                                    },
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            DataCell(
-                                              Container(
-                                                width: 100,
-                                                child: ElevatedButton(
-                                                  onPressed: () {
-                                                    editUserDetails(
-                                                        userId, data);
-                                                  },
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
-                                                    ),
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      Icon(
-                                                        Icons.edit_document,
-                                                        color: Colors.blue,
-                                                        size: 18,
-                                                      ),
-                                                      Text(
-                                                        'Edit',
-                                                        style: TextStyle(
-                                                            color: Colors.blue),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ));
-                          },
-                        ),
+                        dataTable(),
                         Divider(),
                         SizedBox(height: 5),
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              ElevatedButton(
-                                onPressed: _previousPage,
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: Text('Previous'),
-                              ),
-                              SizedBox(width: 10),
-                              Container(
-                                  height: 35,
-                                  padding: EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                          color: Colors.grey.shade200)),
-                                  child: Text('$_currentPage')),
-                              SizedBox(width: 10),
-                              ElevatedButton(
-                                onPressed: _nextPage,
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: Text('Next'),
-                              ),
-                            ]),
+                        pagination(),
                         SizedBox(height: 20),
                       ],
                     ),
@@ -652,6 +213,470 @@ class _UserState extends State<PovUser> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Row pagination() {
+    return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+      ElevatedButton(
+        onPressed: _previousPage,
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Text('Previous'),
+      ),
+      SizedBox(width: 10),
+      Container(
+          height: 35,
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade200)),
+          child: Text('$_currentPage')),
+      SizedBox(width: 10),
+      ElevatedButton(
+        onPressed: _nextPage,
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Text('Next'),
+      ),
+    ]);
+  }
+
+  FutureBuilder<QuerySnapshot<Object?>> dataTable() {
+    return FutureBuilder(
+      future: _fetchUsers(_pageSize, _lastVisibleSnapshot),
+      builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting ||
+            snapshot.data == null) {
+          return _buildShimmerLoading(); // Show shimmer loading while waiting for data
+        }
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
+        if (snapshot.data!.docs.isEmpty) {
+          return Text('No users found.');
+        }
+
+        if (snapshot.data != null && snapshot.data!.docs != null) {
+          _allDocs = snapshot.data!.docs;
+
+          int startIndex = (_currentPage - 1) * _pageSize;
+          int endIndex = startIndex + _pageSize;
+
+          // Ensure endIndex does not exceed the length of _allDocs
+          if (endIndex > _allDocs.length) {
+            endIndex = _allDocs.length;
+          }
+
+          // Ensure startIndex is within the bounds of _allDocs
+          if (startIndex >= 0 &&
+              endIndex >= 0 &&
+              startIndex < _allDocs.length &&
+              endIndex <= _allDocs.length) {
+            _displayedDocs =
+                _allDocs.sublist(startIndex, endIndex).where((document) {
+              Map<String, dynamic> data =
+                  document.data() as Map<String, dynamic>;
+              String fname = data['fname'];
+              String mname = data['mname'];
+              String lname = data['lname'];
+              String query = _searchController.text.toLowerCase();
+              bool matchesSearchQuery = fname.toLowerCase().contains(query) ||
+                  mname.toLowerCase().contains(query) ||
+                  lname.toLowerCase().contains(query);
+              return matchesSearchQuery;
+            }).toList();
+          } else {
+            // Handle invalid index range
+            print("Invalid index range");
+          }
+        } else {
+          // Handle null data or null docs
+          print("Snapshot data or docs is null");
+        }
+        var dataTable = DataTable(
+          columns: const [
+            DataColumn(
+              label: Flexible(
+                child: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+            DataColumn(
+              label: Flexible(
+                child:
+                    Text('ID', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+            DataColumn(
+              label: Flexible(
+                child:
+                    Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+            DataColumn(
+              label: Flexible(
+                child: Text('Username',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+            DataColumn(
+              label: Flexible(
+                child:
+                    Text('Type', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+            DataColumn(
+              label: Flexible(
+                child: Text('Department',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+            DataColumn(
+              label: Flexible(
+                child: Text('Shift',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+
+            DataColumn(
+              label: Flexible(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('Active',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Status',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ),
+            DataColumn(
+              label: Flexible(
+                child: Text('Action',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+            // Added column for Status
+          ],
+          rows: List.generate(
+            _displayedDocs.length,
+            (index) {
+              DocumentSnapshot document = _displayedDocs[index];
+              Map<String, dynamic> data =
+                  document.data()! as Map<String, dynamic>;
+              DateTime? startShift = data['startShift'] != null
+                  ? (data['startShift'] as Timestamp).toDate()
+                  : null;
+              String shift = getShiftText(startShift);
+              String userId = document.id;
+              bool isActive = data['isActive'] ?? false;
+
+              // Calculate the real index based on the current page and page size
+              int realIndex = index + 1;
+
+              Color? rowColor =
+                  realIndex % 2 == 0 ? Colors.white : Colors.grey[200];
+
+              return DataRow(
+                color: MaterialStateColor.resolveWith((states) => rowColor!),
+                cells: [
+                  DataCell(Text(realIndex.toString())),
+                  DataCell(Text(data['employeeId'].toString())),
+                  DataCell(Text(
+                      '${data['fname']} ${data['mname']} ${data['lname']}')),
+                  DataCell(Text(data['username'].toString())),
+                  DataCell(Text(data['typeEmployee'].toString())),
+                  DataCell(Text(data['department'].toString())),
+                  DataCell(Text(shift)),
+                  DataCell(
+                    SizedBox(
+                      width: 50,
+                      height: 30,
+                      child: FittedBox(
+                        fit: BoxFit.fill,
+                        child: Switch(
+                          value: isActive,
+                          activeColor: Colors.green,
+                          onChanged: (value) async {
+                            if (!value) {
+                              bool verificationResult =
+                                  await passwordVerification(context);
+                              if (verificationResult) {
+                                updateAccountStatus(userId, value);
+                                showToast("User Deactivated");
+                              } else {
+                                // Handle unsuccessful or canceled verification
+                              }
+                            } else {
+                              updateAccountStatus(userId, value);
+                              showToast("User Activated");
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Container(
+                      width: 100,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          editUserDetails(userId, data);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Icon(
+                              Icons.edit_document,
+                              color: Colors.blue,
+                              size: 18,
+                            ),
+                            Text(
+                              'Edit',
+                              style: TextStyle(color: Colors.blue),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+        return MediaQuery.of(context).size.width > 1300
+            ? SizedBox(
+                height: 600,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: dataTable,
+                ))
+            : SizedBox(
+                height: 600,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: dataTable,
+                  ),
+                ));
+      },
+    );
+  }
+
+  Container searchFilter(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(
+            child: MediaQuery.of(context).size.width > 600
+                ? Row(
+                    children: [
+                      Text('Show entries: '),
+                      Container(
+                        width: 70,
+                        height: 30,
+                        padding: EdgeInsets.only(left: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: DropdownButton<int>(
+                          padding: EdgeInsets.all(5),
+                          underline: SizedBox(),
+                          value: _pageSize,
+                          items: [5, 10, 15, 25].map((_pageSize) {
+                            return DropdownMenuItem<int>(
+                              value: _pageSize,
+                              child: Text(_pageSize.toString()),
+                            );
+                          }).toList(),
+                          onChanged: (newValue) {
+                            if (newValue != null) {
+                              if ([5, 10, 15, 25].contains(newValue)) {
+                                setState(() {
+                                  _pageSize = newValue;
+                                });
+                              } else {
+                                // Handle case where the selected value is not in the predefined range
+                                // For example, you can show a dialog, display a message, or perform any appropriate action.
+                                print(
+                                    "Selected value is not in the predefined range.");
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                    ],
+                  )
+                : DropdownButton<int>(
+                    padding: EdgeInsets.all(5),
+                    underline: SizedBox(),
+                    value: _pageSize,
+                    items: [5, 10, 15, 25].map((_pageSize) {
+                      return DropdownMenuItem<int>(
+                        value: _pageSize,
+                        child: Text(_pageSize.toString()),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      if (newValue != null) {
+                        if ([5, 10, 15, 25].contains(newValue)) {
+                          setState(() {
+                            _pageSize = newValue;
+                          });
+                        } else {
+                          // Handle case where the selected value is not in the predefined range
+                          // For example, you can show a dialog, display a message, or perform any appropriate action.
+                          print(
+                              "Selected value is not in the predefined range.");
+                        }
+                      }
+                    },
+                  ),
+          ),
+          Flexible(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Flexible(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Flexible(
+                        child: Container(
+                          width: 400,
+                          height: 30,
+                          margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
+                          padding: EdgeInsets.fromLTRB(3, 0, 0, 0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.black.withOpacity(0.5),
+                            ),
+                          ),
+                          child: TextField(
+                            controller: _searchController,
+                            textAlign: TextAlign.start,
+                            decoration: const InputDecoration(
+                              contentPadding: EdgeInsets.only(bottom: 15),
+                              prefixIcon: Icon(Icons.search),
+                              border: InputBorder.none,
+                              hintText: 'Search',
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                // Trigger user fetching with pagination
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 10),
+                Flexible(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width > 600 ? 230 : 80,
+                    height: 30,
+                    padding: EdgeInsets.all(0),
+                    margin: EdgeInsets.all(0),
+                    decoration: BoxDecoration(
+                        color: Colors.teal,
+                        border: Border.all(
+                            color: Colors.teal.shade900.withOpacity(0.5)),
+                        borderRadius: BorderRadius.circular(8)),
+                    child: ElevatedButton(
+                      onPressed: (() {
+                        print(MediaQuery.of(context).size.width);
+                        createAccount(context);
+                      }),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal,
+                          padding: EdgeInsets.all(3)),
+                      child: MediaQuery.of(context).size.width > 800
+                          ? const Text(
+                              "+ Add New",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w400,
+                                  letterSpacing: 1,
+                                  color: Colors.white),
+                            )
+                          : const Text(
+                              '+',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w400,
+                                  letterSpacing: 1,
+                                  color: Colors.white),
+                            ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 5),
+                Flexible(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width > 600
+                        ? 150
+                        : 50, // or use MediaQuery.of(context).size.width > 600 ? 150 : 50
+                    height: 30,
+                    padding: EdgeInsets.all(0),
+                    margin: EdgeInsets.all(0),
+                    decoration: BoxDecoration(
+                        color: Colors.teal,
+                        border: Border.all(
+                            color: Colors.teal.shade900.withOpacity(0.5)),
+                        borderRadius: BorderRadius.circular(8)),
+                    child: ElevatedButton(
+                        onPressed: (() {}),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.teal,
+                            padding: EdgeInsets.all(3)),
+                        child: MediaQuery.of(context).size.width > 800
+                            ? const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.cloud_download_outlined,
+                                    color: Colors.white,
+                                  ),
+                                  Text(
+                                    "  Export",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        letterSpacing: 1,
+                                        color: Colors.white),
+                                  ),
+                                ],
+                              )
+                            : const Icon(
+                                Icons.cloud_download_outlined,
+                                color: Colors.white,
+                              )),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1248,7 +1273,7 @@ class _UserState extends State<PovUser> {
                 color: Colors.white, borderRadius: BorderRadius.circular(8)),
             child: SingleChildScrollView(
               child: SizedBox(
-                width: 1170,
+                width: 900,
                 child: Flexible(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1292,68 +1317,89 @@ class _UserState extends State<PovUser> {
                           const SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('First Name'),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: firstNameController,
-                                  decoration: const InputDecoration(
-                                      labelText: 'Enter First Name',
-                                      border: InputBorder.none),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('First Name'),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: firstNameController,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp('[a-zA-Z]')),
+                                    ],
+                                    decoration: const InputDecoration(
+                                        hintText: 'Enter First Name',
+                                        border: InputBorder.none),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           const SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('MIddle Name'),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: middleNameController,
-                                  decoration: const InputDecoration(
-                                      labelText: 'Enter Middle Name',
-                                      border: InputBorder.none),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Middle Name'),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: middleNameController,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp('[a-zA-Z]')),
+                                    ],
+                                    decoration: const InputDecoration(
+                                        hintText: 'Enter Middle Name',
+                                        border: InputBorder.none),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           const SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Last Name'),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: lastNameController,
-                                  decoration: const InputDecoration(
-                                      labelText: 'Enter Last Name',
-                                      border: InputBorder.none),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Last Name'),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: lastNameController,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp('[a-zA-Z]')),
+                                    ],
+                                    decoration: const InputDecoration(
+                                        hintText: 'Enter Last Name',
+                                        border: InputBorder.none),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           const SizedBox(
                             width: 10,
@@ -1366,74 +1412,115 @@ class _UserState extends State<PovUser> {
                           const SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Mobile'),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  decoration: const InputDecoration(
-                                      labelText: 'Enter Mobile',
-                                      border: InputBorder.none),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Employee ID'),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: employeeIdController,
-                                  decoration: const InputDecoration(
-                                      labelText: 'Enter Employee ID',
-                                      border: InputBorder.none),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Salary'),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: salaryController,
-                                  keyboardType: TextInputType
-                                      .number, // Set keyboard type to number
-                                  inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter
-                                        .digitsOnly // Accept only digits
-                                  ],
-                                  decoration: const InputDecoration(
-                                    labelText: 'Enter Salary',
-                                    border: InputBorder.none,
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Mobile'),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      LengthLimitingTextInputFormatter(
+                                          11), // Limit to 10 digits
+                                      TextInputFormatter.withFunction(
+                                          (oldValue, newValue) {
+                                        if (newValue.text.isEmpty) {
+                                          return newValue.copyWith(text: '');
+                                        }
+                                        final int textLength =
+                                            newValue.text.length;
+                                        String newText = '';
+                                        for (int i = 0; i < textLength; i++) {
+                                          if (i == 0) {
+                                            newText += '(' + newValue.text[i];
+                                          } else if (i == 3) {
+                                            newText += ') ' + newValue.text[i];
+                                          } else if (i == 7) {
+                                            newText += ' ' + newValue.text[i];
+                                          } else {
+                                            newText += newValue.text[i];
+                                          }
+                                        }
+                                        return newValue.copyWith(
+                                          text: newText,
+                                          selection: TextSelection.collapsed(
+                                              offset: newText.length),
+                                        );
+                                      }),
+                                    ],
+                                    decoration: const InputDecoration(
+                                        hintText: 'Enter Mobile',
+                                        border: InputBorder.none),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Employee ID'),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: employeeIdController,
+                                    decoration: const InputDecoration(
+                                        hintText: 'Enter Employee ID',
+                                        border: InputBorder.none),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Salary'),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: salaryController,
+                                    keyboardType: TextInputType
+                                        .number, // Set keyboard type to number
+                                    inputFormatters: <TextInputFormatter>[
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp(r'[0-9]')),
+                                      FilteringTextInputFormatter
+                                          .digitsOnly // Accept only digits
+                                    ],
+                                    decoration: const InputDecoration(
+                                      hintText: 'Enter Salary',
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -1449,189 +1536,200 @@ class _UserState extends State<PovUser> {
                           const SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Department:', style: textStyle),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 0, 5, 25),
-                                decoration: BoxDecoration(
-                                    border:
-                                        Border.all(color: Colors.grey.shade300),
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12)),
-                                child: DropdownMenu<String>(
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Department:', style: textStyle),
+                                Container(
                                   width: 280,
-                                  inputDecorationTheme: InputDecorationTheme(
-                                    border: InputBorder.none,
-                                  ),
-                                  trailingIcon: Icon(Icons.arrow_drop_down),
-                                  initialSelection: selectedDep,
-                                  onSelected: (String? value) {
-                                    // This is called when the user selects an item.
-                                    setState(() {
-                                      selectedDep = value!;
-                                    });
-                                  },
-                                  dropdownMenuEntries: [
-                                    'IT',
-                                    'HR',
-                                    'ACCOUNTANCY',
-                                    'SERVICING'
-                                  ].map<DropdownMenuEntry<String>>(
-                                      (String value) {
-                                    return DropdownMenuEntry<String>(
-                                        value: value, label: value);
-                                  }).toList(),
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Role:',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 0, 5, 25),
-                                decoration: boxdecoration(),
-                                child: DropdownMenu<String>(
-                                  width: 280,
-                                  inputDecorationTheme: InputDecorationTheme(
-                                    border: InputBorder.none,
-                                  ),
-                                  trailingIcon: Icon(Icons.arrow_drop_down),
-                                  initialSelection: selectedRole,
-                                  onSelected: (String? value) {
-                                    // This is called when the user selects an item.
-                                    setState(() {
-                                      selectedRole = value!;
-                                    });
-                                  },
-                                  dropdownMenuEntries: [
-                                    'Employee',
-                                    'Admin',
-                                  ].map<DropdownMenuEntry<String>>(
-                                      (String value) {
-                                    return DropdownMenuEntry<String>(
-                                        value: value, label: value);
-                                  }).toList(),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Employee Status:',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: const EdgeInsets.fromLTRB(5, 0, 5, 25),
-                                decoration: boxdecoration(),
-                                child: DropdownMenu<String>(
-                                  width: 280,
-                                  inputDecorationTheme: InputDecorationTheme(
-                                    border: InputBorder.none,
-                                  ),
-                                  trailingIcon: Icon(Icons.arrow_drop_down),
-                                  initialSelection: typeEmployee,
-                                  onSelected: (String? value) {
-                                    // This is called when the user selects an item.
-                                    setState(() {
-                                      typeEmployee = value!;
-                                    });
-                                  },
-                                  dropdownMenuEntries: [
-                                    'Regular',
-                                    'Contractual'
-                                  ].map<DropdownMenuEntry<String>>(
-                                      (String value) {
-                                    return DropdownMenuEntry<String>(
-                                        value: value, label: value);
-                                  }).toList(),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Shift',
-                                style: textStyle,
-                              ),
-                              Column(
-                                children: [
-                                  Container(
-                                    width: 120,
-                                    height: 40,
-                                    padding: EdgeInsets.all(2),
-                                    decoration: boxdecoration(),
-                                    child: DateTimeFormField(
-                                      decoration: const InputDecoration(
-                                          border: InputBorder.none,
-                                          contentPadding:
-                                              EdgeInsets.only(bottom: 15),
-                                          hintText: 'Start',
-                                          suffixIcon: Icon(Icons.timer)),
-                                      mode: DateTimeFieldPickerMode.time,
-                                      onDateSelected: (DateTime value) {
-                                        print(value);
-                                      },
-                                      onChanged: (DateTime? value) {},
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 0, 5, 25),
+                                  decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color: Colors.grey.shade300),
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12)),
+                                  child: DropdownMenu<String>(
+                                    width: 280,
+                                    inputDecorationTheme: InputDecorationTheme(
+                                      border: InputBorder.none,
                                     ),
+                                    trailingIcon: Icon(Icons.arrow_drop_down),
+                                    initialSelection: selectedDep,
+                                    onSelected: (String? value) {
+                                      // This is called when the user selects an item.
+                                      setState(() {
+                                        selectedDep = value!;
+                                      });
+                                    },
+                                    dropdownMenuEntries: [
+                                      'IT',
+                                      'HR',
+                                      'ACCOUNTING',
+                                      'SERVICING'
+                                    ].map<DropdownMenuEntry<String>>(
+                                        (String value) {
+                                      return DropdownMenuEntry<String>(
+                                          value: value, label: value);
+                                    }).toList(),
                                   ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  Container(
-                                    width: 120,
-                                    height: 40,
-                                    padding: EdgeInsets.all(2),
-                                    decoration: boxdecoration(),
-                                    child: DateTimeFormField(
-                                      decoration: const InputDecoration(
-                                          hintText: 'End',
-                                          contentPadding:
-                                              EdgeInsets.only(bottom: 15),
-                                          border: InputBorder.none,
-                                          suffixIcon: Icon(Icons.timer)),
-                                      mode: DateTimeFieldPickerMode.time,
-                                      onDateSelected: (DateTime value) {
-                                        print(value);
-                                      },
-                                      onChanged: (DateTime? value) {},
+                                ),
+                                const SizedBox(
+                                  width: 10,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Role:',
+                                  style: textStyle,
+                                ),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 0, 5, 25),
+                                  decoration: boxdecoration(),
+                                  child: DropdownMenu<String>(
+                                    width: 280,
+                                    inputDecorationTheme: InputDecorationTheme(
+                                      border: InputBorder.none,
                                     ),
-                                  )
-                                ],
-                              )
-                            ],
+                                    trailingIcon: Icon(Icons.arrow_drop_down),
+                                    initialSelection: selectedRole,
+                                    onSelected: (String? value) {
+                                      // This is called when the user selects an item.
+                                      setState(() {
+                                        selectedRole = value!;
+                                      });
+                                    },
+                                    dropdownMenuEntries: [
+                                      'Employee',
+                                      'Admin',
+                                    ].map<DropdownMenuEntry<String>>(
+                                        (String value) {
+                                      return DropdownMenuEntry<String>(
+                                          value: value, label: value);
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Employee Status:',
+                                  style: textStyle,
+                                ),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(5, 0, 5, 25),
+                                  decoration: boxdecoration(),
+                                  child: DropdownMenu<String>(
+                                    width: 280,
+                                    inputDecorationTheme: InputDecorationTheme(
+                                      border: InputBorder.none,
+                                    ),
+                                    trailingIcon: Icon(Icons.arrow_drop_down),
+                                    initialSelection: typeEmployee,
+                                    onSelected: (String? value) {
+                                      // This is called when the user selects an item.
+                                      setState(() {
+                                        typeEmployee = value!;
+                                      });
+                                    },
+                                    dropdownMenuEntries: [
+                                      'Regular',
+                                      'Contractual'
+                                    ].map<DropdownMenuEntry<String>>(
+                                        (String value) {
+                                      return DropdownMenuEntry<String>(
+                                          value: value, label: value);
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Shift',
+                                  style: textStyle,
+                                ),
+                                Column(
+                                  children: [
+                                    Container(
+                                      width: 120,
+                                      height: 40,
+                                      padding: EdgeInsets.all(2),
+                                      decoration: boxdecoration(),
+                                      child: DateTimeFormField(
+                                        decoration: const InputDecoration(
+                                            border: InputBorder.none,
+                                            contentPadding:
+                                                EdgeInsets.only(bottom: 15),
+                                            hintText: 'Start',
+                                            suffixIcon: Icon(Icons.timer)),
+                                        mode: DateTimeFieldPickerMode.time,
+                                        onDateSelected: (DateTime value) {
+                                          print(value);
+                                        },
+                                        onChanged: (DateTime? value) {},
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 10,
+                                    ),
+                                    Container(
+                                      width: 120,
+                                      height: 40,
+                                      padding: EdgeInsets.all(2),
+                                      decoration: boxdecoration(),
+                                      child: DateTimeFormField(
+                                        decoration: const InputDecoration(
+                                            hintText: 'End',
+                                            contentPadding:
+                                                EdgeInsets.only(bottom: 15),
+                                            border: InputBorder.none,
+                                            suffixIcon: Icon(Icons.timer)),
+                                        mode: DateTimeFieldPickerMode.time,
+                                        onDateSelected: (DateTime value) {
+                                          print(value);
+                                        },
+                                        onChanged: (DateTime? value) {},
+                                      ),
+                                    )
+                                  ],
+                                )
+                              ],
+                            ),
                           )
                         ],
                       ),
@@ -1650,80 +1748,161 @@ class _UserState extends State<PovUser> {
                           const SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'SSS',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: EdgeInsets.all(8),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: sssController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Enter SSS',
-                                    border: InputBorder.none,
-                                  ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'SSS',
+                                  style: textStyle,
                                 ),
-                              )
-                            ],
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding: EdgeInsets.all(8),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: sssController,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      LengthLimitingTextInputFormatter(
+                                          10), // Limit to 10 digits
+                                      TextInputFormatter.withFunction(
+                                          (oldValue, newValue) {
+                                        if (newValue.text.isEmpty) {
+                                          return newValue.copyWith(text: '');
+                                        }
+                                        final int textLength =
+                                            newValue.text.length;
+                                        String newText = '';
+                                        for (int i = 0; i < textLength; i++) {
+                                          if (i == 2 || i == 9) {
+                                            newText += '-';
+                                          }
+                                          newText += newValue.text[i];
+                                        }
+                                        return newValue.copyWith(
+                                          text: newText,
+                                          selection: TextSelection.collapsed(
+                                              offset: newText.length),
+                                        );
+                                      }),
+                                    ],
+                                    decoration: const InputDecoration(
+                                      hintText: 'Enter SSS',
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
                           SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'TIN',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: EdgeInsets.all(8),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: tinController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Enter TIN',
-                                    border: InputBorder.none,
-                                  ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'TIN',
+                                  style: textStyle,
                                 ),
-                              )
-                            ],
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding: EdgeInsets.all(8),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: tinController,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      LengthLimitingTextInputFormatter(
+                                          12), // Limit to 12 digits
+                                      TextInputFormatter.withFunction(
+                                          (oldValue, newValue) {
+                                        if (newValue.text.isEmpty) {
+                                          return newValue.copyWith(text: '');
+                                        }
+                                        final int textLength =
+                                            newValue.text.length;
+                                        String newText = '';
+                                        for (int i = 0; i < textLength; i++) {
+                                          if (i == 3 || i == 7 || i == 11) {
+                                            newText += '-';
+                                          }
+                                          newText += newValue.text[i];
+                                        }
+                                        return newValue.copyWith(
+                                          text: newText,
+                                          selection: TextSelection.collapsed(
+                                              offset: newText.length),
+                                        );
+                                      }),
+                                    ],
+                                    decoration: const InputDecoration(
+                                      hintText: 'Enter TIN',
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
                           SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Tax Code',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: EdgeInsets.all(8),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: taxCodeController,
-                                  decoration: const InputDecoration(
-                                    border: InputBorder.none,
-                                    labelText: 'Enter TaxCode',
-                                  ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Tax Code',
+                                  style: textStyle,
                                 ),
-                              )
-                            ],
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding: EdgeInsets.all(8),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: taxCodeController,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      LengthLimitingTextInputFormatter(
+                                          9), // Limit to 9 digits
+                                      TextInputFormatter.withFunction(
+                                          (oldValue, newValue) {
+                                        if (newValue.text.isEmpty) {
+                                          return newValue.copyWith(text: '');
+                                        }
+                                        final int textLength =
+                                            newValue.text.length;
+                                        String newText = '';
+                                        for (int i = 0; i < textLength; i++) {
+                                          if (i == 3 || i == 7) {
+                                            newText += '-';
+                                          }
+                                          newText += newValue.text[i];
+                                        }
+                                        return newValue.copyWith(
+                                          text: newText,
+                                          selection: TextSelection.collapsed(
+                                              offset: newText.length),
+                                        );
+                                      }),
+                                    ],
+                                    decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: 'Enter TaxCode',
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
                           )
                         ],
                       ),
@@ -1742,91 +1921,97 @@ class _UserState extends State<PovUser> {
                           SizedBox(
                             width: 10,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Email',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: EdgeInsets.all(8),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: emailController,
-                                  decoration: const InputDecoration(
-                                    border: InputBorder.none,
-                                    labelText: 'Enter Email',
-                                  ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Email',
+                                  style: textStyle,
                                 ),
-                              )
-                            ],
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Username',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: EdgeInsets.all(8),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  controller: usernameController,
-                                  decoration: const InputDecoration(
-                                    border: InputBorder.none,
-                                    labelText: 'Enter Username',
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Password',
-                                style: textStyle,
-                              ),
-                              Container(
-                                width: 280,
-                                height: 40,
-                                padding: EdgeInsets.all(2),
-                                decoration: boxdecoration(),
-                                child: TextField(
-                                  obscureText: !passwordVisible,
-                                  controller: passwordController,
-                                  decoration: InputDecoration(
-                                    labelText: '',
-                                    border: InputBorder.none,
-                                    suffixIcon: IconButton(
-                                      icon: Icon(passwordVisible
-                                          ? Icons.visibility
-                                          : Icons.visibility_off),
-                                      onPressed: () {
-                                        setState(() {
-                                          passwordVisible = !passwordVisible;
-                                        });
-                                      },
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding: EdgeInsets.all(8),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: emailController,
+                                    decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: 'Enter Email',
                                     ),
                                   ),
+                                )
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Username',
+                                  style: textStyle,
                                 ),
-                              )
-                            ],
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding: EdgeInsets.all(8),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    controller: usernameController,
+                                    decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: 'Enter Username',
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Password',
+                                  style: textStyle,
+                                ),
+                                Container(
+                                  width: 280,
+                                  height: 40,
+                                  padding: EdgeInsets.all(2),
+                                  decoration: boxdecoration(),
+                                  child: TextField(
+                                    obscureText: !passwordVisible,
+                                    controller: passwordController,
+                                    decoration: InputDecoration(
+                                      labelText: '',
+                                      border: InputBorder.none,
+                                      suffixIcon: IconButton(
+                                        icon: Icon(passwordVisible
+                                            ? Icons.visibility
+                                            : Icons.visibility_off),
+                                        onPressed: () {
+                                          setState(() {
+                                            passwordVisible = !passwordVisible;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
                           )
                         ],
                       ),

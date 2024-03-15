@@ -132,7 +132,7 @@ class ScreensView extends StatelessWidget {
           ),
         );
         break;
-      case 'Add Account':
+      case 'Account List':
         page = buildAddAccountPage();
         break;
       case 'Calendar':

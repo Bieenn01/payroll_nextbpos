@@ -253,10 +253,10 @@ class _DashboardMobileState extends State<DashboardMobile> {
                     Flexible(
                         flex: 1,
                         child: Container(
-                          height: 120,
+                          height: 90,
                           padding: EdgeInsets.all(8),
                           decoration: container1Decoration(),
-                          child: smallContainerRow(
+                          child: smallContainer(
                             '$totalEmployees',
                             Icons.supervisor_account_rounded,
                             'Total Employees',
@@ -268,19 +268,19 @@ class _DashboardMobileState extends State<DashboardMobile> {
                     Flexible(
                       flex: 1,
                       child: Container(
-                        height: 120,
+                        height: 90,
                         padding: EdgeInsets.all(8),
                         decoration: container1Decoration(),
                         child: FutureBuilder(
                           future: countDocumentsForToday(),
                           builder: (context, AsyncSnapshot<int> snapshot) {
                             if (snapshot.data == null || snapshot.data == 0) {
-                              return smallContainerRow(
+                              return smallContainer(
                                   '0', Icons.access_time, 'Time in');
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
                             } else {
-                              return smallContainerRow(snapshot.data.toString(),
+                              return smallContainer(snapshot.data.toString(),
                                   Icons.access_time, 'Time in');
                             }
                           },
@@ -310,19 +310,19 @@ class _DashboardMobileState extends State<DashboardMobile> {
                     Flexible(
                       flex: 1,
                       child: Container(
-                        height: 120,
+                        height: 90,
                         padding: EdgeInsets.all(8),
                         decoration: container1Decoration(),
                         child: FutureBuilder(
                           future: countendDocumentsForToday(),
                           builder: (context, AsyncSnapshot<int> snapshot) {
                             if (snapshot.data == null || snapshot.data == 0) {
-                              return smallContainerRow(
+                              return smallContainer(
                                   '0', Icons.access_time, 'Time out');
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
                             } else {
-                              return smallContainerRow(snapshot.data.toString(),
+                              return smallContainer(snapshot.data.toString(),
                                   Icons.access_time, 'Time out');
                             }
                           },

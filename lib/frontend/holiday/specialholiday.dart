@@ -15,6 +15,12 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
   int _itemsPerPage = 5;
   int _currentPage = 0;
   int indexRow = 0;
+  bool _sortAscending = false;
+
+  bool sortPay = false;
+  bool table = false;
+
+  String selectedDepartment = 'All';
 
   DateTime? fromDate;
   DateTime? toDate;
@@ -132,17 +138,42 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Flexible(
-                    child: Row(
-                      children: [
-                        Text('Show entries: '),
-                        Container(
-                          width: 70,
-                          height: 30,
-                          padding: EdgeInsets.only(left: 10),
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey.shade200)),
-                          child: DropdownButton<int>(
+                    child: MediaQuery.of(context).size.width > 600
+                        ? Row(
+                            children: [
+                              Text('Show entries: '),
+                              Container(
+                                width: 70,
+                                height: 30,
+                                padding: EdgeInsets.only(left: 10),
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                        color: Colors.grey.shade200)),
+                                child: DropdownButton<int>(
+                                  padding: EdgeInsets.all(5),
+                                  underline: SizedBox(),
+                                  value: _itemsPerPage,
+                                  items: [5, 10, 15, 20, 25]
+                                      .map<DropdownMenuItem<int>>(
+                                    (int value) {
+                                      return DropdownMenuItem<int>(
+                                        value: value,
+                                        child: Text('$value'),
+                                      );
+                                    },
+                                  ).toList(),
+                                  onChanged: (int? newValue) {
+                                    setState(() {
+                                      _itemsPerPage = newValue!;
+                                    });
+                                  },
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                            ],
+                          )
+                        : DropdownButton<int>(
                             padding: EdgeInsets.all(5),
                             underline: SizedBox(),
                             value: _itemsPerPage,
@@ -161,10 +192,6 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                               });
                             },
                           ),
-                        ),
-                        SizedBox(width: 10),
-                      ],
-                    ),
                   ),
                   Flexible(
                     child: Row(
@@ -174,7 +201,7 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                           child: Container(
                             width: MediaQuery.of(context).size.width > 600
                                 ? 400
-                                : 50,
+                                : 100,
                             height: 30,
                             margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
                             padding: EdgeInsets.fromLTRB(3, 0, 0, 0),
@@ -202,7 +229,7 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                         Flexible(
                           child: Container(
                             width: MediaQuery.of(context).size.width > 600
-                                ? 150
+                                ? 230
                                 : 80,
                             padding: EdgeInsets.all(2),
                             child: ElevatedButton(
@@ -221,34 +248,56 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                                 }
                               },
                               style: styleFrom,
-                              child: MediaQuery.of(context).size.width > 600
+                              child: MediaQuery.of(context).size.width > 800
                                   ? Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Row(
-                                          children: [
-                                            const Text(
-                                              'From: ',
-                                              style: TextStyle(
+                                        Flexible(
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                'From: ',
+                                                style: TextStyle(
                                                   color: Colors.black,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            Text(
-                                              fromDate != null
-                                                  ? DateFormat('yyyy-MM-dd')
-                                                      .format(fromDate!)
-                                                  : 'Select Date',
-                                              style: TextStyle(
-                                                  color: startPicked == !true
-                                                      ? Colors.black
-                                                      : Colors.teal.shade800),
-                                            ),
-                                          ],
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              MediaQuery.of(context)
+                                                          .size
+                                                          .width >
+                                                      1100
+                                                  ? Text(
+                                                      fromDate != null
+                                                          ? DateFormat(
+                                                                  'yyyy-MM-dd')
+                                                              .format(fromDate!)
+                                                          : 'Select',
+                                                      style: TextStyle(
+                                                        color:
+                                                            startPicked == !true
+                                                                ? Colors.black
+                                                                : Colors.teal
+                                                                    .shade800,
+                                                      ),
+                                                    )
+                                                  : Text(
+                                                      fromDate != null
+                                                          ? DateFormat('MM-dd')
+                                                              .format(fromDate!)
+                                                          : '',
+                                                      style: TextStyle(
+                                                        color:
+                                                            startPicked == !true
+                                                                ? Colors.black
+                                                                : Colors.teal
+                                                                    .shade800,
+                                                      ),
+                                                    ),
+                                            ],
+                                          ),
                                         ),
-                                        const SizedBox(
-                                          width: 3,
-                                        ),
+                                        const SizedBox(width: 3),
                                         const Icon(
                                           Icons.calendar_month,
                                           color: Colors.black,
@@ -259,6 +308,7 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                                   : const Icon(
                                       Icons.calendar_month,
                                       color: Colors.black,
+                                      size: 20,
                                     ),
                             ),
                           ),
@@ -286,34 +336,56 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                                 }
                               },
                               style: styleFrom,
-                              child: MediaQuery.of(context).size.width > 600
+                              child: MediaQuery.of(context).size.width > 800
                                   ? Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Row(
-                                          children: [
-                                            const Text(
-                                              'To: ',
-                                              style: TextStyle(
+                                        Flexible(
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                'To: ',
+                                                style: TextStyle(
                                                   color: Colors.black,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            Text(
-                                              toDate != null
-                                                  ? DateFormat('yyyy-MM-dd')
-                                                      .format(toDate!)
-                                                  : 'Select Date',
-                                              style: TextStyle(
-                                                  color: endPicked == !true
-                                                      ? Colors.black
-                                                      : Colors.teal.shade800),
-                                            ),
-                                          ],
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              MediaQuery.of(context)
+                                                          .size
+                                                          .width >
+                                                      1100
+                                                  ? Text(
+                                                      toDate != null
+                                                          ? DateFormat(
+                                                                  'yyyy-MM-dd')
+                                                              .format(toDate!)
+                                                          : 'Select',
+                                                      style: TextStyle(
+                                                        color:
+                                                            endPicked == !true
+                                                                ? Colors.black
+                                                                : Colors.teal
+                                                                    .shade800,
+                                                      ),
+                                                    )
+                                                  : Text(
+                                                      toDate != null
+                                                          ? DateFormat('MM-dd')
+                                                              .format(toDate!)
+                                                          : '',
+                                                      style: TextStyle(
+                                                        color:
+                                                            endPicked == !true
+                                                                ? Colors.black
+                                                                : Colors.teal
+                                                                    .shade800,
+                                                      ),
+                                                    ),
+                                            ],
+                                          ),
                                         ),
-                                        const SizedBox(
-                                          width: 3,
-                                        ),
+                                        const SizedBox(width: 3),
                                         const Icon(
                                           Icons.calendar_month,
                                           color: Colors.black,
@@ -324,6 +396,7 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                                   : const Icon(
                                       Icons.calendar_month,
                                       color: Colors.black,
+                                      size: 20,
                                     ),
                             ),
                           ),
@@ -353,6 +426,18 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
         } else {
           List<DocumentSnapshot> holidayDocs = snapshot.data!.docs;
 
+          _sortAscending
+              ? holidayDocs.sort((a, b) {
+                  double overtimePayA = a['holidayPay'] ?? 0.0;
+                  double overtimePayB = b['holidayPay'] ?? 0.0;
+                  return overtimePayA.compareTo(overtimePayB);
+                })
+              : holidayDocs.sort((b, a) {
+                  double overtimePayA = a['holidayPay'] ?? 0.0;
+                  double overtimePayB = b['holidayPay'] ?? 0.0;
+                  return overtimePayA.compareTo(overtimePayB);
+                });
+
           holidayDocs = holidayDocs.where((doc) {
             DateTime timeIn = doc['timeIn'].toDate();
             DateTime timeOut = doc['timeOut'].toDate();
@@ -369,143 +454,240 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
             return true;
           }).toList();
 
+          List<DocumentSnapshot> filteredDocuments = holidayDocs;
+          if (selectedDepartment != 'All') {
+            filteredDocuments = holidayDocs
+                .where((doc) => doc['department'] == selectedDepartment)
+                .toList();
+          }
+
           // Sort documents by timestamp in descending order
-          holidayDocs.sort((a, b) {
-            Timestamp aTimestamp = a['timeIn'];
-            Timestamp bTimestamp = b['timeIn'];
-            return bTimestamp.compareTo(aTimestamp);
-          });
-          // Sort the documents by timestamp in descending order
-          holidayDocs.sort((a, b) =>
-              (b['timeIn'] as Timestamp).compareTo(a['timeIn'] as Timestamp));
+          // holidayDocs.sort((a, b) {
+          //   Timestamp aTimestamp = a['timeIn'];
+          //   Timestamp bTimestamp = b['timeIn'];
+          //   return bTimestamp.compareTo(aTimestamp);
+          // });
+          // // Sort the documents by timestamp in descending order
+          // holidayDocs.sort((a, b) =>
+          //     (b['timeIn'] as Timestamp).compareTo(a['timeIn'] as Timestamp));
 
           const textStyle = TextStyle(fontWeight: FontWeight.bold);
 
-          return SizedBox(
-            height: 600,
-            child: SingleChildScrollView(
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('#', style: textStyle)),
-                  DataColumn(label: Text('ID', style: textStyle)),
-                  DataColumn(label: Text('Name', style: textStyle)),
-                  DataColumn(label: Text('Department', style: textStyle)),
-                  DataColumn(
-                      label: Text('Total Hours (h:m)', style: textStyle)),
-                  DataColumn(label: Text('Holiday Pay', style: textStyle)),
-                  DataColumn(label: Text('Holiday Type', style: textStyle)),
-                  DataColumn(label: Text('Action', style: textStyle))
-                ],
-                rows: List.generate(holidayDocs.length, (index) {
-                  DocumentSnapshot holidayDoc = holidayDocs[index];
-                  Map<String, dynamic> holidayData =
-                      holidayDoc.data() as Map<String, dynamic>;
-                  _selectedHolidayTypes.add('Special Holiday');
-
-                  Color? rowColor = indexRow % 2 == 0
-                      ? Colors.white
-                      : Colors.grey[200]; // Alternating row colors
-                  indexRow++; //
-
-                  return DataRow(
-                      color:
-                          MaterialStateColor.resolveWith((states) => rowColor!),
-                      cells: [
-                        DataCell(Text('#')),
-                        DataCell(Text(holidayDoc.id)),
-                        DataCell(Text(
-                            holidayData['userName'] ?? 'Not Available Yet')),
-                        DataCell(Text(
-                            holidayData['department'] ?? 'Not Available Yet')),
-                        DataCell(
-                          Container(
-                            width: 100,
-                            decoration:
-                                BoxDecoration(color: Colors.amber.shade200),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        holidayData['regular_hours']
-                                                ?.toString() ??
-                                            'Not Available Yet',
-                                        style: textStyle,
-                                      ),
-                                      Text(':'),
-                                      Text(
-                                        holidayData['regular_minute']
-                                                ?.toString() ??
-                                            '0',
-                                        style: textStyle,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                          Text(NumberFormat.currency(
-                                  locale: 'en_PH',
-                                  symbol: '₱ ',
-                                  decimalDigits: 2)
-                              .format(holidayData['holidayPay'] ?? 0.0)),
-                        ),
-                        DataCell(
-                          DropdownButton<String>(
-                            value: _selectedHolidayTypes[index],
-                            items: <String>[
-                              'Special Holiday',
-                              'Regular Holiday',
-                            ].map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                            onChanged: (String? newValue) async {
-                              if (newValue == 'Regular Holiday') {
-                                await _showConfirmationDialog2(holidayDoc);
-                              }
-                              setState(() {
-                                _selectedHolidayTypes[index] = newValue!;
-                              });
-                              if (newValue == 'Special Holiday') {
-                                //   await _showConfirmationDialog2(holidayDoc);
-                              }
-                              setState(() {
-                                _selectedHolidayTypes[index] = newValue!;
-                              });
-                            },
-                          ),
-                        ),
-                        DataCell(
-                          Row(children: [
-                            IconButton(
-                              icon: Icon(Icons.delete,
-                                  color: Colors.red), // Setting color to red
-                              onPressed: () async {
-                                await _showConfirmationDialog3(holidayDoc);
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.visibility,
-                                  color: Colors.blue), // Setting color to red
-                              onPressed: () async {
-                                await _showConfirmationDialog4(holidayDoc);
-                              },
-                            ),
-                          ]),
-                        ),
-                      ]);
-                }),
+          var dataTable = DataTable(
+            columns: [
+              const DataColumn(label: Text('#', style: textStyle)),
+              const DataColumn(label: Text('Employee ID', style: textStyle)),
+              const DataColumn(label: Text('Name', style: textStyle)),
+              DataColumn(
+                label: PopupMenuButton<String>(
+                  child: const Row(
+                    children: [
+                      Text(
+                        'Department',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Icon(Icons.arrow_drop_down)
+                    ],
+                  ),
+                  onSelected: (String value) {
+                    setState(() {
+                      selectedDepartment = value;
+                    });
+                  },
+                  itemBuilder: (BuildContext context) => [
+                    'All', // Default option
+                    'IT',
+                    'HR',
+                    'ACCOUNTING',
+                    'SERVICING',
+                  ].map((String value) {
+                    return PopupMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
               ),
-            ),
+              const DataColumn(
+                  label: Text('Total Hours (h:m)', style: textStyle)),
+              DataColumn(
+                label: Container(
+                  width: 100,
+                  padding: EdgeInsets.all(0),
+                  child: InkWell(
+                    onTap: () {
+                      setState(() {
+                        _sortAscending = !_sortAscending;
+                      });
+                    },
+                    child: Flexible(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Holiday Pay',
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold)),
+                          const SizedBox(
+                              width:
+                                  4), // Add some space between the text and the icon
+                          Flexible(
+                            child: Icon(
+                              _sortAscending
+                                  ? Icons.arrow_drop_down
+                                  : Icons.arrow_drop_up,
+                              size: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const DataColumn(label: Text('Holiday Type', style: textStyle)),
+              const DataColumn(label: Text('Action', style: textStyle)),
+            ],
+            rows: List.generate(filteredDocuments.length, (index) {
+              DocumentSnapshot holidayDoc = filteredDocuments[index];
+              Map<String, dynamic> holidayData =
+                  holidayDoc.data() as Map<String, dynamic>;
+              _selectedHolidayTypes.add('Special Holiday');
+
+              Color? rowColor = indexRow % 2 == 0
+                  ? Colors.white
+                  : Colors.grey[200]; // Alternating row colors
+              indexRow++; //
+
+              return DataRow(
+                  color: MaterialStateColor.resolveWith((states) => rowColor!),
+                  cells: [
+                    DataCell(Text('#')),
+                    DataCell(
+                      Text(holidayData['employeeId'] ?? 'Not Available Yet'),
+                    ),
+                    DataCell(
+                        Text(holidayData['userName'] ?? 'Not Available Yet')),
+                    DataCell(
+                        Text(holidayData['department'] ?? 'Not Available Yet')),
+                    DataCell(
+                      Container(
+                        width: 100,
+                        decoration: BoxDecoration(color: Colors.amber.shade200),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              child: Row(
+                                children: [
+                                  Text(
+                                    holidayData['regular_hours']?.toString() ??
+                                        'Not Available Yet',
+                                    style: textStyle,
+                                  ),
+                                  Text(':'),
+                                  Text(
+                                    holidayData['regular_minute']?.toString() ??
+                                        '0',
+                                    style: textStyle,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(NumberFormat.currency(
+                              locale: 'en_PH', symbol: '₱ ', decimalDigits: 2)
+                          .format(holidayData['holidayPay'] ?? 0.0)),
+                    ),
+                    DataCell(
+                      DropdownButton<String>(
+                        value: _selectedHolidayTypes[index],
+                        items: <String>[
+                          'Special Holiday',
+                          'Regular Holiday',
+                        ].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) async {
+                          if (newValue == 'Regular Holiday') {
+                            await _showConfirmationDialog2(holidayDoc);
+                          }
+                          setState(() {
+                            _selectedHolidayTypes[index] = newValue!;
+                          });
+                          if (newValue == 'Special Holiday') {
+                            //   await _showConfirmationDialog2(holidayDoc);
+                          }
+                          setState(() {
+                            _selectedHolidayTypes[index] = newValue!;
+                          });
+                        },
+                      ),
+                    ),
+                    DataCell(
+                      Container(
+                        width: 100,
+                        padding: EdgeInsets.all(0),
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await _showConfirmationDialog4(holidayDoc);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.all(5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Icon(
+                                Icons.visibility,
+                                color: Colors.blue,
+                                size: 15,
+                              ),
+                              Text(
+                                'View Logs',
+                                style:
+                                    TextStyle(fontSize: 10, color: Colors.blue),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ]);
+            }),
           );
+          return MediaQuery.of(context).size.width > 1500
+              ? SizedBox(
+                  height: 600,
+                  child: SingleChildScrollView(
+                    child: Flexible(
+                      child: dataTable,
+                    ),
+                  ),
+                )
+              : SizedBox(
+                  height: 600,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: Flexible(
+                        child: dataTable,
+                      ),
+                    ),
+                  ),
+                );
         }
       },
     );
@@ -549,7 +731,8 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow('Employee ID', userId),
+                _buildInfoRow('Employee ID',
+                    overtimeDoc['employeeId'] ?? 'Not Available Yet'),
                 _buildInfoRow(
                     'Name', overtimeDoc['userName'] ?? 'Not Available'),
                 _buildInfoRow(
@@ -610,7 +793,7 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
           return DataRow(
               color: MaterialStateColor.resolveWith((states) => rowColor!),
               cells: [
-                DataCell(Text('#')),
+                DataCell(Text((index).toString())),
                 DataCell(Text(_formatDate(overtimeDoc['timeIn']))),
                 DataCell(Text(_formatTime(overtimeDoc['timeIn']))),
                 DataCell(Text(_formatTime(overtimeDoc['timeOut']))),
