@@ -197,265 +197,33 @@ class _UserState extends State<PovUser> {
         child: Container(
           color: Colors.teal.shade700,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: SingleChildScrollView(
-                  child: Container(
-                    margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Text(
-                                "Account List",
-                                style: TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                              ),
+                child: Container(
+                  margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Column(
+                    children: [
+                      const Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Text(
+                              "Account List",
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
                             ),
-                          ],
-                        ),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Flexible(
-                                child: Container(
-                                  height: 30,
-                                  child: MediaQuery.of(context).size.width > 600
-                                      ? Row(children: [
-                                          Flexible(
-                                              child: Text('Show entries: ')),
-                                          Container(
-                                            width: 70,
-                                            height: 30,
-                                            padding: EdgeInsets.only(left: 10),
-                                            decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                border: Border.all(
-                                                    color:
-                                                        Colors.grey.shade200)),
-                                            child: DropdownButton<int>(
-                                              padding: EdgeInsets.all(5),
-                                              underline: SizedBox(),
-                                              value: _pageSize,
-                                              items: [5, 10, 15, 25]
-                                                  .map((_pageSize) {
-                                                return DropdownMenuItem<int>(
-                                                  value: _pageSize,
-                                                  child: Text(
-                                                      _pageSize.toString()),
-                                                );
-                                              }).toList(),
-                                              onChanged: (newValue) {
-                                                if (newValue != null) {
-                                                  if ([5, 10, 15, 25]
-                                                      .contains(newValue)) {
-                                                    setState(() {
-                                                      _pageSize = newValue;
-                                                    });
-                                                  } else {
-                                                    // Handle case where the selected value is not in the predefined range
-                                                    // For example, you can show a dialog, display a message, or perform any appropriate action.
-                                                    print(
-                                                        "Selected value is not in the predefined range.");
-                                                  }
-                                                }
-                                              },
-                                            ),
-                                          ),
-                                        ])
-                                      : Container(
-                                          width: 60,
-                                          height: 30,
-                                          padding: EdgeInsets.only(left: 0),
-                                          decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              border: Border.all(
-                                                  color: Colors.grey.shade200)),
-                                          child: DropdownButton<int>(
-                                            padding: EdgeInsets.all(0),
-                                            underline: SizedBox(),
-                                            value: _pageSize,
-                                            items: [5, 10, 15, 25]
-                                                .map((_pageSize) {
-                                              return DropdownMenuItem<int>(
-                                                value: _pageSize,
-                                                child: Text(
-                                                  _pageSize.toString(),
-                                                  style:
-                                                      TextStyle(fontSize: 15),
-                                                ),
-                                              );
-                                            }).toList(),
-                                            onChanged: (newValue) {
-                                              if (newValue != null) {
-                                                if ([5, 10, 15, 25]
-                                                    .contains(newValue)) {
-                                                  setState(() {
-                                                    _pageSize = newValue;
-                                                  });
-                                                } else {
-                                                  // Handle case where the selected value is not in the predefined range
-                                                  // For example, you can show a dialog, display a message, or perform any appropriate action.
-                                                  print(
-                                                      "Selected value is not in the predefined range.");
-                                                }
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                ),
-                              ),
-                              SizedBox(width: 5),
-                              Flexible(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Flexible(
-                                      child: Container(
-                                        width:
-                                            MediaQuery.of(context).size.width >
-                                                    600
-                                                ? 300
-                                                : 50,
-                                        height: 30,
-                                        margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
-                                        padding:
-                                            EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          border: Border.all(
-                                            color:
-                                                Colors.black.withOpacity(0.5),
-                                          ),
-                                        ),
-                                        child: TextField(
-                                          controller: _searchController,
-                                          textAlign: TextAlign.start,
-                                          decoration: const InputDecoration(
-                                            contentPadding:
-                                                EdgeInsets.only(bottom: 15),
-                                            prefixIcon: Icon(Icons.search),
-                                            border: InputBorder.none,
-                                            hintText: 'Search',
-                                          ),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _fetchUsers(_pageSize,
-                                                  _lastVisibleSnapshot); // Trigger user fetching with pagination
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(width: 5),
-                              Container(
-                                width: MediaQuery.of(context).size.width > 600
-                                    ? 100
-                                    : 50,
-                                height: 30,
-                                decoration: BoxDecoration(
-                                    color: Colors.teal,
-                                    border: Border.all(
-                                        color: Colors.teal.shade900
-                                            .withOpacity(0.5)),
-                                    borderRadius: BorderRadius.circular(8)),
-                                child: ElevatedButton(
-                                  onPressed: (() {
-                                    print(MediaQuery.of(context).size.width);
-                                    createAccount(context);
-                                  }),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.teal,
-                                    padding:
-                                        MediaQuery.of(context).size.width > 600
-                                            ? EdgeInsets.fromLTRB(8, 0, 8, 0)
-                                            : EdgeInsets.only(right: 5),
-                                  ),
-                                  child: MediaQuery.of(context).size.width > 600
-                                      ? const Text(
-                                          "+ Add New",
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w400,
-                                              letterSpacing: 1,
-                                              color: Colors.white),
-                                        )
-                                      : const Text(
-                                          '+',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w400,
-                                              letterSpacing: 1,
-                                              color: Colors.white),
-                                        ),
-                                ),
-                              ),
-                              SizedBox(width: 5),
-                              Container(
-                                width: MediaQuery.of(context).size.width > 600
-                                    ? 100
-                                    : 50,
-                                height: 30,
-                                padding: EdgeInsets.all(0),
-                                decoration: BoxDecoration(
-                                    color: Colors.teal,
-                                    border: Border.all(
-                                        color: Colors.teal.shade900
-                                            .withOpacity(0.5)),
-                                    borderRadius: BorderRadius.circular(8)),
-                                child: ElevatedButton(
-                                  onPressed: (() {}),
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.teal,
-                                      padding:
-                                          MediaQuery.of(context).size.width >
-                                                  600
-                                              ? EdgeInsets.fromLTRB(8, 0, 8, 0)
-                                              : EdgeInsets.only(right: 5)),
-                                  child: MediaQuery.of(context).size.width > 600
-                                      ? const Row(
-                                          children: [
-                                            Icon(
-                                              Icons.cloud_download_outlined,
-                                              color: Colors.white,
-                                            ),
-                                            Text(
-                                              "  Export",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w400,
-                                                  letterSpacing: 1,
-                                                  color: Colors.white),
-                                            ),
-                                          ],
-                                        )
-                                      : const Center(
-                                          child: Icon(
-                                            Icons.cloud_download_outlined,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                ),
-                              ),
-                            ],
                           ),
-                        ),
-                        Divider(),
-                        FutureBuilder(
+                        ],
+                      ),
+                      searchFilter(context),
+                      Divider(),
+                      Expanded(
+                        child: FutureBuilder(
                           future: _fetchUsers(_pageSize, _lastVisibleSnapshot),
                           builder:
                               (context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -503,7 +271,13 @@ class _UserState extends State<PovUser> {
                                     height: 600,
                                     child: SingleChildScrollView(
                                       scrollDirection: Axis.vertical,
-                                      child: accountListTable(context),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          accountListTable(context),
+                                        ],
+                                      ),
                                     ))
                                 : SizedBox(
                                     height: 600,
@@ -511,53 +285,262 @@ class _UserState extends State<PovUser> {
                                       scrollDirection: Axis.horizontal,
                                       child: SingleChildScrollView(
                                           scrollDirection: Axis.vertical,
-                                          child: accountListTable(context)),
+                                          child: Column(
+                                            children: [
+                                              accountListTable(context),
+                                            ],
+                                          )),
                                     ));
                           },
                         ),
-                        Divider(),
-                        SizedBox(height: 5),
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              ElevatedButton(
-                                onPressed: _previousPage,
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: Text('Previous'),
-                              ),
-                              SizedBox(width: 10),
-                              Container(
-                                  height: 35,
-                                  padding: EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                          color: Colors.grey.shade200)),
-                                  child: Text('$_currentPage')),
-                              SizedBox(width: 10),
-                              ElevatedButton(
-                                onPressed: _nextPage,
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: Text('Next'),
-                              ),
-                            ]),
-                        SizedBox(height: 20),
-                      ],
-                    ),
+                      ),
+                      Divider(),
+                      SizedBox(height: 5),
+                      pagination(),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Row pagination() {
+    return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+      ElevatedButton(
+        onPressed: _previousPage,
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Text('Previous'),
+      ),
+      SizedBox(width: 10),
+      Container(
+          height: 35,
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade200)),
+          child: Text('$_currentPage')),
+      SizedBox(width: 10),
+      ElevatedButton(
+        onPressed: _nextPage,
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Text('Next'),
+      ),
+    ]);
+  }
+
+  Container searchFilter(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Flexible(
+            child: Container(
+              height: 30,
+              child: MediaQuery.of(context).size.width > 600
+                  ? Row(children: [
+                      Flexible(child: Text('Show entries: ')),
+                      Container(
+                        width: 70,
+                        height: 30,
+                        padding: EdgeInsets.only(left: 10),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade200)),
+                        child: DropdownButton<int>(
+                          padding: EdgeInsets.all(5),
+                          underline: SizedBox(),
+                          value: _pageSize,
+                          items: [5, 10, 15, 25].map((_pageSize) {
+                            return DropdownMenuItem<int>(
+                              value: _pageSize,
+                              child: Text(_pageSize.toString()),
+                            );
+                          }).toList(),
+                          onChanged: (newValue) {
+                            if (newValue != null) {
+                              if ([5, 10, 15, 25].contains(newValue)) {
+                                setState(() {
+                                  _pageSize = newValue;
+                                });
+                              } else {
+                                // Handle case where the selected value is not in the predefined range
+                                // For example, you can show a dialog, display a message, or perform any appropriate action.
+                                print(
+                                    "Selected value is not in the predefined range.");
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                    ])
+                  : Container(
+                      width: 60,
+                      height: 30,
+                      padding: EdgeInsets.only(left: 0),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade200)),
+                      child: DropdownButton<int>(
+                        padding: EdgeInsets.all(0),
+                        underline: SizedBox(),
+                        value: _pageSize,
+                        items: [5, 10, 15, 25].map((_pageSize) {
+                          return DropdownMenuItem<int>(
+                            value: _pageSize,
+                            child: Text(
+                              _pageSize.toString(),
+                              style: TextStyle(fontSize: 15),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (newValue) {
+                          if (newValue != null) {
+                            if ([5, 10, 15, 25].contains(newValue)) {
+                              setState(() {
+                                _pageSize = newValue;
+                              });
+                            } else {
+                              // Handle case where the selected value is not in the predefined range
+                              // For example, you can show a dialog, display a message, or perform any appropriate action.
+                              print(
+                                  "Selected value is not in the predefined range.");
+                            }
+                          }
+                        },
+                      ),
+                    ),
+            ),
+          ),
+          SizedBox(width: 5),
+          Flexible(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Flexible(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width > 600 ? 300 : 50,
+                    height: 30,
+                    margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
+                    padding: EdgeInsets.fromLTRB(3, 0, 0, 0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.black.withOpacity(0.5),
+                      ),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      textAlign: TextAlign.start,
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.only(bottom: 15),
+                        prefixIcon: Icon(Icons.search),
+                        border: InputBorder.none,
+                        hintText: 'Search',
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _fetchUsers(_pageSize,
+                              _lastVisibleSnapshot); // Trigger user fetching with pagination
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 5),
+          Container(
+            width: MediaQuery.of(context).size.width > 600 ? 100 : 50,
+            height: 30,
+            decoration: BoxDecoration(
+                color: Colors.teal,
+                border:
+                    Border.all(color: Colors.teal.shade900.withOpacity(0.5)),
+                borderRadius: BorderRadius.circular(8)),
+            child: ElevatedButton(
+              onPressed: (() {
+                print(MediaQuery.of(context).size.width);
+                createAccount(context);
+              }),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                padding: MediaQuery.of(context).size.width > 600
+                    ? EdgeInsets.fromLTRB(8, 0, 8, 0)
+                    : EdgeInsets.only(right: 5),
+              ),
+              child: MediaQuery.of(context).size.width > 600
+                  ? const Text(
+                      "+ Add New",
+                      style: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          letterSpacing: 1,
+                          color: Colors.white),
+                    )
+                  : const Text(
+                      '+',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          letterSpacing: 1,
+                          color: Colors.white),
+                    ),
+            ),
+          ),
+          SizedBox(width: 5),
+          Container(
+            width: MediaQuery.of(context).size.width > 600 ? 100 : 50,
+            height: 30,
+            padding: EdgeInsets.all(0),
+            decoration: BoxDecoration(
+                color: Colors.teal,
+                border:
+                    Border.all(color: Colors.teal.shade900.withOpacity(0.5)),
+                borderRadius: BorderRadius.circular(8)),
+            child: ElevatedButton(
+              onPressed: (() {}),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  padding: MediaQuery.of(context).size.width > 600
+                      ? EdgeInsets.fromLTRB(8, 0, 8, 0)
+                      : EdgeInsets.only(right: 5)),
+              child: MediaQuery.of(context).size.width > 600
+                  ? const Row(
+                      children: [
+                        Icon(
+                          Icons.cloud_download_outlined,
+                          color: Colors.white,
+                        ),
+                        Text(
+                          "  Export",
+                          style: TextStyle(
+                              fontWeight: FontWeight.w400,
+                              letterSpacing: 1,
+                              color: Colors.white),
+                        ),
+                      ],
+                    )
+                  : const Center(
+                      child: Icon(
+                        Icons.cloud_download_outlined,
+                        color: Colors.white,
+                      ),
+                    ),
+            ),
+          ),
+        ],
       ),
     );
   }

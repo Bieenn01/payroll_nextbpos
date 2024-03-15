@@ -21,7 +21,7 @@ final menuTree = TreeNode.root()
       TreeNode(key: "Calendar", data: Icons.edit_calendar_outlined),
       TreeNode(key: "Settings", data: Icons.settings),
       TreeNode(
-        key: 'Add Account', // Logout menu item
+        key: 'Account List', // Logout menu item
         data:
             Icons.person_add_alt_1, // You can use appropriate logout icon here
       ),
@@ -31,4 +31,3 @@ final menuTree = TreeNode.root()
       ),
     ],
   );
-  
