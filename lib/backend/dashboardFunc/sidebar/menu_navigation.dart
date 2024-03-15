@@ -29,10 +29,10 @@ class ScreensView extends StatelessWidget {
       case 'Dashboard':
         page = Container(
           color: Colors.teal.shade700,
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 120, child: TopBar()),
+              SizedBox(height: 120, child: TopBar()),
               Flexible(
                 child: DashboardMobile(),
               ),
@@ -44,10 +44,10 @@ class ScreensView extends StatelessWidget {
       case 'Overtime':
         page = page = Container(
           color: Colors.teal.shade700,
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 120, child: TopBar()),
+              SizedBox(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: RegularOTPage(),
@@ -59,10 +59,10 @@ class ScreensView extends StatelessWidget {
       case 'Regular (OT)':
         page = Container(
           color: Colors.teal.shade700,
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 120, child: TopBar()),
+              SizedBox(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: RegularOTPage(),
@@ -74,10 +74,10 @@ class ScreensView extends StatelessWidget {
       case 'Rest day':
         page = Container(
           color: Colors.teal.shade700,
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 120, child: TopBar()),
+              SizedBox(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: RestDayOTPage(),
@@ -89,10 +89,10 @@ class ScreensView extends StatelessWidget {
       case 'Special Holiday (SH)':
         page = Container(
           color: Colors.teal.shade700,
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 120, child: TopBar()),
+              SizedBox(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: SpecialHolidayOTPage(),
@@ -104,10 +104,10 @@ class ScreensView extends StatelessWidget {
       case 'Regular Holiday (RH)':
         page = Container(
           color: Colors.teal.shade700,
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 120, child: TopBar()),
+              SizedBox(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: RegularHolidayOTPage(),
@@ -120,10 +120,10 @@ class ScreensView extends StatelessWidget {
       case 'Logs':
         page = Container(
           color: Colors.teal.shade700,
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 120, child: TopBar()),
+              SizedBox(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: AttendancePage(),
@@ -141,16 +141,16 @@ class ScreensView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 120, child: TopBar()),
+              const SizedBox(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: Container(
-                    margin: EdgeInsets.all(15),
-                    padding: EdgeInsets.all(20),
+                    margin: const EdgeInsets.all(15),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(15),
                         color: Colors.white),
-                    child: CalendarPage()),
+                    child: const CalendarPage()),
               ),
             ],
           ),
@@ -159,10 +159,10 @@ class ScreensView extends StatelessWidget {
       case 'Holiday':
         page = Container(
           color: Colors.teal.shade700,
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 120, child: TopBar()),
+              SizedBox(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: HolidayPage(),
@@ -174,10 +174,10 @@ class ScreensView extends StatelessWidget {
       case 'Regular':
         page = Container(
           color: Colors.teal.shade700,
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 120, child: TopBar()),
+              SizedBox(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: HolidayPage(),
@@ -189,10 +189,10 @@ class ScreensView extends StatelessWidget {
       case 'Special':
         page = Container(
           color: Colors.teal.shade700,
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(height: 120, child: TopBar()),
+              SizedBox(height: 120, child: TopBar()),
               Flexible(
                 flex: 7,
                 child: SpecialHolidayPage(),
@@ -201,7 +201,7 @@ class ScreensView extends StatelessWidget {
           ),
         );
         break;
-    
+
       default:
         page = Container(
           color: Colors.teal.shade700,
@@ -256,7 +256,7 @@ class ScreensView extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Dialog(
+        return const Dialog(
           child:
               CalendarPage(), // Replace CalendarPage() with your dialog content
         );

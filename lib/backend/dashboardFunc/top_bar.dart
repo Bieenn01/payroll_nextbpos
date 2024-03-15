@@ -141,10 +141,12 @@ class _TopBarState extends State<TopBar> {
                     child: MediaQuery.of(context).size.width > 600
                         ? Row(
                             children: [
-                              const CircleAvatar(
-                                child: Icon(
-                                  Icons.person,
-                                ),
+                              CircleAvatar(
+                                backgroundImage: _role == 'Admin'
+                                    ? AssetImage('assets/images/Admin.jpg')
+                                    : AssetImage('assets/images/Employee.jpg'),
+                                // Change image path based on role
+                                radius: 20, // Adjust the radius as per your requirement
                               ),
                               const SizedBox(
                                 width: 10,
