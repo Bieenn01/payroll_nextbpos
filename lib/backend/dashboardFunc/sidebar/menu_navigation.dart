@@ -201,32 +201,7 @@ class ScreensView extends StatelessWidget {
           ),
         );
         break;
-      case 'Settings':
-        page = Container(
-          color: Colors.teal.shade700,
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Flexible(
-                flex: 1,
-                child: TopBar(),
-              ),
-              Flexible(
-                flex: 2,
-                child: RegularOT(),
-              ),
-              Flexible(
-                flex: 2,
-                child: SpecialHolidayOT(),
-              ),
-              Flexible(
-                flex: 2,
-                child: RestDayOT(),
-              ),
-            ],
-          ),
-        );
-        break;
+    
       default:
         page = Container(
           color: Colors.teal.shade700,
