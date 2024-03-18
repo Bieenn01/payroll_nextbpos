@@ -72,36 +72,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                       SizedBox(height: 10),
                       Divider(),
                       SizedBox(height: 5),
-                      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text('Previous'),
-                        ),
-                        SizedBox(width: 10),
-                        Container(
-                            height: 35,
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                border:
-                                    Border.all(color: Colors.grey.shade200)),
-                            child: Text('$_currentPage')),
-                        SizedBox(width: 10),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text('Next'),
-                        ),
-                      ]),
+                      pagination(),
                       SizedBox(height: 20),
                     ],
                   )),
@@ -110,6 +81,38 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
         ),
       ),
     ));
+  }
+
+  Row pagination() {
+    return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+      ElevatedButton(
+        onPressed: () {},
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Text('Previous'),
+      ),
+      SizedBox(width: 10),
+      Container(
+          height: 35,
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade200)),
+          child: Text('$_currentPage')),
+      SizedBox(width: 10),
+      ElevatedButton(
+        onPressed: () {},
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Text('Next'),
+      ),
+    ]);
   }
 
   Widget _buildTable() {
@@ -157,7 +160,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
 
           const textStyle = TextStyle(fontWeight: FontWeight.bold);
           return SizedBox(
-            height: 610,
+            height: 600,
             child: SingleChildScrollView(
               child: DataTable(
                 columns: const [
@@ -368,17 +371,17 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                     ),
                   ),
                   Flexible(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        await _computeAndAddToOvertimePay();
-                      },
-                      child: Text('Compute and Add to RegularHOT Pay'),
-                    ),
-                  ),
-                  Flexible(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
+                        Flexible(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              await _computeAndAddToOvertimePay();
+                            },
+                            child: Text('Compute and Add to RegularHOT Pay'),
+                          ),
+                        ),
                         Flexible(
                           child: Container(
                             width: MediaQuery.of(context).size.width > 600
