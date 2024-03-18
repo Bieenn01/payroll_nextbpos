@@ -1267,8 +1267,8 @@ class _UserState extends State<PovUser> {
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.white,
           child: Container(
-            margin: EdgeInsets.all(10),
-            padding: EdgeInsets.all(10),
+            margin: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
                 color: Colors.white, borderRadius: BorderRadius.circular(8)),
             child: SingleChildScrollView(
@@ -1286,7 +1286,7 @@ class _UserState extends State<PovUser> {
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
-                            icon: Icon(Icons.close),
+                            icon: const Icon(Icons.close),
                           )
                         ],
                       ),
@@ -1322,7 +1322,7 @@ class _UserState extends State<PovUser> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('First Name'),
+                                const Text('First Name'),
                                 Container(
                                   width: 280,
                                   height: 40,
@@ -1351,7 +1351,7 @@ class _UserState extends State<PovUser> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Middle Name'),
+                                const Text('Middle Name'),
                                 Container(
                                   width: 280,
                                   height: 40,
@@ -1471,7 +1471,7 @@ class _UserState extends State<PovUser> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Employee ID'),
+                                const Text('Employee ID'),
                                 Container(
                                   width: 280,
                                   height: 40,
@@ -1554,7 +1554,7 @@ class _UserState extends State<PovUser> {
                                       borderRadius: BorderRadius.circular(12)),
                                   child: DropdownMenu<String>(
                                     width: 280,
-                                    inputDecorationTheme: InputDecorationTheme(
+                                    inputDecorationTheme: const InputDecorationTheme(
                                       border: InputBorder.none,
                                     ),
                                     trailingIcon: Icon(Icons.arrow_drop_down),
@@ -1603,7 +1603,7 @@ class _UserState extends State<PovUser> {
                                   decoration: boxdecoration(),
                                   child: DropdownMenu<String>(
                                     width: 280,
-                                    inputDecorationTheme: InputDecorationTheme(
+                                    inputDecorationTheme: const InputDecorationTheme(
                                       border: InputBorder.none,
                                     ),
                                     trailingIcon: Icon(Icons.arrow_drop_down),
@@ -1647,7 +1647,7 @@ class _UserState extends State<PovUser> {
                                   decoration: boxdecoration(),
                                   child: DropdownMenu<String>(
                                     width: 280,
-                                    inputDecorationTheme: InputDecorationTheme(
+                                    inputDecorationTheme: const InputDecorationTheme(
                                       border: InputBorder.none,
                                     ),
                                     trailingIcon: Icon(Icons.arrow_drop_down),
@@ -1679,7 +1679,7 @@ class _UserState extends State<PovUser> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'Shift',
                                   style: textStyle,
                                 ),
@@ -1753,7 +1753,7 @@ class _UserState extends State<PovUser> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'SSS',
                                   style: textStyle,
                                 ),
@@ -1798,7 +1798,7 @@ class _UserState extends State<PovUser> {
                               ],
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             width: 10,
                           ),
                           Flexible(
@@ -1806,7 +1806,7 @@ class _UserState extends State<PovUser> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'TIN',
                                   style: textStyle,
                                 ),
@@ -1851,7 +1851,7 @@ class _UserState extends State<PovUser> {
                               ],
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             width: 10,
                           ),
                           Flexible(
@@ -1859,7 +1859,7 @@ class _UserState extends State<PovUser> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'Tax Code',
                                   style: textStyle,
                                 ),
@@ -1918,7 +1918,7 @@ class _UserState extends State<PovUser> {
                       ),
                       Row(
                         children: [
-                          SizedBox(
+                          const SizedBox(
                             width: 10,
                           ),
                           Flexible(
@@ -1926,7 +1926,7 @@ class _UserState extends State<PovUser> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'Email',
                                   style: textStyle,
                                 ),
@@ -1946,7 +1946,7 @@ class _UserState extends State<PovUser> {
                               ],
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             width: 10,
                           ),
                           Flexible(
@@ -1954,7 +1954,7 @@ class _UserState extends State<PovUser> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'Username',
                                   style: textStyle,
                                 ),
@@ -1974,7 +1974,7 @@ class _UserState extends State<PovUser> {
                               ],
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             width: 10,
                           ),
                           Flexible(
@@ -1982,14 +1982,14 @@ class _UserState extends State<PovUser> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'Password',
                                   style: textStyle,
                                 ),
                                 Container(
                                   width: 280,
                                   height: 40,
-                                  padding: EdgeInsets.all(2),
+                                  padding: const EdgeInsets.all(2),
                                   decoration: boxdecoration(),
                                   child: TextField(
                                     obscureText: !passwordVisible,
@@ -2015,7 +2015,7 @@ class _UserState extends State<PovUser> {
                           )
                         ],
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 15,
                       ),
                       Row(
