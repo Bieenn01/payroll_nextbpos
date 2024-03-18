@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:project_payroll_nextbpo/frontend/dashboard/user_profile.dart';
 import 'package:project_payroll_nextbpo/frontend/login.dart'; // Import your login page file
 
 class TopBar extends StatefulWidget {
@@ -110,6 +111,10 @@ class _TopBarState extends State<TopBar> {
                       position: const RelativeRect.fromLTRB(80, 100, 50, 0),
                       items: const [
                         PopupMenuItem(
+                          value: 'user_profile',
+                          child: Text('User Profile'),
+                        ),
+                        PopupMenuItem(
                           value: 'log_out',
                           child: Text('Log out'),
                         ),
@@ -125,6 +130,12 @@ class _TopBarState extends State<TopBar> {
                                   Login()), // Navigate back to the login page
                           (route) =>
                               false, // Remove all existing routes from the navigation stack
+                        );
+                      } else if (value == 'user_profile') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => UserProfile()),
                         );
                       }
                     });
@@ -146,7 +157,8 @@ class _TopBarState extends State<TopBar> {
                                     ? AssetImage('assets/images/Admin.jpg')
                                     : AssetImage('assets/images/Employee.jpg'),
                                 // Change image path based on role
-                                radius: 20, // Adjust the radius as per your requirement
+                                radius:
+                                    20, // Adjust the radius as per your requirement
                               ),
                               const SizedBox(
                                 width: 10,

@@ -134,17 +134,17 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
                     ),
                   ),
                   Flexible(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        await _computeAndAddToOvertimePay();
-                      },
-                      child: Text('Compute and Add to SpecialOT Pay'),
-                    ),
-                  ),
-                  Flexible(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
+                        Flexible(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              await _computeAndAddToOvertimePay();
+                            },
+                            child: Text('Compute and Add to SpecialOT Pay'),
+                          ),
+                        ),
                         Flexible(
                           child: Container(
                             width: MediaQuery.of(context).size.width > 600
@@ -417,7 +417,7 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
           const textStyle = TextStyle(fontWeight: FontWeight.bold);
 
           return SizedBox(
-            height: 610,
+            height: 600,
             child: SingleChildScrollView(
               child: DataTable(
                 columns: const [
