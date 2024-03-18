@@ -104,7 +104,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
                                     cursor: SystemMouseCursors.click,
                                     child: Container(
                                       color: node.level >= 2 || isExpanded
-                                          ? Color.fromARGB(255, 154, 207,
+                                          ? const Color.fromARGB(255, 154, 207,
                                               205) // For coloring the background of child nodes
                                           : Colors.white,
                                       height:
@@ -125,7 +125,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
                                           decoration: BoxDecoration(
                                             color: isSelected
                                                 ? node.isLeaf
-                                                    ? Color.fromARGB(
+                                                    ? const Color.fromARGB(
                                                         255,
                                                         20,
                                                         161,
@@ -168,7 +168,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
                                                         node.key == "/"
                                                             ? "Menu"
                                                             : node.key,
-                                                        style: TextStyle(
+                                                        style: const TextStyle(
                                                           color: Colors.black,
                                                           fontSize: 18,
                                                         ),
