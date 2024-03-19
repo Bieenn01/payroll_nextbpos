@@ -3,36 +3,37 @@ import 'package:flutter/material.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_page.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_dashboard.dart';
 
-class UserProfile extends StatefulWidget {
-  UserProfile({super.key});
-
-  @override
-  State<UserProfile> createState() => _UserProfileState();
-}
-
-class _UserProfileState extends State<UserProfile> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        color: Colors.white,
-        child: Column(
+Future<dynamic> UserProfile(BuildContext context) {
+  return showDialog(
+    context: context,
+    barrierLabel: '',
+    builder: (_) => AlertDialog(
+      backgroundColor: Colors.white,
+      title: Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.arrow_back),
+            Text(
+              ' User Profile',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 250),
+              child: IconButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.of(context).pop();
                   },
-                ),
-                Text('User Profile'),
-              ],
+                  icon: Icon(Icons.close)),
             ),
           ],
         ),
       ),
-    );
-  }
+      content: Container(
+        width: 800,
+        child: Column(
+          children: [],
+        ),
+      ),
+    ),
+  );
 }

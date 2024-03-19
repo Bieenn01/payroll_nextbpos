@@ -318,7 +318,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
               return DataRow(
                   color: MaterialStateColor.resolveWith((states) => rowColor!),
                   cells: [
-                    DataCell(Text('#')),
+                    DataCell(Text((index + 1).toString())),
                     DataCell(Text(
                         overtimeData['employeeId'] ?? 'Not Available Yet')),
                     DataCell(

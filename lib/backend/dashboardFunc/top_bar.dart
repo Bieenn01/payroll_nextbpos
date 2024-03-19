@@ -142,11 +142,7 @@ class _TopBarState extends State<TopBar> {
                               false, // Remove all existing routes from the navigation stack
                         );
                       } else if (value == 'user_profile') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => UserProfile()),
-                        );
+                        UserProfile(context);
                       }
                     });
                   },

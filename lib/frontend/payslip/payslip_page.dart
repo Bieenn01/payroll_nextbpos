@@ -21,81 +21,83 @@ class _PayslipPageState extends State<PayslipPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: Container(
-                margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    viewTable
-                        ? Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: TextButton(
+              child: SingleChildScrollView(
+                child: Container(
+                  margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      viewTable
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: TextButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        viewTable = true;
+                                      });
+                                    },
+                                    child: Text(
+                                      "Generate Payroll",
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: TextButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        viewTable = true;
+                                      });
+                                    },
+                                    child: Text(
+                                      "Generate Payroll >",
+                                      style: TextStyle(
+                                          color: Colors.grey.shade200,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
                                   onPressed: () {
                                     setState(() {
-                                      viewTable = true;
+                                      viewTable = false;
                                     });
                                   },
-                                  child: Text(
-                                    "Generate Payroll",
+                                  child: const Text(
+                                    "Payroll",
                                     style: TextStyle(
                                         color: Colors.black,
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold),
                                   ),
                                 ),
-                              ),
-                            ],
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: TextButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      viewTable = true;
-                                    });
-                                  },
-                                  child: Text(
-                                    "Generate Payroll >",
-                                    style: TextStyle(
-                                        color: Colors.grey.shade200,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  setState(() {
-                                    viewTable = false;
-                                  });
-                                },
-                                child: const Text(
-                                  "Payroll",
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ],
-                          ),
-                    const SizedBox(
-                      height: 5,
-                    ),
-                    Divider(),
-                    viewTable ? timesheet() : payroll(),
-                    const Divider(),
-                  ],
+                              ],
+                            ),
+                      const SizedBox(
+                        height: 5,
+                      ),
+                      Divider(),
+                      viewTable ? timesheet() : payroll(),
+                      const Divider(),
+                    ],
+                  ),
                 ),
               ),
             ),

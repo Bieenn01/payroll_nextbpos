@@ -171,7 +171,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
           }).toList();
 
           // Filtering based on date range
-          overtimeDocs = overtimeDocs.where((doc) {
+          overtimeDocs = filteredDocs.where((doc) {
             DateTime timeIn = doc['timeIn'].toDate();
             DateTime timeOut = doc['timeOut'].toDate();
             if (fromDate != null && toDate != null) {
@@ -188,12 +188,12 @@ class _RegularOTPageState extends State<RegularOTPage> {
           }).toList();
 
           _sortAscending
-              ? overtimeDocs.sort((a, b) {
+              ? filteredDocs.sort((a, b) {
                   double overtimePayA = a['overtimePay'] ?? 0.0;
                   double overtimePayB = b['overtimePay'] ?? 0.0;
                   return overtimePayA.compareTo(overtimePayB);
                 })
-              : overtimeDocs.sort((b, a) {
+              : filteredDocs.sort((b, a) {
                   double overtimePayA = a['overtimePay'] ?? 0.0;
                   double overtimePayB = b['overtimePay'] ?? 0.0;
                   return overtimePayA.compareTo(overtimePayB);
@@ -330,9 +330,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
               return DataRow(
                   color: MaterialStateColor.resolveWith((states) => rowColor!),
                   cells: [
-                    DataCell(
-                      Text('#'),
-                    ),
+                    DataCell(Text((index + 1).toString())),
                     DataCell(
                       Text(overtimeData['employeeId'] ?? 'Not Available Yet'),
                     ),

@@ -564,7 +564,7 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
               return DataRow(
                   color: MaterialStateColor.resolveWith((states) => rowColor!),
                   cells: [
-                    DataCell(Text('#')),
+                    DataCell(Text((index + 1).toString())),
                     DataCell(
                       Text(holidayData['employeeId'] ?? 'Not Available Yet'),
                     ),
@@ -785,6 +785,9 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
           DataColumn(
               label: Text('Total Hours (h:m)',
                   style: TextStyle(fontWeight: FontWeight.bold))),
+          DataColumn(
+              label:
+                  Text('Pay', style: TextStyle(fontWeight: FontWeight.bold))),
         ],
         rows: overtimeDocs.map((overtimeDoc) {
           Color? rowColor = index % 2 == 0
@@ -818,6 +821,11 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                     )
                   ],
                 )),
+                DataCell(
+                  Text(NumberFormat.currency(
+                          locale: 'en_PH', symbol: '₱ ', decimalDigits: 2)
+                      .format(overtimeDoc['holidayPay'] ?? 0.0)),
+                ),
               ]);
         }).toList(),
       ),
