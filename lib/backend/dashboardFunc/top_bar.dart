@@ -39,6 +39,7 @@ class _TopBarState extends State<TopBar> {
   @override
   void dispose() {
     _subscription.cancel();
+    timer.cancel();
     super.dispose();
   }
 
