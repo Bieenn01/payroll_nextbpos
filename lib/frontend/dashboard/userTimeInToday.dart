@@ -475,9 +475,9 @@ Widget _buildShimmerLoading() {
           ),
         ],
         rows: List.generate(
-          3, // You can change this to the number of shimmer rows you want
+          5, // You can change this to the number of shimmer rows you want
           (index) => DataRow(cells: [
-            DataCell(Container(width: 40, height: 16, color: Colors.white)),
+            DataCell(Container(width: 250, height: 16, color: Colors.white)),
             DataCell(Container(width: 60, height: 16, color: Colors.white)),
             DataCell(Container(width: 120, height: 16, color: Colors.white)),
             DataCell(Container(width: 80, height: 16, color: Colors.white)),
