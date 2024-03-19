@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart' as ShimmerPackage;
 
 class SpecialHolidayPage extends StatefulWidget {
   const SpecialHolidayPage({Key? key}) : super(key: key);
@@ -420,7 +421,7 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
           FirebaseFirestore.instance.collection('SpecialHoliday').snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator());
+          return _buildShimmerLoading();
         } else if (snapshot.data!.docs.isEmpty) {
           return Center(child: Text('No data available yet'));
         } else {
@@ -563,7 +564,7 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
               return DataRow(
                   color: MaterialStateColor.resolveWith((states) => rowColor!),
                   cells: [
-                    DataCell(Text('#')),
+                    DataCell(Text((index + 1).toString())),
                     DataCell(
                       Text(holidayData['employeeId'] ?? 'Not Available Yet'),
                     ),
@@ -784,6 +785,9 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
           DataColumn(
               label: Text('Total Hours (h:m)',
                   style: TextStyle(fontWeight: FontWeight.bold))),
+          DataColumn(
+              label:
+                  Text('Pay', style: TextStyle(fontWeight: FontWeight.bold))),
         ],
         rows: overtimeDocs.map((overtimeDoc) {
           Color? rowColor = index % 2 == 0
@@ -817,6 +821,11 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                     )
                   ],
                 )),
+                DataCell(
+                  Text(NumberFormat.currency(
+                          locale: 'en_PH', symbol: '₱ ', decimalDigits: 2)
+                      .format(overtimeDoc['holidayPay'] ?? 0.0)),
+                ),
               ]);
         }).toList(),
       ),
@@ -984,4 +993,62 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
       },
     );
   }
+}
+
+Widget _buildShimmerLoading() {
+  return SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: ShimmerPackage.Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: DataTable(
+        columns: const [
+          DataColumn(
+            label: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Employee ID',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Department',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Total Hours (h:m)',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Overtime Pay',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Overtime Type',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label:
+                Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          // Added column for Status
+        ],
+        rows: List.generate(
+          10, // You can change this to the number of shimmer rows you want
+          (index) => DataRow(cells: [
+            DataCell(Container(width: 40, height: 16, color: Colors.white)),
+            DataCell(Container(width: 60, height: 16, color: Colors.white)),
+            DataCell(Container(width: 120, height: 16, color: Colors.white)),
+            DataCell(Container(width: 80, height: 16, color: Colors.white)),
+            DataCell(Container(width: 80, height: 16, color: Colors.white)),
+            DataCell(Container(width: 100, height: 16, color: Colors.white)),
+            DataCell(Container(width: 60, height: 16, color: Colors.white)),
+            DataCell(Container(width: 60, height: 16, color: Colors.white)),
+          ]),
+        ),
+      ),
+    ),
+  );
 }

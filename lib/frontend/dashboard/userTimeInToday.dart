@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:project_payroll_nextbpo/frontend/raw%20backend/userTimeOutToday.dart';
+import 'package:shimmer/shimmer.dart' as ShimmerPackage;
 
 class UserTimedInToday extends StatefulWidget {
   @override
@@ -55,7 +56,7 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Attendace Overview',
+          'Attendance Overview',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -110,9 +111,7 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
       stream: _userRecordsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
+          return _buildShimmerLoading();
         }
         if (snapshot.hasError) {
           return Center(
@@ -221,9 +220,7 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
       stream: _userRecordsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
+          return _buildShimmerLoading();
         }
         if (snapshot.hasError) {
           return Center(
@@ -332,9 +329,7 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
       stream: _userRecordsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
+          return _buildShimmerLoading();
         }
         if (snapshot.hasError) {
           return Center(
@@ -454,4 +449,41 @@ class _UserRecordsDataSource extends DataTableSource {
       return timestamp.toString();
     }
   }
+}
+
+Widget _buildShimmerLoading() {
+  return SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: ShimmerPackage.Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: DataTable(
+        columns: const [
+          DataColumn(
+            label: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Time-In/Time-Out',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Department',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+        rows: List.generate(
+          5, // You can change this to the number of shimmer rows you want
+          (index) => DataRow(cells: [
+            DataCell(Container(width: 250, height: 16, color: Colors.white)),
+            DataCell(Container(width: 60, height: 16, color: Colors.white)),
+            DataCell(Container(width: 120, height: 16, color: Colors.white)),
+            DataCell(Container(width: 80, height: 16, color: Colors.white)),
+          ]),
+        ),
+      ),
+    ),
+  );
 }

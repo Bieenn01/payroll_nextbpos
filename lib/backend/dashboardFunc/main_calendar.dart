@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({Key? key}) : super(key: key);
@@ -14,12 +15,14 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   late MeetingDataSource _dataSource;
   bool _showHolidays = true;
+  late String _upcomingHoliday = 'No upcoming holidays';
 
   @override
   void initState() {
     super.initState();
     _dataSource = MeetingDataSource();
     _toggleDataSource(true); // Load holidays by default
+    _loadUpcomingHoliday();
   }
 
   TextEditingController eventNameController = TextEditingController();
@@ -35,6 +38,56 @@ class _CalendarPageState extends State<CalendarPage> {
       await _loadHolidaysFromFirestore(); // Fetch holidays from Firestore
     } else {
       await _loadMeetingsFromFirestore(); // Load meetings from Firestore
+    }
+  }
+
+  Future<void> _loadUpcomingHoliday() async {
+    {
+      // Calculate today's date and the date 30 days from now
+      DateTime now = DateTime.now();
+      DateTime thirtyDaysLater = now.add(Duration(days: 30));
+
+      // Query upcoming holidays from Firestore within the next 30 days
+      DocumentSnapshot<Map<String, dynamic>> holidaysSnapshot =
+          await FirebaseFirestore.instance
+              .collection('HolidaysPH')
+              .doc('holidays')
+              .get();
+
+      if (holidaysSnapshot.exists) {
+        List<dynamic> holidays = holidaysSnapshot.data()?['holidays'];
+
+        // Filter holidays within the next 30 days
+        List<dynamic> upcomingHolidays = holidays.where((holiday) {
+          DateTime holidayDate = DateTime.parse(holiday['date']);
+          return holidayDate.isAfter(now) &&
+              holidayDate.isBefore(thirtyDaysLater);
+        }).toList();
+
+        // Sort upcoming holidays by date
+        upcomingHolidays.sort((a, b) =>
+            DateTime.parse(a['date']).compareTo(DateTime.parse(b['date'])));
+
+        // Retrieve the first upcoming holiday
+        if (upcomingHolidays.isNotEmpty) {
+          Map<String, dynamic> upcomingHoliday = upcomingHolidays.first;
+          String holidayName = upcomingHoliday['eventName'];
+          DateTime holidayDate = DateTime.parse(upcomingHoliday['date']);
+
+          setState(() {
+            _upcomingHoliday =
+                'Upcoming Holiday: $holidayName (${DateFormat('MMM dd, yyyy').format(holidayDate)})';
+          });
+        } else {
+          setState(() {
+            _upcomingHoliday = 'No upcoming holidays';
+          });
+        }
+      } else {
+        setState(() {
+          _upcomingHoliday = 'Holidays data not found';
+        });
+      }
     }
   }
 
@@ -58,23 +111,40 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
         ],
       ),
-      body: SfCalendar(
-        view: CalendarView.month,
-        dataSource: _dataSource,
-        monthViewSettings: MonthViewSettings(
-          appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
-        ),
-        onTap: (calendarTapDetails) {
-          if (calendarTapDetails.targetElement ==
-              CalendarElement.calendarCell) {
-            _showAddAppointmentDialog(calendarTapDetails.date!);
-          } else if (calendarTapDetails.targetElement ==
-              CalendarElement.appointment) {
-            final Meeting meeting =
-                calendarTapDetails.appointments![0] as Meeting;
-            _showEditAppointmentDialog(meeting);
-          }
-        },
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              _upcomingHoliday,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Expanded(
+            child: SfCalendar(
+              view: CalendarView.month,
+              dataSource: _dataSource,
+              monthViewSettings: MonthViewSettings(
+                appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
+              ),
+              onTap: (calendarTapDetails) {
+                if (calendarTapDetails.targetElement ==
+                    CalendarElement.calendarCell) {
+                  _showAddAppointmentDialog(calendarTapDetails.date!);
+                } else if (calendarTapDetails.targetElement ==
+                    CalendarElement.appointment) {
+                  final Meeting meeting =
+                      calendarTapDetails.appointments![0] as Meeting;
+                  _showEditAppointmentDialog(meeting);
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
