@@ -27,9 +27,9 @@ class _PayslipFormState extends State<PayslipForm> {
           child: Column(
             children: [
               Container(
-                height: MediaQuery.of(context).size.width > 700 ? 120 : 140,
+                height: MediaQuery.of(context).size.width > 700 ? 110 : 140,
                 margin: const EdgeInsets.fromLTRB(15, 10, 15, 10),
-                padding: const EdgeInsets.all(15),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -37,7 +37,11 @@ class _PayslipFormState extends State<PayslipForm> {
                 child: MediaQuery.of(context).size.width > 700
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [userInfo(), taxInfo()],
+                        children: [
+                          Expanded(
+                              child: userInfo()), // Wrap userInfo with Expanded
+                          taxInfo(),
+                        ],
                       )
                     : SingleChildScrollView(
                         child: Column(
@@ -45,12 +49,12 @@ class _PayslipFormState extends State<PayslipForm> {
                             userInfo(),
                             Row(
                               children: [
-                                SizedBox(
-                                  width: 100,
-                                ),
-                                taxInfo(),
+                                SizedBox(width: 100),
+                                Expanded(
+                                    child:
+                                        taxInfo()), // Wrap taxInfo with Expanded
                               ],
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -570,48 +574,60 @@ class _PayslipFormState extends State<PayslipForm> {
               'Taylor Swift',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
-            Row(
-              children: [
-                //Department
-                Container(
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  //Department
+                  Container(
                     margin: EdgeInsets.all(5),
                     padding: EdgeInsets.all(5),
                     decoration: BoxDecoration(
-                        color: Colors.blue.shade200,
-                        borderRadius: BorderRadius.circular(5)),
+                      color: Colors.blue.shade200,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
                     child: const Text(
                       'IT',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
+                        fontSize: 12,
                       ),
-                    )),
-                //Role
-                Container(
+                    ),
+                  ),
+                  //Role
+                  Container(
                     margin: EdgeInsets.all(5),
                     padding: EdgeInsets.all(5),
                     decoration: BoxDecoration(
-                        color: Colors.yellow.shade300,
-                        borderRadius: BorderRadius.circular(5)),
+                      color: Colors.yellow.shade300,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
                     child: const Text(
                       'Employee',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
+                        fontSize: 12,
                       ),
-                    )),
-                //Employee Status
-                Container(
+                    ),
+                  ),
+                  //Employee Status
+                  Container(
                     margin: EdgeInsets.all(5),
                     padding: EdgeInsets.all(5),
                     decoration: BoxDecoration(
-                        color: Colors.green.shade300,
-                        borderRadius: BorderRadius.circular(5)),
+                      color: Colors.green.shade300,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
                     child: const Text(
                       'Regular',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
+                        fontSize: 12,
                       ),
-                    ))
-              ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

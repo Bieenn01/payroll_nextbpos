@@ -18,6 +18,7 @@ class _PayslipPageState extends State<PayslipPage> {
       body: Container(
         color: Colors.teal.shade700,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
               child: Container(
@@ -27,6 +28,7 @@ class _PayslipPageState extends State<PayslipPage> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12)),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     viewTable
                         ? Row(
@@ -41,7 +43,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                     });
                                   },
                                   child: Text(
-                                    "Timesheet ",
+                                    "Generate Payroll",
                                     style: TextStyle(
                                         color: Colors.black,
                                         fontSize: 20,
@@ -63,7 +65,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                     });
                                   },
                                   child: Text(
-                                    "Timesheet >",
+                                    "Generate Payroll >",
                                     style: TextStyle(
                                         color: Colors.grey.shade200,
                                         fontSize: 20,
@@ -103,188 +105,210 @@ class _PayslipPageState extends State<PayslipPage> {
     );
   }
 
-  Column timesheet() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          child: DataTable(columns: const [
-            DataColumn(
-                label:
-                    Text('#', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Name',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Department',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Date Start',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Date End',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Date Generated',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Action',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-          ], rows: [
-            DataRow(cells: [
-              const DataCell(Text('1')),
-              const DataCell(Text('IT_Feb1-15')),
-              const DataCell(Text('IT')),
-              const DataCell(Text('02-01-2024')),
-              const DataCell(Text('02-15-2024')),
-              const DataCell(Text('02-16-2024')),
-              DataCell(
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      viewTable = false;
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.all(5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Icon(
-                        Icons.visibility,
-                        color: Colors.blue,
-                        size: 15,
-                      ),
-                      Text(
-                        'View',
-                        style: TextStyle(fontSize: 10, color: Colors.blue),
-                      ),
-                    ],
-                  ),
+  SizedBox timesheet() {
+    var dataTable = DataTable(columns: const [
+      DataColumn(
+          label: Text('#', style: TextStyle(fontWeight: FontWeight.bold))),
+      DataColumn(
+          label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold))),
+      DataColumn(
+          label: Text('Department',
+              style: TextStyle(fontWeight: FontWeight.bold))),
+      DataColumn(
+          label: Text('Date Start',
+              style: TextStyle(fontWeight: FontWeight.bold))),
+      DataColumn(
+          label:
+              Text('Date End', style: TextStyle(fontWeight: FontWeight.bold))),
+      DataColumn(
+          label: Text('Date Generated',
+              style: TextStyle(fontWeight: FontWeight.bold))),
+      DataColumn(
+          label: Text('Action', style: TextStyle(fontWeight: FontWeight.bold))),
+    ], rows: [
+      DataRow(cells: [
+        const DataCell(Text('1')),
+        const DataCell(Text('IT_Feb1-15')),
+        const DataCell(Text('IT')),
+        const DataCell(Text('02-01-2024')),
+        const DataCell(Text('02-15-2024')),
+        const DataCell(Text('02-16-2024')),
+        DataCell(
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                viewTable = false;
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.all(5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Icon(
+                  Icons.visibility,
+                  color: Colors.blue,
+                  size: 15,
+                ),
+                Text(
+                  'View',
+                  style: TextStyle(fontSize: 10, color: Colors.blue),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ])
+    ]);
+    return MediaQuery.of(context).size.width > 1500
+        ? SizedBox(
+            height: 600,
+            child: SingleChildScrollView(
+              child: Flexible(
+                child: dataTable,
+              ),
+            ),
+          )
+        : SizedBox(
+            height: 600,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Flexible(
+                  child: dataTable,
                 ),
               ),
-            ])
-          ]),
-        ),
-      ],
-    );
+            ),
+          );
   }
 
-  Column payroll() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          child: DataTable(columns: const [
-            DataColumn(
-                label:
-                    Text('#', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Employee ID',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Name',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Gross Pay',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Deductions',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Net Pay',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(
-                label: Text('Action',
-                    style: TextStyle(fontWeight: FontWeight.bold))),
-          ], rows: [
-            DataRow(cells: [
-              const DataCell(Text('1')),
-              const DataCell(Text('354632')),
-              const DataCell(Text('Dahnica J. Tedlos')),
-              const DataCell(Text('21,000.00')),
-              const DataCell(Text('0.00')),
-              const DataCell(Text('0.00')),
-              DataCell(
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => PayslipForm()),
-                      );
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.all(5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Icon(
-                        Icons.edit_document,
-                        color: Colors.blue,
-                        size: 15,
-                      ),
-                      Text(
-                        'Edit Payslip',
-                        style: TextStyle(fontSize: 10, color: Colors.blue),
-                      ),
-                    ],
-                  ),
-                ),
+  SizedBox payroll() {
+    var dataTable = DataTable(columns: const [
+      DataColumn(
+          label: Text('#', style: TextStyle(fontWeight: FontWeight.bold))),
+      DataColumn(
+          label: Text('Employee ID',
+              style: TextStyle(fontWeight: FontWeight.bold))),
+      DataColumn(
+          label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold))),
+      DataColumn(
+          label:
+              Text('Gross Pay', style: TextStyle(fontWeight: FontWeight.bold))),
+      DataColumn(
+          label: Text('Deductions',
+              style: TextStyle(fontWeight: FontWeight.bold))),
+      DataColumn(
+          label:
+              Text('Net Pay', style: TextStyle(fontWeight: FontWeight.bold))),
+      DataColumn(
+          label: Text('Action', style: TextStyle(fontWeight: FontWeight.bold))),
+    ], rows: [
+      DataRow(cells: [
+        const DataCell(Text('1')),
+        const DataCell(Text('354632')),
+        const DataCell(Text('Dahnica J. Tedlos')),
+        const DataCell(Text('21,000.00')),
+        const DataCell(Text('0.00')),
+        const DataCell(Text('0.00')),
+        DataCell(
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PayslipForm()),
+                );
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.all(5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-            ]),
-            DataRow(cells: [
-              const DataCell(Text('2')),
-              const DataCell(Text('520942')),
-              const DataCell(Text('Caezzy Makilan')),
-              const DataCell(Text('21,000.00')),
-              const DataCell(Text('0.00')),
-              const DataCell(Text('0.00')),
-              DataCell(
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => PayslipForm()),
-                      );
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.all(5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Icon(
-                        Icons.edit_document,
-                        color: Colors.blue,
-                        size: 15,
-                      ),
-                      Text(
-                        'Edit Payslip',
-                        style: TextStyle(fontSize: 10, color: Colors.blue),
-                      ),
-                    ],
-                  ),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Icon(
+                  Icons.edit_document,
+                  color: Colors.blue,
+                  size: 15,
                 ),
-              ),
-            ])
-          ]),
+                Text(
+                  'Edit Payslip',
+                  style: TextStyle(fontSize: 10, color: Colors.blue),
+                ),
+              ],
+            ),
+          ),
         ),
-      ],
-    );
+      ]),
+      DataRow(cells: [
+        const DataCell(Text('2')),
+        const DataCell(Text('520942')),
+        const DataCell(Text('Caezzy Makilan')),
+        const DataCell(Text('21,000.00')),
+        const DataCell(Text('0.00')),
+        const DataCell(Text('0.00')),
+        DataCell(
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PayslipForm()),
+                );
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.all(5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Icon(
+                  Icons.edit_document,
+                  color: Colors.blue,
+                  size: 15,
+                ),
+                Text(
+                  'Edit Payslip',
+                  style: TextStyle(fontSize: 10, color: Colors.blue),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ])
+    ]);
+    return MediaQuery.of(context).size.width > 1500
+        ? SizedBox(
+            height: 600,
+            child: SingleChildScrollView(
+              child: Flexible(
+                child: dataTable,
+              ),
+            ),
+          )
+        : SizedBox(
+            height: 600,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Flexible(
+                  child: dataTable,
+                ),
+              ),
+            ),
+          );
   }
 }

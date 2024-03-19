@@ -14,6 +14,9 @@ class RegularOTPage extends StatefulWidget {
 class _RegularOTPageState extends State<RegularOTPage> {
   late List<String> _selectedOvertimeTypes;
   TextEditingController _searchController = TextEditingController();
+  FocusNode _searchFocusNode = FocusNode();
+  bool _showFilterCategory = false;
+  String _selectedCategory = 'name';
   int _itemsPerPage = 5;
   int _currentPage = 0;
   int indexRow = 0;
@@ -22,6 +25,11 @@ class _RegularOTPageState extends State<RegularOTPage> {
   void initState() {
     super.initState();
     _selectedOvertimeTypes = [];
+    _searchFocusNode.addListener(() {
+      setState(() {
+        _showFilterCategory = _searchFocusNode.hasFocus;
+      });
+    });
   }
 
   DateTime? fromDate;
@@ -139,6 +147,28 @@ class _RegularOTPageState extends State<RegularOTPage> {
         } else {
           List<DocumentSnapshot> overtimeDocs = snapshot.data!.docs;
 
+          List<DocumentSnapshot> filteredDocs = overtimeDocs.where((document) {
+            Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+            String userName = data['userName'];
+            String department = data['department'] ?? '';
+            DateTime? timeIn = (data['timeIn'] as Timestamp?)?.toDate();
+
+            String query = _searchController.text.toLowerCase();
+            bool matchesSearchQuery = userName.toLowerCase().contains(query);
+            bool matchesDepartment =
+                selectedDepartment == 'All' || department == selectedDepartment;
+            bool isAfterStartDate = fromDate == null ||
+                (timeIn != null && timeIn.isAfter(fromDate!));
+            bool isBeforeEndDate = toDate == null ||
+                (timeIn != null &&
+                    timeIn.isBefore(toDate!.add(Duration(days: 1))));
+
+            return matchesSearchQuery &&
+                matchesDepartment &&
+                isAfterStartDate &&
+                isBeforeEndDate;
+          }).toList();
+
           // Filtering based on date range
           overtimeDocs = overtimeDocs.where((doc) {
             DateTime timeIn = doc['timeIn'].toDate();
@@ -168,7 +198,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
                   return overtimePayA.compareTo(overtimePayB);
                 });
 
-          List<DocumentSnapshot> filteredDocuments = overtimeDocs;
+          List<DocumentSnapshot> filteredDocuments = filteredDocs;
           if (selectedDepartment != 'All') {
             filteredDocuments = overtimeDocs
                 .where((doc) => doc['department'] == selectedDepartment)
