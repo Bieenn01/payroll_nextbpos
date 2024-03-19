@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -517,7 +518,9 @@ class _HolidayPageState extends State<HolidayPage> {
           var dataTable = DataTable(
             columns: [
               const DataColumn(label: Text('#', style: textStyle)),
-              const DataColumn(label: Text('Employee ID', style: textStyle)),
+              const DataColumn(
+                  label:
+                      Flexible(child: Text('Employee ID', style: textStyle))),
               const DataColumn(label: Text('Name', style: textStyle)),
               DataColumn(
                 label: PopupMenuButton<String>(
@@ -645,31 +648,36 @@ class _HolidayPageState extends State<HolidayPage> {
                               0.0)),
                     ),
                     DataCell(
-                      DropdownButton<String>(
-                        value: _selectedOvertimeTypes[index],
-                        items: <String>[
-                          'Regular Holiday',
-                          'Special Holiday',
-                        ].map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) async {
-                          if (newValue == 'Special Holiday') {
-                            await _showConfirmationDialog(overtimeDoc);
-                          }
-                          setState(() {
-                            _selectedOvertimeTypes[index] = newValue!;
-                          });
-                          if (newValue == 'Regular Holiday') {
-                            await _showConfirmationDialog2(overtimeDoc);
-                          }
-                          setState(() {
-                            _selectedOvertimeTypes[index] = newValue!;
-                          });
-                        },
+                      IntrinsicWidth(
+                        child: DropdownButton<String>(
+                          value: _selectedOvertimeTypes[index],
+                          items: <String>[
+                            'Regular Holiday',
+                            'Special Holiday',
+                          ].map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(
+                                value,
+                                style: TextStyle(fontSize: 15),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) async {
+                            if (newValue == 'Special Holiday') {
+                              await _showConfirmationDialog(overtimeDoc);
+                            }
+                            setState(() {
+                              _selectedOvertimeTypes[index] = newValue!;
+                            });
+                            if (newValue == 'Regular Holiday') {
+                              await _showConfirmationDialog2(overtimeDoc);
+                            }
+                            setState(() {
+                              _selectedOvertimeTypes[index] = newValue!;
+                            });
+                          },
+                        ),
                       ),
                     ),
                     DataCell(

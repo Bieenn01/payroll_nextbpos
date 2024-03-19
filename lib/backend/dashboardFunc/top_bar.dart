@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/user_profile.dart';
 import 'package:project_payroll_nextbpo/frontend/login.dart'; // Import your login page file
@@ -18,11 +19,19 @@ class TopBar extends StatefulWidget {
 class _TopBarState extends State<TopBar> {
   late StreamSubscription<DocumentSnapshot> _subscription;
   late String _userName = 'Guest';
+  late String currentTime;
   late String _role = 'Guest';
+  late Timer timer;
 
   @override
   void initState() {
     super.initState();
+    currentTime = _getCurrentTime();
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        currentTime = _getCurrentTime();
+      });
+    });
     _fetchFirstName();
     _fetchRole();
   }
@@ -89,12 +98,13 @@ class _TopBarState extends State<TopBar> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      timeFormat,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    RichText(
+                      text: TextSpan(
+                          text: currentTime,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          )),
                     ),
                     Text(
                       date,
@@ -199,5 +209,9 @@ class _TopBarState extends State<TopBar> {
         ),
       ),
     );
+  }
+
+  String _getCurrentTime() {
+    return DateFormat('hh:mm:ss a').format(DateTime.now());
   }
 }

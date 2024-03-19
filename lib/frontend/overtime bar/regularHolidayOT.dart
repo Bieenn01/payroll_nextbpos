@@ -50,38 +50,40 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: Container(
-                  margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Text(
-                              "Regular Holiday Overtime",
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
+              child: SingleChildScrollView(
+                child: Container(
+                    margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Text(
+                                "Regular Holiday Overtime",
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      dateFilterSearchRow(context, styleFrom),
-                      Divider(),
-                      _buildTable(),
-                      SizedBox(height: 10),
-                      Divider(),
-                      SizedBox(height: 5),
-                      pagination(),
-                      SizedBox(height: 20),
-                    ],
-                  )),
+                          ],
+                        ),
+                        dateFilterSearchRow(context, styleFrom),
+                        Divider(),
+                        _buildTable(),
+                        SizedBox(height: 10),
+                        Divider(),
+                        SizedBox(height: 5),
+                        pagination(),
+                        SizedBox(height: 20),
+                      ],
+                    )),
+              ),
             ),
           ],
         ),
