@@ -17,6 +17,7 @@ import 'package:project_payroll_nextbpo/frontend/overtime%20bar/specialHolidayOT
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/top_bar.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regularOT.dart';
+import 'package:project_payroll_nextbpo/frontend/payslip/payslip_page.dart';
 
 class ScreensView extends StatelessWidget {
   final String menu;
@@ -196,6 +197,22 @@ class ScreensView extends StatelessWidget {
               Flexible(
                 flex: 7,
                 child: SpecialHolidayPage(),
+              ),
+            ],
+          ),
+        );
+        break;
+
+      case 'Payroll':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 120, child: TopBar()),
+              Flexible(
+                flex: 7,
+                child: PayslipPage(),
               ),
             ],
           ),
