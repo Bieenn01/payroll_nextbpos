@@ -55,7 +55,7 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Attendace Overview',
+          'Attendance Overview',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         actions: [
