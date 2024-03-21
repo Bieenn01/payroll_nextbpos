@@ -1,5 +1,5 @@
 import 'dart:async';
-
+ 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,26 +9,26 @@ import 'package:intl/intl.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/user_profile.dart';
 import 'package:project_payroll_nextbpo/frontend/login.dart'; // Import your login page file
-
+ 
 class TopBar extends StatefulWidget {
   const TopBar({Key? key});
-
+ 
   @override
   State<TopBar> createState() => _TopBarState();
 }
-
+ 
 class _TopBarState extends State<TopBar> {
   late StreamSubscription<DocumentSnapshot> _subscription;
   late String _userName = 'Guest';
   late String currentTime;
   late String _role = 'Guest';
   late Timer timer;
-
+ 
   @override
   void initState() {
     super.initState();
     currentTime = _getCurrentTime();
-    timer = Timer.periodic(const Duration(seconds: 60), (timer) {
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         currentTime = _getCurrentTime();
       });
@@ -36,13 +36,14 @@ class _TopBarState extends State<TopBar> {
     _fetchFirstName();
     _fetchRole();
   }
-
+ 
   @override
   void dispose() {
     _subscription.cancel();
+    timer.cancel();
     super.dispose();
   }
-
+ 
   Future<void> _fetchFirstName() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -50,13 +51,13 @@ class _TopBarState extends State<TopBar> {
           .collection('User')
           .doc(user.uid)
           .get();
-
+ 
       setState(() {
         _userName = docSnapshot['fname'];
       });
     }
   }
-
+ 
   Future<void> _fetchRole() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -64,13 +65,16 @@ class _TopBarState extends State<TopBar> {
           .collection('User')
           .doc(user.uid)
           .get();
-
+ 
       setState(() {
-        _role = docSnapshot['role'];
+        final role = docSnapshot['role'];
+        _role = role != null
+            ? role
+            : 'Guest'; // Default to 'Guest' if role is not specified
       });
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
     final DateTime now = DateTime.now();
@@ -159,11 +163,7 @@ class _TopBarState extends State<TopBar> {
                               false, // Remove all existing routes from the navigation stack
                         );
                       } else if (value == 'user_profile') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => UserProfile()),
-                        );
+                      UserProfile(context);
                       } else if (value == 'account_list') {
                         Navigator.push(
                           context,
@@ -188,7 +188,10 @@ class _TopBarState extends State<TopBar> {
                               CircleAvatar(
                                 backgroundImage: _role == 'Admin'
                                     ? AssetImage('assets/images/Admin.jpg')
-                                    : AssetImage('assets/images/Employee.jpg'),
+                                    : _role == 'Superadmin'
+                                        ? AssetImage('assets/images/SAdmin.jpg')
+                                        : AssetImage(
+                                            'assets/images/Employee.jpg'),
                                 // Change image path based on role
                                 radius:
                                     20, // Adjust the radius as per your requirement
