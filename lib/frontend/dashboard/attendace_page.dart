@@ -248,6 +248,23 @@ class _AttendancePageState extends State<AttendancePage> {
               Color? rowColor =
                   index % 2 == 0 ? Colors.grey[200] : Colors.white;
               index++;
+
+              // Extract timestamps for timeIn and timeOut
+              Timestamp? timeInTimestamp = data['timeIn'];
+              Timestamp? timeOutTimestamp = data['timeOut'];
+
+              // Calculate the duration between timeIn and timeOut
+              Duration totalDuration = Duration();
+              if (timeInTimestamp != null && timeOutTimestamp != null) {
+                DateTime timeIn = timeInTimestamp.toDate();
+                DateTime timeOut = timeOutTimestamp.toDate();
+                totalDuration = timeOut.difference(timeIn);
+              }
+
+              // Format the duration to display total hours
+              String totalHoursAndMinutes =
+                  '${totalDuration.inHours} hours, ${totalDuration.inMinutes.remainder(60)} minutes';
+
               return DataRow(
                 color: MaterialStateColor.resolveWith((states) => rowColor!),
                 cells: [
@@ -262,15 +279,15 @@ class _AttendancePageState extends State<AttendancePage> {
                   )),
                   DataCell(Container(
                     width: 150,
-                    child: Text(_formatTimestamp(data['timeIn'])),
+                    child: Text(_formatTimestamp(timeInTimestamp)),
                   )),
                   DataCell(Container(
                     width: 150,
-                    child: Text(_formatTimestamp(data['timeOut'])),
+                    child: Text(_formatTimestamp(timeOutTimestamp)),
                   )),
                   DataCell(Container(
                     width: 150,
-                    child: Text('TOTAL HOURS'),
+                    child: Text(totalHoursAndMinutes), // Display total hours
                   )),
                 ],
               );

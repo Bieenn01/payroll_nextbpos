@@ -44,7 +44,7 @@ Future<void> addUser(
       'tin': tin,
       'taxCode': taxCode,
       'employeeId': employeeId,
-      'isActive': true, // Add this field with value true
+      'isActive': isActive, // Add this field with value true
     });
   } catch (e) {
     print("An error occurred while adding user: $e");

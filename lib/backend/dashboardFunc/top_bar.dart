@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/user_profile.dart';
 import 'package:project_payroll_nextbpo/frontend/login.dart'; // Import your login page file
 
@@ -27,7 +28,7 @@ class _TopBarState extends State<TopBar> {
   void initState() {
     super.initState();
     currentTime = _getCurrentTime();
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    timer = Timer.periodic(const Duration(seconds: 60), (timer) {
       setState(() {
         currentTime = _getCurrentTime();
       });
@@ -39,7 +40,6 @@ class _TopBarState extends State<TopBar> {
   @override
   void dispose() {
     _subscription.cancel();
-    timer.cancel();
     super.dispose();
   }
 
@@ -66,10 +66,7 @@ class _TopBarState extends State<TopBar> {
           .get();
 
       setState(() {
-        final role = docSnapshot['role'];
-        _role = role != null
-            ? role
-            : 'Guest'; // Default to 'Guest' if role is not specified
+        _role = docSnapshot['role'];
       });
     }
   }
@@ -123,16 +120,32 @@ class _TopBarState extends State<TopBar> {
                     showMenu(
                       context: context,
                       position: const RelativeRect.fromLTRB(80, 100, 50, 0),
-                      items: const [
-                        PopupMenuItem(
-                          value: 'user_profile',
-                          child: Text('User Profile'),
-                        ),
-                        PopupMenuItem(
-                          value: 'log_out',
-                          child: Text('Log out'),
-                        ),
-                      ],
+                      items: _role ==
+                              'Superadmin' // Conditionally render the menu items based on the role
+                          ? [
+                              PopupMenuItem(
+                                value: 'account_list',
+                                child: Text('Account List'),
+                              ),
+                              PopupMenuItem(
+                                value: 'user_profile',
+                                child: Text('User Profile'),
+                              ),
+                              PopupMenuItem(
+                                value: 'log_out',
+                                child: Text('Log out'),
+                              ),
+                            ]
+                          : [
+                              PopupMenuItem(
+                                value: 'user_profile',
+                                child: Text('User Profile'),
+                              ),
+                              PopupMenuItem(
+                                value: 'log_out',
+                                child: Text('Log out'),
+                              ),
+                            ],
                       elevation: 8.0,
                     ).then((value) {
                       if (value == 'log_out') {
@@ -146,7 +159,17 @@ class _TopBarState extends State<TopBar> {
                               false, // Remove all existing routes from the navigation stack
                         );
                       } else if (value == 'user_profile') {
-                        UserProfile(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => UserProfile()),
+                        );
+                      } else if (value == 'account_list') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PovUser()),
+                        );
                       }
                     });
                   },
@@ -165,10 +188,7 @@ class _TopBarState extends State<TopBar> {
                               CircleAvatar(
                                 backgroundImage: _role == 'Admin'
                                     ? AssetImage('assets/images/Admin.jpg')
-                                    : _role == 'Super Admin'
-                                        ? AssetImage('assets/images/SAdmin.jpg')
-                                        : AssetImage(
-                                            'assets/images/Employee.jpg'),
+                                    : AssetImage('assets/images/Employee.jpg'),
                                 // Change image path based on role
                                 radius:
                                     20, // Adjust the radius as per your requirement

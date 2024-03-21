@@ -20,10 +20,11 @@ final menuTree = TreeNode.root()
       TreeNode(key: "Logs", data: Icons.analytics),
       TreeNode(key: "Calendar", data: Icons.edit_calendar_outlined),
       TreeNode(key: "Payroll", data: Icons.payments),
-      TreeNode(
-        key: 'Account List', // Logout menu item
-        data:
-            Icons.person_add_alt_1, // You can use appropriate logout icon here
-      ),
+      // TreeNode(
+      //   key: 'Account List', // Logout menu item
+      //   data:
+      //       Icons.person_add_alt_1, // You can use appropriate logout icon here
+      // ),
     ],
   );
+
