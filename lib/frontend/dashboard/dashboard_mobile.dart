@@ -86,7 +86,7 @@ class _DashboardMobileState extends State<DashboardMobile> {
                       children: [
                         Container1Dashboard(context),
                         SizedBox(
-                          height: 10,
+                          height: 5,
                         ),
                         MediaQuery.of(context).size.width > 1100
                             ? Row(
@@ -136,7 +136,7 @@ class _DashboardMobileState extends State<DashboardMobile> {
                                     height: 10,
                                   ),
                                   Container(
-                                    height: 600,
+                                    height: 650,
                                     padding: EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
