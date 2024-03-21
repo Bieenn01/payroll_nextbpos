@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_dashboard.dart';
 import 'package:project_payroll_nextbpo/frontend/login.dart';
+import 'package:project_payroll_nextbpo/frontend/mobileHomeScreen.dart';
 
 import 'firebase_options.dart';
 
@@ -102,7 +103,7 @@ class _MyAppState extends State<MyApp> {
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              return const PovDashboard(
+              return PovDashboard(
                 userId: '',
               );
             } else {
