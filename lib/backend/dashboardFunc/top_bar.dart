@@ -219,17 +219,10 @@ class _TopBarState extends State<TopBar> {
                               const Icon(Icons.arrow_drop_down),
                             ],
                           )
-                        : CircleAvatar(
-                            backgroundImage: _role == 'Admin'
-                                ? const AssetImage('assets/images/Admin.jpg')
-                                : _role == 'Super Admin'
-                                    ? const AssetImage(
-                                        'assets/images/SAdmin.jpg')
-                                    : const AssetImage(
-                                        'assets/images/Employee.jpg'),
-                            // Change image path based on role
-                            radius:
-                                20, // Adjust the radius as per your requirement
+                        : const CircleAvatar(
+                            child: Icon(
+                              Icons.person,
+                            ),
                           ),
                   ),
                 ),
