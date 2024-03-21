@@ -208,6 +208,6 @@ class _TopBarState extends State<TopBar> {
   }
 
   String _getCurrentTime() {
-    return DateFormat('hh:mm:ss a').format(DateTime.now());
+    return DateFormat('hh:mm a').format(DateTime.now());
   }
 }
