@@ -1148,54 +1148,46 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
     }
   }
 
-  Future<void> _computeAndAddToOvertimePay() async {
+Future<void> _computeAndAddToOvertimePay() async {
     try {
-      // Get the list of all users from Firestore
-      QuerySnapshot usersSnapshot =
-          await FirebaseFirestore.instance.collection('User').get();
+      // Fetch all documents from RegularHolidayOT collection
+      QuerySnapshot overtimeSnapshot =
+          await FirebaseFirestore.instance.collection('RegularHolidayOT').get();
 
-      // Loop through each user
-      for (var userDoc in usersSnapshot.docs) {
-        String userId = userDoc.id;
+      // Loop through each overtime document
+      for (var overtimeDoc in overtimeSnapshot.docs) {
+        String userId = overtimeDoc['userId'];
 
         // Fetch all overtime records for the current user
-        QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
+        QuerySnapshot userOvertimeSnapshot = await FirebaseFirestore.instance
             .collection('RegularHolidayOT')
             .where('userId', isEqualTo: userId)
             .get();
 
-        // List to store overtime documents
-        List<DocumentSnapshot> userOvertimeDocs = overtimeSnapshot.docs;
-
         // Calculate total overtime pay for the current user
         double totalHOTPay = 0;
-        for (var overtimeDoc in userOvertimeDocs) {
-          if (overtimeDoc['overtimePay'] != null) {
-            totalHOTPay += overtimeDoc['overtimePay'];
+        for (var userOvertimeDoc in userOvertimeSnapshot.docs) {
+          if (userOvertimeDoc['overtimePay'] != null) {
+            totalHOTPay += userOvertimeDoc['overtimePay'];
           }
         }
 
         // Get user details
-        final userData = userDoc.data() as Map<String, dynamic>;
+        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+            .collection('User')
+            .doc(userId)
+            .get();
 
-        // Update total_overtimePay in the OvertimePay collection
-        DocumentReference userOvertimeDocRef = FirebaseFirestore.instance
-            .collection('RegularHolidayOTPay')
-            .doc(userId);
+        // Check if the user exists
+        if (userSnapshot.exists) {
+          final userData = userSnapshot.data() as Map<String, dynamic>;
 
-        // Check if the document exists
-        var docSnapshot = await userOvertimeDocRef.get();
-        if (docSnapshot.exists) {
-          // If the document exists, update it
-          await userOvertimeDocRef.update({
-            'total_regularHOTPay': totalHOTPay,
-            'employeeId': userData['employeeId'],
-            'userName':
-                '${userData['fname']} ${userData['mname']} ${userData['lname']}',
-            'department': userData['department'],
-          });
-        } else {
-          // If the document doesn't exist, create a new one
+          // Update total_overtimePay in the OvertimePay collection
+          DocumentReference userOvertimeDocRef = FirebaseFirestore.instance
+              .collection('RegularHolidayOTPay')
+              .doc(userId);
+
+          // Update or create the document in RegularHolidayOTPay collection
           await userOvertimeDocRef.set({
             'total_regularHOTPay': totalHOTPay,
             'userId': userId,

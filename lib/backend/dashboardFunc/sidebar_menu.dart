@@ -18,6 +18,8 @@ class SidebarMenu extends StatefulWidget {
 
 class _SidebarMenuState extends State<SidebarMenu> {
 
+  Map<String, bool> hoverStates = {};
+
   Widget build(BuildContext context) {
     return ScreenUtilInit(
       builder: (BuildContext context, Widget? child) => MultiBlocProvider(
@@ -100,52 +102,55 @@ class _SidebarMenuState extends State<SidebarMenu> {
                                 builder: (context, node) {
                                   final isSelected = state.menu == node.key;
                                   final isExpanded = node.isExpanded;
+                                  bool isHovered = hoverStates[node.key] ?? false;
                                   return MouseRegion(
+                                    onHover: (_) {
+                                      //print('Mouse entered');
+                                      setState(() {
+                                        hoverStates[node.key] =
+                                            true; // Update hover state for this node
+                                      });
+                                    },
+                                    onExit: (_) {
+                                     // print('Mouse exited');
+                                      setState(() {
+                                        hoverStates[node.key] =
+                                            false; // Update hover state for this node
+                                      });
+                                    },
                                     cursor: SystemMouseCursors.click,
                                     child: Container(
-                                      color: node.level >= 2 || isExpanded
-                                          ? const Color.fromARGB(255, 154, 207,
-                                              205) // For coloring the background of child nodes
+                                      color: node.level >= 2 || isExpanded || isHovered
+                                          ? const Color.fromARGB(
+                                              255, 154, 207, 205)
                                           : Colors.white,
-                                      height:
-                                          42, // Padding between one menu and another.
+                                      height: 42,
                                       width: 250,
                                       alignment: Alignment.center,
                                       child: Padding(
                                         padding: node.level >= 2
-                                            ? const EdgeInsets.only(
-                                                left:
-                                                    27) // Padding for the children of the node
+                                            ? const EdgeInsets.only(left: 27)
                                             : const EdgeInsets.only(left: 0),
                                         child: Container(
                                           width: 250,
-                                          height:
-                                              45, // The size dimension of the active button
+                                          height: 45,
                                           alignment: Alignment.centerLeft,
                                           decoration: BoxDecoration(
-                                            color: isSelected
+                                            color: isSelected || isHovered
                                                 ? node.isLeaf
                                                     ? const Color.fromARGB(
-                                                        255,
-                                                        20,
-                                                        161,
-                                                        156) // The color for the active node.
+                                                        255, 20, 161, 156)
                                                     : null
                                                 : null,
                                             borderRadius:
                                                 const BorderRadius.only(
-                                              topLeft: Radius.circular(
-                                                50,
-                                              ),
-                                              bottomLeft: Radius.circular(
-                                                50,
-                                              ),
+                                              topLeft: Radius.circular(50),
+                                              bottomLeft: Radius.circular(50),
                                             ),
                                           ),
                                           child: Padding(
                                             padding: const EdgeInsets.only(
-                                              left: 25,
-                                            ),
+                                                left: 25),
                                             child: node.level >= 2
                                                 ? Text(
                                                     node.key,
@@ -162,13 +167,13 @@ class _SidebarMenuState extends State<SidebarMenu> {
                                                         color: Colors.black,
                                                       ),
                                                       const SizedBox(
-                                                        width: 6,
-                                                      ),
+                                                          width: 6),
                                                       Text(
                                                         node.key == "/"
                                                             ? "Menu"
                                                             : node.key,
-                                                        style: const TextStyle(
+                                                        style:
+                                                            const TextStyle(
                                                           color: Colors.black,
                                                           fontSize: 18,
                                                         ),

@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/user_profile.dart';
 import 'package:project_payroll_nextbpo/frontend/login.dart'; // Import your login page file
 
@@ -27,7 +28,7 @@ class _TopBarState extends State<TopBar> {
   void initState() {
     super.initState();
     currentTime = _getCurrentTime();
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    timer = Timer.periodic(const Duration(seconds: 60), (timer) {
       setState(() {
         currentTime = _getCurrentTime();
       });
@@ -119,16 +120,32 @@ class _TopBarState extends State<TopBar> {
                     showMenu(
                       context: context,
                       position: const RelativeRect.fromLTRB(80, 100, 50, 0),
-                      items: const [
-                        PopupMenuItem(
-                          value: 'user_profile',
-                          child: Text('User Profile'),
-                        ),
-                        PopupMenuItem(
-                          value: 'log_out',
-                          child: Text('Log out'),
-                        ),
-                      ],
+                      items: _role ==
+                              'Superadmin' // Conditionally render the menu items based on the role
+                          ? [
+                              PopupMenuItem(
+                                value: 'account_list',
+                                child: Text('Account List'),
+                              ),
+                              PopupMenuItem(
+                                value: 'user_profile',
+                                child: Text('User Profile'),
+                              ),
+                              PopupMenuItem(
+                                value: 'log_out',
+                                child: Text('Log out'),
+                              ),
+                            ]
+                          : [
+                              PopupMenuItem(
+                                value: 'user_profile',
+                                child: Text('User Profile'),
+                              ),
+                              PopupMenuItem(
+                                value: 'log_out',
+                                child: Text('Log out'),
+                              ),
+                            ],
                       elevation: 8.0,
                     ).then((value) {
                       if (value == 'log_out') {
@@ -146,6 +163,12 @@ class _TopBarState extends State<TopBar> {
                           context,
                           MaterialPageRoute(
                               builder: (context) => UserProfile()),
+                        );
+                      } else if (value == 'account_list') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PovUser()),
                         );
                       }
                     });
@@ -212,6 +235,6 @@ class _TopBarState extends State<TopBar> {
   }
 
   String _getCurrentTime() {
-    return DateFormat('hh:mm:ss a').format(DateTime.now());
+    return DateFormat('hh:mm a').format(DateTime.now());
   }
 }
