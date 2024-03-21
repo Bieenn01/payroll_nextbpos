@@ -64,11 +64,15 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
             children: [
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      table == false ? Colors.teal.shade700 : Colors.white,
-                  padding: EdgeInsets.all(5),
-                  shape: RoundedRectangleBorder(),
-                ),
+                    backgroundColor:
+                        table == false ? Colors.teal.shade700 : Colors.white,
+                    padding: EdgeInsets.all(5),
+                    shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      bottomLeft: Radius.circular(8),
+                    )),
+                    side: BorderSide(color: Colors.teal.shade900)),
                 onPressed: () {
                   setState(() {
                     table = false;
@@ -77,16 +81,21 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
                 child: Text(
                   ' Time In ',
                   style: TextStyle(
-                      color: table == false ? Colors.white : Colors.black),
+                      color:
+                          table == false ? Colors.white : Colors.teal.shade900),
                 ),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      table == true ? Colors.teal.shade700 : Colors.white,
-                  padding: EdgeInsets.all(5),
-                  shape: RoundedRectangleBorder(),
-                ),
+                    backgroundColor:
+                        table == true ? Colors.teal.shade700 : Colors.white,
+                    padding: EdgeInsets.all(5),
+                    shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(8),
+                      bottomRight: Radius.circular(8),
+                    )),
+                    side: BorderSide(color: Colors.teal.shade900)),
                 onPressed: () {
                   setState(() {
                     table = true;
@@ -95,7 +104,8 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
                 child: Text(
                   ' Time Out ',
                   style: TextStyle(
-                      color: table == true ? Colors.white : Colors.black),
+                      color:
+                          table == true ? Colors.white : Colors.teal.shade900),
                 ),
               ),
             ],
@@ -133,83 +143,91 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
               .toList();
         }
 
-        return Expanded(
-          child: SingleChildScrollView(
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              child: DataTable(
-                dataRowMinHeight: 30,
-                dataRowMaxHeight: 65,
-                columns: [
-                  DataColumn(
-                    label: Text(
-                      '#',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Name',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Time-Out',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  DataColumn(
-                    label: PopupMenuButton<String>(
-                      child: Row(
-                        children: [
-                          Text(
-                            'Department',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Icon(Icons.arrow_drop_down)
-                        ],
-                      ),
-                      onSelected: (String value) {
-                        setState(() {
-                          selectedDepartment = value;
-                        });
-                      },
-                      itemBuilder: (BuildContext context) => [
-                        'All', // Default option
-                        'IT',
-                        'HR',
-                        'ACCOUNTING',
-                        'SERVICING',
-                      ].map((String value) {
-                        return PopupMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ],
-                rows: List<DataRow>.generate(
-                  filteredDocuments.length, // Use filteredDocuments.length here
-                  (index) {
-                    final document = filteredDocuments[index];
-                    return DataRow(
-                      cells: [
-                        DataCell(Text((index + 1).toString())),
-                        DataCell(Text(
-                          document['userName'].toString(),
-                        )),
-                        DataCell(Text(_formatTimestamp(document['timeOut']),
-                            style: TextStyle(fontWeight: FontWeight.bold))),
-                        DataCell(Text(document['department'].toString())),
-                      ],
-                    );
-                  },
-                ),
+        var dataTable = DataTable(
+          dataRowMinHeight: 30,
+          dataRowMaxHeight: 65,
+          columns: [
+            DataColumn(
+              label: Text(
+                '#',
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
+            DataColumn(
+              label: Text(
+                'Name',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Time-Out',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: PopupMenuButton<String>(
+                child: Row(
+                  children: [
+                    Text(
+                      'Department',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Icon(Icons.arrow_drop_down)
+                  ],
+                ),
+                onSelected: (String value) {
+                  setState(() {
+                    selectedDepartment = value;
+                  });
+                },
+                itemBuilder: (BuildContext context) => [
+                  'All', // Default option
+                  'IT',
+                  'HR',
+                  'ACCOUNTING',
+                  'SERVICING',
+                ].map((String value) {
+                  return PopupMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+          rows: List<DataRow>.generate(
+            filteredDocuments.length, // Use filteredDocuments.length here
+            (index) {
+              final document = filteredDocuments[index];
+              return DataRow(
+                cells: [
+                  DataCell(Text((index + 1).toString())),
+                  DataCell(Text(
+                    document['userName'].toString(),
+                  )),
+                  DataCell(Text(_formatTimestamp(document['timeOut']),
+                      style: TextStyle(fontWeight: FontWeight.bold))),
+                  DataCell(Text(document['department'].toString())),
+                ],
+              );
+            },
           ),
+        );
+        return Expanded(
+          child: MediaQuery.of(context).size.width > 1300
+              ? SingleChildScrollView(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    child: dataTable,
+                  ),
+                )
+              : SingleChildScrollView(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    child: FittedBox(fit: BoxFit.fill, child: dataTable),
+                  ),
+                ),
         );
       },
     );
@@ -242,83 +260,91 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
               .toList();
         }
 
-        return Expanded(
-          child: SingleChildScrollView(
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              child: DataTable(
-                dataRowMinHeight: 30,
-                dataRowMaxHeight: 65,
-                columns: [
-                  DataColumn(
-                    label: Text(
-                      '#',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Name',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Time-In',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  DataColumn(
-                    label: PopupMenuButton<String>(
-                      child: Row(
-                        children: [
-                          Text(
-                            'Department',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Icon(Icons.arrow_drop_down)
-                        ],
-                      ),
-                      onSelected: (String value) {
-                        setState(() {
-                          selectedDepartment = value;
-                        });
-                      },
-                      itemBuilder: (BuildContext context) => [
-                        'All', // Default option
-                        'IT',
-                        'HR',
-                        'ACCOUNTING',
-                        'SERVICING',
-                      ].map((String value) {
-                        return PopupMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ],
-                rows: List<DataRow>.generate(
-                  filteredDocuments.length, // Use filteredDocuments.length here
-                  (index) {
-                    final document = filteredDocuments[index];
-                    return DataRow(
-                      cells: [
-                        DataCell(Text((index + 1).toString())),
-                        DataCell(Text(
-                          document['userName'].toString(),
-                        )),
-                        DataCell(Text(_formatTimestamp(document['timeIn']),
-                            style: TextStyle(fontWeight: FontWeight.bold))),
-                        DataCell(Text(document['department'].toString())),
-                      ],
-                    );
-                  },
-                ),
+        var dataTable = DataTable(
+          dataRowMinHeight: 30,
+          dataRowMaxHeight: 65,
+          columns: [
+            DataColumn(
+              label: Text(
+                '#',
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
+            DataColumn(
+              label: Text(
+                'Name',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Time-In',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: PopupMenuButton<String>(
+                child: Row(
+                  children: [
+                    Text(
+                      'Department',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Icon(Icons.arrow_drop_down)
+                  ],
+                ),
+                onSelected: (String value) {
+                  setState(() {
+                    selectedDepartment = value;
+                  });
+                },
+                itemBuilder: (BuildContext context) => [
+                  'All', // Default option
+                  'IT',
+                  'HR',
+                  'ACCOUNTING',
+                  'SERVICING',
+                ].map((String value) {
+                  return PopupMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+          rows: List<DataRow>.generate(
+            filteredDocuments.length, // Use filteredDocuments.length here
+            (index) {
+              final document = filteredDocuments[index];
+              return DataRow(
+                cells: [
+                  DataCell(Text((index + 1).toString())),
+                  DataCell(Text(
+                    document['userName'].toString(),
+                  )),
+                  DataCell(Text(_formatTimestamp(document['timeIn']),
+                      style: TextStyle(fontWeight: FontWeight.bold))),
+                  DataCell(Text(document['department'].toString())),
+                ],
+              );
+            },
           ),
+        );
+        return Expanded(
+          child: MediaQuery.of(context).size.width > 1300
+              ? SingleChildScrollView(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    child: dataTable,
+                  ),
+                )
+              : SingleChildScrollView(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    child: FittedBox(fit: BoxFit.fill, child: dataTable),
+                  ),
+                ),
         );
       },
     );

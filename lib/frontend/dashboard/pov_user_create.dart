@@ -652,7 +652,7 @@ class _UserState extends State<PovUser> {
             },
           ),
         );
-        return MediaQuery.of(context).size.width > 1300
+        return MediaQuery.of(context).size.width > 1500
             ? SizedBox(
                 height: 600,
                 child: SingleChildScrollView(
@@ -789,7 +789,7 @@ class _UserState extends State<PovUser> {
                 SizedBox(width: 10),
                 Flexible(
                   child: Container(
-                    width: MediaQuery.of(context).size.width > 600 ? 230 : 80,
+                    width: 130,
                     height: 30,
                     padding: EdgeInsets.all(0),
                     margin: EdgeInsets.all(0),
