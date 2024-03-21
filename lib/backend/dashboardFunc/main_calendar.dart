@@ -98,7 +98,7 @@ class _CalendarPageState extends State<CalendarPage> {
         title: Text(
           'Calendar',
           style: TextStyle(
-              fontSize: MediaQuery.of(context).size.width > 600 ? 25 : 18,
+              fontSize: MediaQuery.of(context).size.width > 600 ? 20 : 18,
               fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -115,12 +115,12 @@ class _CalendarPageState extends State<CalendarPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
             child: Text(
               _upcomingHoliday,
               style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
