@@ -2563,7 +2563,7 @@ class _UserState extends State<PovUser> {
         taxCode: taxCodeController.text,
         employeeId: employeeIdController.text,
         mobilenum: mobilenumController.text,
-        isActive: true,
+        isActive: false,
       );
 
       await addUser(
