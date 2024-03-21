@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_dashboard.dart';
 import 'package:project_payroll_nextbpo/backend/widgets/toast_widget.dart';
+import 'package:project_payroll_nextbpo/frontend/mobileHomeScreen.dart';
 
 class Login extends StatefulWidget {
   Login({Key? key}) : super(key: key);
@@ -27,9 +28,9 @@ class _LoginState extends State<Login> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            MediaQuery.of(context).size.width > 800
+            MediaQuery.of(context).size.width > 1300
                 ? Expanded(
-                    flex: MediaQuery.of(context).size.width > 1500 ? 2 : 1,
+                    flex: 2,
                     child: Container(
                       child: const Image(
                         image: AssetImage('assets/images/nextbpo.png'),
@@ -39,149 +40,264 @@ class _LoginState extends State<Login> {
                     ),
                   )
                 : Container(),
-            Expanded(
-              flex: 1,
-              child: SizedBox(
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 10),
-                  padding: const EdgeInsets.symmetric(horizontal: 80),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12)),
-                        child: Image.asset(
-                          'assets/images/nextbpologo-removebg.png',
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      const Divider(),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      const Positioned(
-                        left: 950,
-                        top: 259,
-                        child: Text(
-                          'Log In ',
-                          textAlign: TextAlign.left,
-                          style: TextStyle(
-                              decoration: TextDecoration.none,
-                              fontSize: 25,
-                              color: Color(0xff000000),
-                              fontFamily: 'Roboto',
-                              fontWeight: FontWeight.bold),
-                          maxLines: 9999,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const Positioned(
-                        left: 950,
-                        top: 301,
-                        child: Text(
-                          'Welcome Back \nPlease Enter Your Details ',
-                          textAlign: TextAlign.left,
-                          style: TextStyle(
-                            decoration: TextDecoration.none,
-                            fontSize: 18, // Reduced font size
-                            height: 1, // Adjusted line height
-                            color: Color(0xff000000),
-                            fontFamily: 'Lexend-ExtraLight',
-                            fontWeight: FontWeight.normal,
+            MediaQuery.of(context).size.width > 1300
+                ? Expanded(
+                    flex: 1,
+                    child: Container(
+                      width: 500,
+                      constraints: const BoxConstraints(maxWidth: 100),
+                      padding: const EdgeInsets.symmetric(horizontal: 80),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12)),
+                            child: Image.asset(
+                              'assets/images/nextbpologo-removebg.png',
+                            ),
                           ),
-                          maxLines: 9999,
-                          overflow: TextOverflow.ellipsis,
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          const Divider(),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          const Positioned(
+                            left: 950,
+                            top: 259,
+                            child: Text(
+                              'Welcome User',
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                  decoration: TextDecoration.none,
+                                  fontSize: 25,
+                                  color: Color(0xff000000),
+                                  fontFamily: 'Roboto',
+                                  fontWeight: FontWeight.bold),
+                              maxLines: 9999,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            child: Text(
+                              'Login to access your account',
+                              style: TextStyle(fontStyle: FontStyle.italic),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(15, 5, 5, 5),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12)),
+                            child: TextField(
+                              controller: usernameController,
+                              decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  labelText: 'Username',
+                                  labelStyle: TextStyle(
+                                      color: myFocusNode.hasFocus
+                                          ? Colors.blue
+                                          : Colors.black)),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(15, 5, 5, 5),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12)),
+                            child: TextFormField(
+                              obscureText: !passwordVisible,
+                              controller: passwordController,
+                              onFieldSubmitted: (_) {
+                                // Call the login function when the user submits the password field
+                                login(context);
+                              },
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                labelText: 'Password',
+                                labelStyle: TextStyle(
+                                    color: myFocusNode.hasFocus
+                                        ? Colors.blue
+                                        : Colors.black),
+                                suffixIcon: IconButton(
+                                  icon: Icon(passwordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off),
+                                  onPressed: () {
+                                    setState(() {
+                                      passwordVisible = !passwordVisible;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              login(context);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 25, 49, 33),
+                              padding: const EdgeInsets.all(18.0),
+                              minimumSize: const Size(200, 50),
+                              maximumSize: const Size(200, 50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              "LOG IN",
+                              style: TextStyle(
+                                color: Colors
+                                    .white, // Change the text color to white
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : Container(
+                    width: MediaQuery.of(context).size.width > 800 ? 400 : 380,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12)),
+                          child: Image.asset(
+                            'assets/images/nextbpologo-removebg.png',
+                          ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(15, 5, 5, 5),
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12)),
-                        child: TextField(
-                          controller: usernameController,
-                          decoration: InputDecoration(
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        const Divider(),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        const Positioned(
+                          left: 950,
+                          top: 259,
+                          child: Text(
+                            'Welcome User !',
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                                decoration: TextDecoration.none,
+                                fontSize: 25,
+                                color: Color(0xff000000),
+                                fontFamily: 'Roboto',
+                                fontWeight: FontWeight.bold),
+                            maxLines: 9999,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Container(
+                          child: Text(
+                            'Login to access your account',
+                            style: TextStyle(fontStyle: FontStyle.italic),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Container(
+                          height: 50,
+                          padding: const EdgeInsets.fromLTRB(15, 5, 5, 5),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12)),
+                          child: TextField(
+                            controller: usernameController,
+                            decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText: 'Username',
+                                labelStyle: TextStyle(
+                                    color: myFocusNode.hasFocus
+                                        ? Colors.blue
+                                        : Colors.black)),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Container(
+                          height: 50,
+                          padding: const EdgeInsets.fromLTRB(15, 5, 5, 5),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12)),
+                          child: TextFormField(
+                            obscureText: !passwordVisible,
+                            controller: passwordController,
+                            onFieldSubmitted: (_) {
+                              // Call the login function when the user submits the password field
+                              login(context);
+                            },
+                            decoration: InputDecoration(
                               border: InputBorder.none,
-                              labelText: 'Username',
+                              hintText: 'Password',
                               labelStyle: TextStyle(
                                   color: myFocusNode.hasFocus
                                       ? Colors.blue
-                                      : Colors.black)),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(15, 5, 5, 5),
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12)),
-                        child: TextFormField(
-                          obscureText: !passwordVisible,
-                          controller: passwordController,
-                          onFieldSubmitted: (_) {
-                            // Call the login function when the user submits the password field
-                            login(context);
-                          },
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            labelText: 'Password',
-                            labelStyle: TextStyle(
-                                color: myFocusNode.hasFocus
-                                    ? Colors.blue
-                                    : Colors.black),
-                            suffixIcon: IconButton(
-                              icon: Icon(passwordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off),
-                              onPressed: () {
-                                setState(() {
-                                  passwordVisible = !passwordVisible;
-                                });
-                              },
+                                      : Colors.black),
+                              suffixIcon: IconButton(
+                                icon: Icon(passwordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off),
+                                onPressed: () {
+                                  setState(() {
+                                    passwordVisible = !passwordVisible;
+                                  });
+                                },
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          login(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 25, 49, 33),
-                          padding: const EdgeInsets.all(18.0),
-                          minimumSize: const Size(200, 50),
-                          maximumSize: const Size(200, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            login(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(255, 25, 49, 33),
+                            padding: const EdgeInsets.all(18.0),
+                            minimumSize: const Size(200, 50),
+                            maximumSize: const Size(200, 50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text(
+                            "LOG IN",
+                            style: TextStyle(
+                              color: Colors
+                                  .white, // Change the text color to white
+                            ),
                           ),
                         ),
-                        child: const Text(
-                          "LOG IN",
-                          style: TextStyle(
-                            color:
-                                Colors.white, // Change the text color to white
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -215,7 +331,9 @@ class _LoginState extends State<Login> {
         if (user != null) {
           // Navigate to the PovDashboard with only the userID
           Navigator.of(context).pushReplacement(MaterialPageRoute(
-            builder: (context) => PovDashboard(userId: user.uid),
+            builder: (context) => PovDashboard(
+              userId: user.uid,
+            ),
           ));
         }
       } else {

@@ -995,11 +995,11 @@ class _HolidayPageState extends State<HolidayPage> {
               label: Text('Time In',
                   style: TextStyle(fontWeight: FontWeight.bold))),
           DataColumn(
-              label:
-                  Text('Pay', style: TextStyle(fontWeight: FontWeight.bold))),
-          DataColumn(
               label: Text('Total Hours (h:m)',
                   style: TextStyle(fontWeight: FontWeight.bold))),
+          DataColumn(
+              label:
+                  Text('Pay', style: TextStyle(fontWeight: FontWeight.bold))),
         ],
         rows: overtimeDocs.map((overtimeDoc) {
           Color? rowColor = index % 2 == 0
@@ -1012,7 +1012,6 @@ class _HolidayPageState extends State<HolidayPage> {
                 DataCell(Text((index).toString())),
                 DataCell(Text(_formatDate(overtimeDoc['timeIn']))),
                 DataCell(Text(_formatTime(overtimeDoc['timeIn']))),
-                DataCell(Text(_formatTime(overtimeDoc['holidayPay']))),
                 DataCell(Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -1033,6 +1032,11 @@ class _HolidayPageState extends State<HolidayPage> {
                     )
                   ],
                 )),
+                DataCell(
+                  Text(NumberFormat.currency(
+                          locale: 'en_PH', symbol: '₱ ', decimalDigits: 2)
+                      .format(overtimeDoc['holidayPay'] ?? 0.0)),
+                ),
               ]);
         }).toList(),
       ),

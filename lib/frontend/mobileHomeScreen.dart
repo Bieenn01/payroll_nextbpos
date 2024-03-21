@@ -1,10 +1,10 @@
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:project_payroll_nextbpo/frontend/login.dart';
 
 class MobileHomeScreen extends StatefulWidget {
   const MobileHomeScreen({
@@ -97,6 +97,21 @@ class _MobileHomeScreenState extends State<MobileHomeScreen> {
               },
               child: Text('Time Out'),
             ),
+            SizedBox(
+              height: 20,
+            ),
+            ElevatedButton(
+                onPressed: () {
+                  FirebaseAuth.instance.signOut(); // Sign out the user
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            Login()), // Navigate back to the login page
+                    (route) =>
+                        false, // Remove all existing routes from the navigation stack
+                  );
+                },
+                child: Text('Logout'))
           ],
         ),
       ),
@@ -152,8 +167,7 @@ class _MobileHomeScreenState extends State<MobileHomeScreen> {
                 '${userData['fname']} ${userData['mname']} ${userData['lname']}',
             'department':
                 userData['department'], // Assuming department is in user data
-            'role':
-              userData['role']
+            'role': userData['role']
           });
 
           setState(() {
