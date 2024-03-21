@@ -13,7 +13,7 @@ Future<dynamic> UserProfile(BuildContext context) {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            const Text(
               ' User Profile',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -23,15 +23,63 @@ Future<dynamic> UserProfile(BuildContext context) {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  icon: Icon(Icons.close)),
+                  icon: const Icon(Icons.close)),
             ),
           ],
         ),
       ),
-      content: Container(
-        width: 800,
-        child: Column(
-          children: [],
+      content: const SizedBox(
+        width: 750,
+        height: 350,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundImage: AssetImage('assets/images/Admin.jpg'),
+                  ),
+                  Text('Dahnica Tedlos',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text('Admin', style: TextStyle(fontSize: 16)),
+                  ListTile(
+                      leading: Icon(Icons.email), title: Text('dahn@example')),
+                  ListTile(
+                      leading: Icon(Icons.phone), title: Text('0948-7355-442')),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('EMPLOYEE DETAILS',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  ListTile(
+                      leading: Icon(Icons.business),
+                      title: Text('Department: Information Technology')),
+                  ListTile(
+                      leading: Icon(Icons.person),
+                      title: Text('Employee Status: Regular')),
+                  ListTile(
+                      leading: Icon(Icons.access_time),
+                      title: Text('Shift: 9:00 am to 6:00 pm')),
+                  ListTile(
+                      leading: Icon(Icons.credit_card),
+                      title: Text('SSS: 123-456-789')),
+                  ListTile(
+                      leading: Icon(Icons.credit_card),
+                      title: Text('TIN: 123-456-789')),
+                  ListTile(
+                      leading: Icon(Icons.account_balance),
+                      title: Text('Tax Code: 123-456-78')),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     ),

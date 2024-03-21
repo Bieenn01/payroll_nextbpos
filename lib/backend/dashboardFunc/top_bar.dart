@@ -65,7 +65,10 @@ class _TopBarState extends State<TopBar> {
           .get();
 
       setState(() {
-        _role = docSnapshot['role'];
+        final role = docSnapshot['role'];
+        _role = role != null
+            ? role
+            : 'Guest'; // Default to 'Guest' if role is not specified
       });
     }
   }
@@ -161,7 +164,10 @@ class _TopBarState extends State<TopBar> {
                               CircleAvatar(
                                 backgroundImage: _role == 'Admin'
                                     ? AssetImage('assets/images/Admin.jpg')
-                                    : AssetImage('assets/images/Employee.jpg'),
+                                    : _role == 'Super Admin'
+                                        ? AssetImage('assets/images/SAdmin.jpg')
+                                        : AssetImage(
+                                            'assets/images/Employee.jpg'),
                                 // Change image path based on role
                                 radius:
                                     20, // Adjust the radius as per your requirement
