@@ -533,15 +533,7 @@ class _AttendancePageState extends State<AttendancePage> {
                           backgroundColor: Colors.teal,
                           padding: EdgeInsets.only(left: 5),
                         ),
-                        onPressed: () {
-                          setState(() {
-                            filter = !filter;
-                          });
-                          filtermodal(
-                            context,
-                            styleFrom,
-                          );
-                        },
+                        onPressed: () {},
                         child: MediaQuery.of(context).size.width > 800
                             ? const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,

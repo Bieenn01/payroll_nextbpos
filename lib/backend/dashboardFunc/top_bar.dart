@@ -1,5 +1,5 @@
 import 'dart:async';
- 
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,21 +9,21 @@ import 'package:intl/intl.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/user_profile.dart';
 import 'package:project_payroll_nextbpo/frontend/login.dart'; // Import your login page file
- 
+
 class TopBar extends StatefulWidget {
   const TopBar({Key? key});
- 
+
   @override
   State<TopBar> createState() => _TopBarState();
 }
- 
+
 class _TopBarState extends State<TopBar> {
   late StreamSubscription<DocumentSnapshot> _subscription;
   late String _userName = 'Guest';
   late String currentTime;
   late String _role = 'Guest';
   late Timer timer;
- 
+
   @override
   void initState() {
     super.initState();
@@ -36,14 +36,14 @@ class _TopBarState extends State<TopBar> {
     _fetchFirstName();
     _fetchRole();
   }
- 
+
   @override
   void dispose() {
     _subscription.cancel();
     timer.cancel();
     super.dispose();
   }
- 
+
   Future<void> _fetchFirstName() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -51,13 +51,13 @@ class _TopBarState extends State<TopBar> {
           .collection('User')
           .doc(user.uid)
           .get();
- 
+
       setState(() {
         _userName = docSnapshot['fname'];
       });
     }
   }
- 
+
   Future<void> _fetchRole() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -65,7 +65,7 @@ class _TopBarState extends State<TopBar> {
           .collection('User')
           .doc(user.uid)
           .get();
- 
+
       setState(() {
         final role = docSnapshot['role'];
         _role = role != null
@@ -74,7 +74,7 @@ class _TopBarState extends State<TopBar> {
       });
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final DateTime now = DateTime.now();
@@ -128,12 +128,12 @@ class _TopBarState extends State<TopBar> {
                               'Superadmin' // Conditionally render the menu items based on the role
                           ? [
                               PopupMenuItem(
-                                value: 'account_list',
-                                child: Text('Account List'),
-                              ),
-                              PopupMenuItem(
                                 value: 'user_profile',
                                 child: Text('User Profile'),
+                              ),
+                              PopupMenuItem(
+                                value: 'account_list',
+                                child: Text('Account List'),
                               ),
                               PopupMenuItem(
                                 value: 'log_out',
@@ -163,12 +163,11 @@ class _TopBarState extends State<TopBar> {
                               false, // Remove all existing routes from the navigation stack
                         );
                       } else if (value == 'user_profile') {
-                      UserProfile(context);
+                        UserProfile(context);
                       } else if (value == 'account_list') {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => PovUser()),
+                          MaterialPageRoute(builder: (context) => PovUser()),
                         );
                       }
                     });
