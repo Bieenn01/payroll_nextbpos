@@ -55,7 +55,7 @@ class PayslipPage extends StatefulWidget {
 
 class _PayslipPageState extends State<PayslipPage> {
   bool viewTable = true;
-  String selectedDepartment = 'All Departments'; // Default selection
+
   DateTime? fromDate;
   DateTime? toDate;
   List<PayslipData> payrollData =
@@ -196,7 +196,7 @@ SizedBox timesheet(BuildContext context) {
           final List<DocumentSnapshot> documents = snapshot.data!.docs;
 
           if (documents.isEmpty) {
-            return Text('No data available');
+            return Center(child: Text('No data available'));
           }
 
           final dataTable = DataTable(
@@ -404,14 +404,14 @@ SizedBox timesheet(BuildContext context) {
 
     // Fetch the count of users from the Firestore collection based on the selected department
     QuerySnapshot querySnapshot;
-    if (userDepartment == 'All Departments') {
+
       querySnapshot = await FirebaseFirestore.instance.collection('Records').get();
-    } else {
+
       querySnapshot = await FirebaseFirestore.instance
           .collection('Records')
           .where('department', isEqualTo: userDepartment)
           .get();
-    }
+    
 
     // Get the count of users
     int userCount = querySnapshot.size;
@@ -480,7 +480,7 @@ Future<void> saveToFirestore(
     String userDepartment,
   ) {
     List<String> departments = [
-      'All Departments',
+      
       'IT',
       'HR',
       'ACCOUNTING',
