@@ -171,6 +171,40 @@ class _UserState extends State<PovUser> {
           child: Column(
             children: [
               Expanded(
+                flex: 1,
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(15, 15, 15, 15),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        icon: const Icon(Icons.arrow_back),
+                      ),
+                      const Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Text(
+                              "Account List",
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 7,
                 child: SingleChildScrollView(
                   child: Container(
                     margin: const EdgeInsets.fromLTRB(15, 5, 15, 15),
@@ -182,17 +216,8 @@ class _UserState extends State<PovUser> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Text(
-                                "Account List",
-                                style: TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ],
+                        SizedBox(
+                          height: 15,
                         ),
                         searchFilter(context),
                         const Divider(),
@@ -630,7 +655,7 @@ class _UserState extends State<PovUser> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Icon(
@@ -654,13 +679,13 @@ class _UserState extends State<PovUser> {
         );
         return MediaQuery.of(context).size.width > 1500
             ? SizedBox(
-                height: 600,
+                height: 650,
                 child: SingleChildScrollView(
                   scrollDirection: Axis.vertical,
                   child: dataTable,
                 ))
             : SizedBox(
-                height: 600,
+                height: 650,
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: SingleChildScrollView(

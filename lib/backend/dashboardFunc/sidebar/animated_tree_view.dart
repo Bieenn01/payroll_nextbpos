@@ -7,10 +7,10 @@ final menuTree = TreeNode.root()
       TreeNode(key: "Dashboard", data: Icons.dashboard),
       TreeNode(key: "Overtime", data: Icons.access_time_filled_outlined)
         ..addAll([
-          TreeNode(key: "Regular (OT)"),
-          TreeNode(key: "Rest day"),
-          TreeNode(key: "Regular Holiday (RH)"),
-          TreeNode(key: "Special Holiday (SH)"),
+          TreeNode(key: "Regular OT"),
+          TreeNode(key: "Rest day OT"),
+          TreeNode(key: "Regular Holiday OT"),
+          TreeNode(key: "Special Holiday OT"),
         ]),
       TreeNode(key: "Holiday", data: Icons.calendar_month_outlined)
         ..addAll([
@@ -27,4 +27,3 @@ final menuTree = TreeNode.root()
       // ),
     ],
   );
-

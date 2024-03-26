@@ -57,7 +57,7 @@ class ScreensView extends StatelessWidget {
           ),
         );
         break;
-      case 'Regular (OT)':
+      case 'Regular OT':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -72,7 +72,7 @@ class ScreensView extends StatelessWidget {
           ),
         );
         break;
-      case 'Rest day':
+      case 'Rest day OT':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -87,7 +87,7 @@ class ScreensView extends StatelessWidget {
           ),
         );
         break;
-      case 'Special Holiday (SH)':
+      case 'Special Holiday OT':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -102,7 +102,7 @@ class ScreensView extends StatelessWidget {
           ),
         );
         break;
-      case 'Regular Holiday (RH)':
+      case 'Regular Holiday OT':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
