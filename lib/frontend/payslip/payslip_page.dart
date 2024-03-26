@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:project_payroll_nextbpo/frontend/payslip/payslip._form.dart';
+import 'package:shimmer/shimmer.dart' as ShimmerPackage;
+import 'package:intl/intl.dart';
+
 
 class PayslipData {
   final String employeeID;
@@ -31,12 +34,14 @@ class PayslipData {
       'employeeID': employeeID,
       'name': name,
       'department': department,
-      'startDate': startDate,
-      'endDate': endDate,
-      'dateGenerated': dateGenerated,
-      'grossPay': grossPay,
-      'deductions': deductions,
-      'netPay': netPay,
+'startDate':
+          Timestamp.fromDate(startDate), // Convert DateTime to Timestamp
+      'endDate': Timestamp.fromDate(endDate), // Convert DateTime to Timestamp
+      'dateGenerated':
+          Timestamp.fromDate(dateGenerated), // Convert DateTime to Timestamp
+       'grossPay': grossPay,
+       'deductions': deductions,
+       'netPay': netPay,
     };
   }
 }
@@ -50,7 +55,7 @@ class PayslipPage extends StatefulWidget {
 
 class _PayslipPageState extends State<PayslipPage> {
   bool viewTable = true;
-  String selectedDepartment = 'All Departments'; // Default selection
+
   DateTime? fromDate;
   DateTime? toDate;
   List<PayslipData> payrollData =
@@ -173,24 +178,25 @@ class _PayslipPageState extends State<PayslipPage> {
     );
   }
 
-  SizedBox timesheet(BuildContext context) {
+SizedBox timesheet(BuildContext context) {
     return SizedBox(
       height: 600,
       child: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collectionGroup('Employees').snapshots(),
+        stream:
+            FirebaseFirestore.instance.collectionGroup('Employees').snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
+            return _buildShimmerLoading();
           }
 
           final List<DocumentSnapshot> documents = snapshot.data!.docs;
 
           if (documents.isEmpty) {
-            return Text('No data available');
+            return Center(child: Text('No data available'));
           }
 
           final dataTable = DataTable(
@@ -225,19 +231,23 @@ class _PayslipPageState extends State<PayslipPage> {
             ],
             rows: documents.map<DataRow>((doc) {
               Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+              DateFormat dateFormatter = DateFormat('MM/dd/yyyy');
               return DataRow(
                 cells: [
                   DataCell(Text(data['employeeID'])),
                   DataCell(Text(data['name'])),
                   DataCell(Text(data['department'])),
-                  DataCell(Text(data['startDate'].toDate().toString())),
-                  DataCell(Text(data['endDate'].toDate().toString())),
-                  DataCell(Text(data['dateGenerated'].toDate().toString())),
+                  DataCell(
+                      Text(dateFormatter.format(data['startDate'].toDate()))),
+                  DataCell(
+                      Text(dateFormatter.format(data['endDate'].toDate()))),
+                  DataCell(Text(
+                      dateFormatter.format(data['dateGenerated'].toDate()))),
                   DataCell(
                     ElevatedButton(
                       onPressed: () {
                         setState(() {
-                          viewTable = false;
+                          // button para mo diretsyo sa payslipform
                         });
                       },
                       style: ElevatedButton.styleFrom(
@@ -394,31 +404,32 @@ class _PayslipPageState extends State<PayslipPage> {
 
     // Fetch the count of users from the Firestore collection based on the selected department
     QuerySnapshot querySnapshot;
-    if (userDepartment == 'All Departments') {
-      querySnapshot = await FirebaseFirestore.instance.collection('User').get();
-    } else {
+
+      querySnapshot = await FirebaseFirestore.instance.collection('Records').get();
+
       querySnapshot = await FirebaseFirestore.instance
-          .collection('User')
+          .collection('Records')
           .where('department', isEqualTo: userDepartment)
           .get();
-    }
+    
 
     // Get the count of users
     int userCount = querySnapshot.size;
 
     // Simulate generating payroll data for each employee
     // Here, you can replace this logic with your actual payroll generation algorithm
-    for (int i = 1; i <= userCount; i++) {
+    for (var doc in querySnapshot.docs) {
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
       PayslipData payslip = PayslipData(
-        employeeID: 'EMP00$i',
-        name: 'Employee $i',
-        department: userDepartment, // Use user's department
+        employeeID: data['userId'],
+        name: data['userName'],
+        department: userDepartment,
         startDate: fromDate!,
         endDate: toDate!,
         dateGenerated: DateTime.now(),
-        grossPay: 2000 + i * 100,
+        grossPay: 2000 +  100,
         deductions: 0,
-        netPay: 2000 + i * 100,
+        netPay: 2000 +   100,
       );
       generatedData.add(payslip);
     }
@@ -427,20 +438,35 @@ class _PayslipPageState extends State<PayslipPage> {
     await saveToFirestore(generatedData, userDepartment);
   }
 
-  Future<void> saveToFirestore(
+Future<void> saveToFirestore(
       List<PayslipData> generatedData, String userDepartment) async {
     CollectionReference payslipCollection =
         FirebaseFirestore.instance.collection('PayslipDepartment');
 
-    // Clear existing documents for the department
-    await payslipCollection.doc(userDepartment).delete();
-
-    // Save new documents
+    // Loop through each generated payslip
     for (var payslip in generatedData) {
-      await payslipCollection
+      // Check if the document already exists for the employee
+      QuerySnapshot existingDocs = await payslipCollection
           .doc(userDepartment)
           .collection('Employees')
-          .add(payslip.toMap());
+          .where('employeeID', isEqualTo: payslip.employeeID)
+          .limit(1)
+          .get();
+
+      if (existingDocs.docs.isNotEmpty) {
+        // Update existing document
+        await payslipCollection
+            .doc(userDepartment)
+            .collection('Employees')
+            .doc(existingDocs.docs.first.id)
+            .update(payslip.toMap());
+      } else {
+        // Add new document
+        await payslipCollection
+            .doc(userDepartment)
+            .collection('Employees')
+            .add(payslip.toMap());
+      }
     }
 
     // Update UI with the generated data
@@ -454,7 +480,7 @@ class _PayslipPageState extends State<PayslipPage> {
     String userDepartment,
   ) {
     List<String> departments = [
-      'All Departments',
+      
       'IT',
       'HR',
       'ACCOUNTING',
@@ -488,7 +514,7 @@ class _PayslipPageState extends State<PayslipPage> {
     );
   }
 
-  void showGeneratePayrollDialog(BuildContext context) async {
+void showGeneratePayrollDialog(BuildContext context) async {
     DateTime? fromDateLocal = fromDate;
     DateTime? toDateLocal = toDate;
 
@@ -496,88 +522,155 @@ class _PayslipPageState extends State<PayslipPage> {
     String? userUid = user?.uid;
 
     if (userUid != null) {
-      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
-          .collection('User')
-          .doc(userUid)
-          .get();
+      CollectionReference recordsCollection =
+          FirebaseFirestore.instance.collection('Records');
 
-      String userDepartment = userSnapshot.get('department');
+      // Fetch 'userId' and 'department' fields from the 'Records' collection for the current user
+      QuerySnapshot userSnapshot =
+          await recordsCollection.where( userUid).get();
 
-      await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return StatefulBuilder(
-            builder: (context, setState) {
-              return AlertDialog(
-                title: Text('Generate Payroll'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Select Department:'),
-                    departmentDropdown((newValue) {
-                      setState(() {
-                        userDepartment = newValue!;
-                      });
-                    }, userDepartment),
-                    SizedBox(height: 10),
-                    Text('Select Date Range:'),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final DateTimeRange? picked = await showDateRangePicker(
-                          context: context,
-                          firstDate: DateTime(DateTime.now().year - 1),
-                          lastDate: DateTime(DateTime.now().year + 1),
-                          initialDateRange:
-                              fromDateLocal != null && toDateLocal != null
-                                  ? DateTimeRange(
-                                      start: fromDateLocal!,
-                                      end: toDateLocal!,
-                                    )
-                                  : null,
-                        );
+      if (userSnapshot.docs.isNotEmpty) {
+        final userDocument = userSnapshot.docs.first;
+        String userDepartment = userDocument.get('department');
 
-                        if (picked != null) {
-                          setState(() {
-                            fromDateLocal = picked.start;
-                            toDateLocal = picked.end;
-                          });
-                        }
-                      },
-                      child: Text(
-                        'Select Date Range',
-                        style: TextStyle(color: Colors.white),
+        await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return StatefulBuilder(
+              builder: (context, setState) {
+                return AlertDialog(
+                  title: Text('Generate Payroll'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Select Department:'),
+                      departmentDropdown((newValue) {
+                        setState(() {
+                          userDepartment = newValue!;
+                        });
+                      }, userDepartment),
+                      SizedBox(height: 10),
+                      Text('Select Date Range:'),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final DateTimeRange? picked =
+                              await showDateRangePicker(
+                            context: context,
+                            firstDate: DateTime(DateTime.now().year - 1),
+                            lastDate: DateTime(DateTime.now().year + 1),
+                            initialDateRange:
+                                fromDateLocal != null && toDateLocal != null
+                                    ? DateTimeRange(
+                                        start: fromDateLocal!,
+                                        end: toDateLocal!,
+                                      )
+                                    : null,
+                          );
+
+                          if (picked != null) {
+                            setState(() {
+                              fromDateLocal = picked.start;
+                              toDateLocal = picked.end;
+                            });
+                          }
+                        },
+                        child: Text(
+                          'Select Date Range',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          fromDate = fromDateLocal;
+                          toDate = toDateLocal;
+                        });
+                        generatePayroll(
+                            userDepartment); // Pass user's department
+                        Navigator.pop(context);
+                      },
+                      child: Text('Generate'),
                     ),
                   ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text('Cancel'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        fromDate = fromDateLocal;
-                        toDate = toDateLocal;
-                      });
-                      generatePayroll(userDepartment); // Pass user's department
-                      Navigator.pop(context);
-                    },
-                    child: Text('Generate'),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      );
+                );
+              },
+            );
+          },
+        );
+      } else {
+        // Handle when user document is not found
+        print('User document not found.');
+      }
     } else {
       // Handle when user is not authenticated
       print('User not authenticated.');
     }
   }
+}
+
+Widget _buildShimmerLoading() {
+  return SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: ShimmerPackage.Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: DataTable(
+        columns: const [
+          DataColumn(
+            label: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('ID', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Department',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Total Hours (h:m)',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Overtime Pay',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Overtime Type',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label:
+                Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          // Added column for Status
+        ],
+        rows: List.generate(
+          10, // You can change this to the number of shimmer rows you want
+          (index) => DataRow(cells: [
+            DataCell(Container(width: 40, height: 16, color: Colors.white)),
+            DataCell(Container(width: 60, height: 16, color: Colors.white)),
+            DataCell(Container(width: 120, height: 16, color: Colors.white)),
+            DataCell(Container(width: 80, height: 16, color: Colors.white)),
+            DataCell(Container(width: 80, height: 16, color: Colors.white)),
+            DataCell(Container(width: 100, height: 16, color: Colors.white)),
+            DataCell(Container(width: 60, height: 16, color: Colors.white)),
+            DataCell(Container(width: 60, height: 16, color: Colors.white)),
+          ]),
+        ),
+      ),
+    ),
+  );
 }
