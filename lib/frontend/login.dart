@@ -307,12 +307,11 @@ class _LoginState extends State<Login> {
   login(BuildContext context) async {
     try {
       // Query the users collection to find the user with the provided username
-     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection('User')
           .where('username', isEqualTo: usernameController.text)
           .where('isActive', isEqualTo: true) // Add this condition
           .get();
-
 
       if (querySnapshot.docs.isNotEmpty) {
         // Assuming username is unique, there should be only one document

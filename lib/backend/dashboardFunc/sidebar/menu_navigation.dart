@@ -18,6 +18,7 @@ import 'package:project_payroll_nextbpo/backend/dashboardFunc/top_bar.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regularOT.dart';
 import 'package:project_payroll_nextbpo/frontend/payslip/payslip_page.dart';
+import 'package:project_payroll_nextbpo/leaverecord.dart';
 
 class ScreensView extends StatelessWidget {
   final String menu;
@@ -213,6 +214,21 @@ class ScreensView extends StatelessWidget {
               Flexible(
                 flex: 7,
                 child: PayslipPage(),
+              ),
+            ],
+          ),
+        );
+        break;
+      case 'Leave':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 120, child: TopBar()),
+              Flexible(
+                flex: 7,
+                child: UserListScreen(),
               ),
             ],
           ),
