@@ -263,7 +263,7 @@ class _AttendancePageState extends State<AttendancePage> {
 
               // Format the duration to display total hours
               String totalHoursAndMinutes =
-                  '${totalDuration.inHours} hours, ${totalDuration.inMinutes.remainder(60)} minutes';
+                  '${totalDuration.inHours} hrs, ${totalDuration.inMinutes.remainder(60)} mins';
 
               return DataRow(
                 color: MaterialStateColor.resolveWith((states) => rowColor!),
@@ -285,10 +285,25 @@ class _AttendancePageState extends State<AttendancePage> {
                     width: 150,
                     child: Text(_formatTimestamp(timeOutTimestamp)),
                   )),
-                  DataCell(Container(
-                    width: 150,
-                    child: Text(totalHoursAndMinutes), // Display total hours
-                  )),
+                  DataCell(
+                    Container(
+                      width: 100,
+                      padding: EdgeInsets.fromLTRB(5, 2, 2, 5),
+                      decoration: BoxDecoration(
+                        color: Colors.indigo[50],
+                        border: Border.all(color: Colors.indigo.shade900),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            child: Text(totalHoursAndMinutes),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               );
             }),

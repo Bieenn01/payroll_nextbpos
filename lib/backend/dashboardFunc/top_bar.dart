@@ -221,10 +221,14 @@ class _TopBarState extends State<TopBar> {
                               const Icon(Icons.arrow_drop_down),
                             ],
                           )
-                        : const CircleAvatar(
-                            child: Icon(
-                              Icons.person,
-                            ),
+                        : CircleAvatar(
+                            backgroundImage: _role == 'Admin'
+                                ? const AssetImage('assets/images/Admin.jpg')
+                                : _role == 'Superadmin'
+                                    ? const AssetImage(
+                                        'assets/images/SAdmin.jpg')
+                                    : const AssetImage(
+                                        'assets/images/Employee.jpg'),
                           ),
                   ),
                 ),

@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:animated_tree_view/animated_tree_view.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/animated_tree_view.dart';
-import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_bloc.dart'; 
+import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_bloc.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_event.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/flutter_state.dart';
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/sidebar/menu_navigation.dart';
@@ -17,7 +17,6 @@ class SidebarMenu extends StatefulWidget {
 }
 
 class _SidebarMenuState extends State<SidebarMenu> {
-
   Map<String, bool> hoverStates = {};
 
   Widget build(BuildContext context) {
@@ -75,8 +74,9 @@ class _SidebarMenuState extends State<SidebarMenu> {
                               child: TreeView.simple(
                                 tree: menuTree,
                                 indentation: const Indentation(width: 0),
-                                expansionBehavior: ExpansionBehavior.collapseOthersAndSnapToTop,
-                                showRootNode: false ,
+                                expansionBehavior: ExpansionBehavior
+                                    .collapseOthersAndSnapToTop,
+                                showRootNode: false,
                                 expansionIndicatorBuilder: (context, node) {
                                   return ChevronIndicator.rightDown(
                                     alignment: Alignment.centerLeft,
@@ -102,7 +102,8 @@ class _SidebarMenuState extends State<SidebarMenu> {
                                 builder: (context, node) {
                                   final isSelected = state.menu == node.key;
                                   final isExpanded = node.isExpanded;
-                                  bool isHovered = hoverStates[node.key] ?? false;
+                                  bool isHovered =
+                                      hoverStates[node.key] ?? false;
                                   return MouseRegion(
                                     onHover: (_) {
                                       //print('Mouse entered');
@@ -112,7 +113,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
                                       });
                                     },
                                     onExit: (_) {
-                                     // print('Mouse exited');
+                                      // print('Mouse exited');
                                       setState(() {
                                         hoverStates[node.key] =
                                             false; // Update hover state for this node
@@ -120,7 +121,9 @@ class _SidebarMenuState extends State<SidebarMenu> {
                                     },
                                     cursor: SystemMouseCursors.click,
                                     child: Container(
-                                      color: node.level >= 2 || isExpanded || isHovered
+                                      color: node.level >= 2 ||
+                                              isExpanded ||
+                                              isHovered
                                           ? const Color.fromARGB(
                                               255, 154, 207, 205)
                                           : Colors.white,
@@ -149,8 +152,8 @@ class _SidebarMenuState extends State<SidebarMenu> {
                                             ),
                                           ),
                                           child: Padding(
-                                            padding: const EdgeInsets.only(
-                                                left: 25),
+                                            padding:
+                                                const EdgeInsets.only(left: 25),
                                             child: node.level >= 2
                                                 ? Text(
                                                     node.key,
@@ -166,14 +169,12 @@ class _SidebarMenuState extends State<SidebarMenu> {
                                                         size: 20,
                                                         color: Colors.black,
                                                       ),
-                                                      const SizedBox(
-                                                          width: 6),
+                                                      const SizedBox(width: 6),
                                                       Text(
                                                         node.key == "/"
                                                             ? "Menu"
                                                             : node.key,
-                                                        style:
-                                                            const TextStyle(
+                                                        style: const TextStyle(
                                                           color: Colors.black,
                                                           fontSize: 18,
                                                         ),
@@ -217,5 +218,4 @@ class _SidebarMenuState extends State<SidebarMenu> {
       ),
     );
   }
-  
 }
