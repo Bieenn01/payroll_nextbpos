@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -50,6 +51,22 @@ class User {
       required this.employeeId,
       required this.mobilenum,
       required this.isActive});
+}
+
+class UsernameGenerator {
+  static String generateUsername(
+      String firstName, String lastName, String contactNumber) {
+    String firstNamePart =
+        firstName.substring(0, min(4, firstName.length)).toLowerCase();
+    String lastNamePart =
+        lastName.substring(0, min(3, lastName.length)).toLowerCase();
+    String lastThreeDigits =
+        contactNumber.substring(max(0, contactNumber.length - 3));
+    String specialCharacter =
+        ['!', '@', '#', '%', '^', '&', '*'][Random().nextInt(8)];
+
+    return '$firstNamePart$lastNamePart$lastThreeDigits$specialCharacter';
+  }
 }
 
 class PovUser extends StatefulWidget {
@@ -161,6 +178,15 @@ class _UserState extends State<PovUser> {
   DocumentSnapshot? _lastVisibleSnapshot;
 
 // Initialize _users as an empty list
+
+  void updateUsername() {
+    String firstName = firstNameController.text;
+    String lastName = lastNameController.text;
+    String num = mobilenumController.text;
+    String generatedUsername =
+        UsernameGenerator.generateUsername(firstName, lastName, num);
+    usernameController.text = generatedUsername;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -677,7 +703,7 @@ class _UserState extends State<PovUser> {
             },
           ),
         );
-        return MediaQuery.of(context).size.width > 1500
+        return MediaQuery.of(context).size.width > 1450
             ? SizedBox(
                 height: 650,
                 child: SingleChildScrollView(
@@ -1097,6 +1123,9 @@ class _UserState extends State<PovUser> {
                                 decoration: boxdecoration(),
                                 child: TextFormField(
                                   controller: firstNameController,
+                                  onChanged: (_) {
+                                    updateUsername();
+                                  },
                                   decoration: const InputDecoration(
                                       hintText: 'Enter First Name',
                                       border: InputBorder.none),
@@ -1119,6 +1148,9 @@ class _UserState extends State<PovUser> {
                                 padding: EdgeInsets.only(left: 5),
                                 child: TextFormField(
                                   controller: middleNameController,
+                                  onChanged: (_) {
+                                    updateUsername();
+                                  },
                                   decoration: const InputDecoration(
                                       hintText: 'Enter Middle Name',
                                       border: InputBorder.none),
@@ -1141,6 +1173,9 @@ class _UserState extends State<PovUser> {
                                 padding: EdgeInsets.only(left: 5),
                                 child: TextFormField(
                                   controller: lastNameController,
+                                  onChanged: (_) {
+                                    updateUsername();
+                                  },
                                   decoration: const InputDecoration(
                                       hintText: 'Enter Last Name',
                                       border: InputBorder.none),
@@ -1170,6 +1205,39 @@ class _UserState extends State<PovUser> {
                                 decoration: boxdecoration(),
                                 child: TextFormField(
                                   controller: mobilenumController,
+                                  onChanged: (_) {
+                                    updateUsername();
+                                  },
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(
+                                        11), // Limit to 10 digits
+                                    TextInputFormatter.withFunction(
+                                        (oldValue, newValue) {
+                                      if (newValue.text.isEmpty) {
+                                        return newValue.copyWith(text: '');
+                                      }
+                                      final int textLength =
+                                          newValue.text.length;
+                                      String newText = '';
+                                      for (int i = 0; i < textLength; i++) {
+                                        if (i == 0) {
+                                          newText += '(' + newValue.text[i];
+                                        } else if (i == 3) {
+                                          newText += ') ' + newValue.text[i];
+                                        } else if (i == 7) {
+                                          newText += ' ' + newValue.text[i];
+                                        } else {
+                                          newText += newValue.text[i];
+                                        }
+                                      }
+                                      return newValue.copyWith(
+                                        text: newText,
+                                        selection: TextSelection.collapsed(
+                                            offset: newText.length),
+                                      );
+                                    }),
+                                  ],
                                   decoration: const InputDecoration(
                                       hintText: 'Enter Mobile Number',
                                       border: InputBorder.none),
@@ -1192,6 +1260,34 @@ class _UserState extends State<PovUser> {
                                 padding: EdgeInsets.only(left: 5),
                                 child: TextFormField(
                                   controller: employeeIdController,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(
+                                        6), // Limit to 10 digits
+                                    TextInputFormatter.withFunction(
+                                        (oldValue, newValue) {
+                                      if (newValue.text.isEmpty) {
+                                        return newValue.copyWith(text: '');
+                                      }
+                                      final int textLength =
+                                          newValue.text.length;
+                                      String newText = '';
+                                      for (int i = 0; i < textLength; i++) {
+                                        if (i == 0) {
+                                          newText += '(' + newValue.text[i];
+                                        } else if (i == 2) {
+                                          newText += ') ' + newValue.text[i];
+                                        } else {
+                                          newText += newValue.text[i];
+                                        }
+                                      }
+                                      return newValue.copyWith(
+                                        text: newText,
+                                        selection: TextSelection.collapsed(
+                                            offset: newText.length),
+                                      );
+                                    }),
+                                  ],
                                   decoration: const InputDecoration(
                                       hintText: 'Enter Employee ID',
                                       border: InputBorder.none),
@@ -1206,17 +1302,26 @@ class _UserState extends State<PovUser> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Salary'),
+                              Text('Salary'),
                               Container(
                                 width: 280,
                                 height: 40,
+                                padding: const EdgeInsets.fromLTRB(5, 5, 5, 5),
                                 decoration: boxdecoration(),
-                                padding: EdgeInsets.only(left: 5),
-                                child: TextFormField(
+                                child: TextField(
                                   controller: salaryController,
+                                  keyboardType: TextInputType.numberWithOptions(
+                                      decimal:
+                                          true), // Set keyboard type to number
+                                  inputFormatters: <TextInputFormatter>[
+                                    FilteringTextInputFormatter.allow(
+                                        RegExp(r'[0-9.]')),
+                                    // Accept only digits
+                                  ],
                                   decoration: const InputDecoration(
-                                      hintText: 'Enter Salary',
-                                      border: InputBorder.none),
+                                    hintText: 'Enter Salary',
+                                    border: InputBorder.none,
+                                  ),
                                 ),
                               ),
                             ],
@@ -1733,6 +1838,9 @@ class _UserState extends State<PovUser> {
                                   decoration: boxdecoration(),
                                   child: TextField(
                                     controller: firstNameController,
+                                    onChanged: (_) {
+                                      updateUsername();
+                                    },
                                     inputFormatters: [
                                       FilteringTextInputFormatter.allow(
                                           RegExp('[a-zA-Z]')),
@@ -1762,6 +1870,9 @@ class _UserState extends State<PovUser> {
                                   decoration: boxdecoration(),
                                   child: TextField(
                                     controller: middleNameController,
+                                    onChanged: (_) {
+                                      updateUsername();
+                                    },
                                     inputFormatters: [
                                       FilteringTextInputFormatter.allow(
                                           RegExp('[a-zA-Z]')),
@@ -1791,6 +1902,9 @@ class _UserState extends State<PovUser> {
                                   decoration: boxdecoration(),
                                   child: TextField(
                                     controller: lastNameController,
+                                    onChanged: (_) {
+                                      updateUsername();
+                                    },
                                     inputFormatters: [
                                       FilteringTextInputFormatter.allow(
                                           RegExp('[a-zA-Z]')),
@@ -1827,6 +1941,7 @@ class _UserState extends State<PovUser> {
                                       const EdgeInsets.fromLTRB(5, 5, 5, 5),
                                   decoration: boxdecoration(),
                                   child: TextField(
+                                    controller: mobilenumController,
                                     inputFormatters: [
                                       FilteringTextInputFormatter.digitsOnly,
                                       LengthLimitingTextInputFormatter(
@@ -1857,6 +1972,9 @@ class _UserState extends State<PovUser> {
                                         );
                                       }),
                                     ],
+                                    onChanged: (_) {
+                                      updateUsername();
+                                    },
                                     decoration: const InputDecoration(
                                         hintText: 'Enter Mobile',
                                         border: InputBorder.none),
@@ -1882,6 +2000,34 @@ class _UserState extends State<PovUser> {
                                   decoration: boxdecoration(),
                                   child: TextField(
                                     controller: employeeIdController,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      LengthLimitingTextInputFormatter(
+                                          6), // Limit to 10 digits
+                                      TextInputFormatter.withFunction(
+                                          (oldValue, newValue) {
+                                        if (newValue.text.isEmpty) {
+                                          return newValue.copyWith(text: '');
+                                        }
+                                        final int textLength =
+                                            newValue.text.length;
+                                        String newText = '';
+                                        for (int i = 0; i < textLength; i++) {
+                                          if (i == 0) {
+                                            newText += '(' + newValue.text[i];
+                                          } else if (i == 2) {
+                                            newText += ') ' + newValue.text[i];
+                                          } else {
+                                            newText += newValue.text[i];
+                                          }
+                                        }
+                                        return newValue.copyWith(
+                                          text: newText,
+                                          selection: TextSelection.collapsed(
+                                              offset: newText.length),
+                                        );
+                                      }),
+                                    ],
                                     decoration: const InputDecoration(
                                         hintText: 'Enter Employee ID',
                                         border: InputBorder.none),
@@ -1907,13 +2053,13 @@ class _UserState extends State<PovUser> {
                                   decoration: boxdecoration(),
                                   child: TextField(
                                     controller: salaryController,
-                                    keyboardType: TextInputType
-                                        .number, // Set keyboard type to number
+                                    keyboardType: TextInputType.numberWithOptions(
+                                        decimal:
+                                            true), // Set keyboard type to number
                                     inputFormatters: <TextInputFormatter>[
                                       FilteringTextInputFormatter.allow(
-                                          RegExp(r'[0-9]')),
-                                      FilteringTextInputFormatter
-                                          .digitsOnly // Accept only digits
+                                          RegExp(r'[0-9.]')),
+// Accept only digits
                                     ],
                                     decoration: const InputDecoration(
                                       hintText: 'Enter Salary',
