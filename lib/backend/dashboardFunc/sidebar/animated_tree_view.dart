@@ -29,7 +29,6 @@ Future<TreeNode> getMenuTree() async {
         ]),
       TreeNode(key: "Leave", data: Icons.recent_actors_outlined),
       TreeNode(key: "Logs", data: Icons.analytics),
-      TreeNode(key: "Calendar", data: Icons.edit_calendar_outlined),
       TreeNode(key: "Payroll", data: Icons.payments),
     ]);
   }
