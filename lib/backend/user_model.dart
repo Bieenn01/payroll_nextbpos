@@ -32,7 +32,7 @@ class AuthService {
         return UserModel(
           uid: user.uid,
           email: user.email!,
-          role: userData['role'] ?? "", // Assuming 'role' is the field in Firestore representing the user's role
+          role: userData['role'] ?? "", 
         );
       }
     }
