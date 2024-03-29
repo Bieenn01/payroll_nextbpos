@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 class UserModel {
   final String uid;
   final String email;
-  final String role; // Assuming role field exists in your User model
+  final String role;
 
   UserModel({
     required this.uid,
