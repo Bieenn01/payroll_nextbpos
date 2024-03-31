@@ -269,8 +269,12 @@ class _AttendancePageState extends State<AttendancePage> {
               const DataColumn(
                   label: Text('Total Hours',
                       style: TextStyle(fontWeight: FontWeight.bold))),
+                      const DataColumn(
+                  label: Text('Holiday',
+                      style: TextStyle(fontWeight: FontWeight.bold))),
             ],
             rows: List.generate(filteredDocuments.length, (index) {
+              
               DocumentSnapshot document = filteredDocuments[index];
               Map<String, dynamic> data =
                   document.data() as Map<String, dynamic>;
@@ -279,6 +283,7 @@ class _AttendancePageState extends State<AttendancePage> {
               index++;
 
               // Extract timestamps for timeIn and timeOut
+
               Timestamp? timeInTimestamp = data['timeIn'];
               Timestamp? timeOutTimestamp = data['timeOut'];
 
@@ -293,7 +298,7 @@ class _AttendancePageState extends State<AttendancePage> {
               // Format the duration to display total hours
               String totalHoursAndMinutes =
                   '${totalDuration.inHours} hrs, ${totalDuration.inMinutes.remainder(60)} mins';
-
+              
               return DataRow(
                 color: MaterialStateColor.resolveWith((states) => rowColor!),
                 cells: [
@@ -331,6 +336,31 @@ class _AttendancePageState extends State<AttendancePage> {
                           ),
                         ],
                       ),
+                    ),
+                  ),
+                  DataCell(
+                    FutureBuilder<String?>(
+                      future: _getHolidayName(
+                          timeInTimestamp), // Passing timeIn to get holiday name
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return CircularProgressIndicator(); // Show loading indicator while fetching data
+                        } else if (snapshot.hasError) {
+                          return Text(
+                              'Error: ${snapshot.error}'); // Display error message if any
+                        } else {
+                          String? holidayName = snapshot.data;
+                          if (holidayName != null) {
+                            return Text(holidayName);
+                          } else {
+                            return Text(
+                              'No holiday found for the given date',
+                              style: TextStyle(color: Colors.grey),
+                            );
+                          }
+                        }
+                      },
                     ),
                   ),
                 ],
@@ -761,6 +791,47 @@ class _AttendancePageState extends State<AttendancePage> {
             ],
           )),
     );
+  }
+
+Future<bool> _isHoliday(DateTime? date) async {
+    if (date == null) return false;
+
+    // Retrieve list of holidays from Firestore
+    QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+        .instance
+        .collection('HolidaysPHs')
+        .where('date', isEqualTo: date)
+        .get();
+
+    // Check if any holiday matches the provided date
+    return snapshot.docs.isNotEmpty;
+  }
+
+Future<String?> _getHolidayName(Timestamp? date) async {
+    if (date == null) return null;
+
+    // Extract date part from the Timestamp
+    DateTime dateOnly =
+        DateTime(date.toDate().year, date.toDate().month, date.toDate().day);
+
+    // Format date as a string in Firestore's expected format (YYYY-MM-DD)
+    String formattedDate =
+        '${dateOnly.year}-${dateOnly.month.toString().padLeft(2, '0')}-${dateOnly.day.toString().padLeft(2, '0')}';
+
+    // Retrieve document from Firestore that matches the provided date
+    DocumentSnapshot<Map<String, dynamic>> docSnapshot = await FirebaseFirestore
+        .instance
+        .collection('HolidaysPHs')
+        .doc(formattedDate) // Assuming the document ID is the formatted date
+        .get();
+
+    // If document exists and contains the holiday name, return it
+    if (docSnapshot.exists && docSnapshot.data() != null) {
+      // Assuming the data structure inside the document is like {'eventName': 'Holiday Name'}
+      return docSnapshot.data()?['eventName'];
+    } else {
+      return null; // Return null if document doesn't exist or no holiday is found
+    }
   }
 
   Container clearDate(BuildContext context, ButtonStyle styleFrom) {
