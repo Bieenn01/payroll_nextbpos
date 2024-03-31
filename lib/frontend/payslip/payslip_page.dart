@@ -56,7 +56,24 @@ class _PayslipPageState extends State<PayslipPage> {
   DateTime? fromDate;
   DateTime? toDate;
   List<PayslipData> payrollData = [];
+  double totalGrossPay = 0.0;
+  double totalNetPay = 0.0;
+  double totalDeductions = 0.0;
+
   // Variable to store generated payroll data
+  // Declare a variable to hold the future result of fetchTotal()
+  late Future<void> _fetchTotalFuture;
+  late Future<void> _fetchTotalFuture2;
+  late Future<void> _fetchTotalFuture3;
+
+  @override
+  void initState() {
+    super.initState();
+    // Call fetchTotal only once during initialization
+    _fetchTotalFuture = fetchTotal();
+    _fetchTotalFuture2 = fetchTotal();
+    _fetchTotalFuture3 = fetchTotal();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -528,27 +545,109 @@ class _PayslipPageState extends State<PayslipPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Container(
-                            width: 150,
-                            child: ElevatedButton(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Icon(Icons.refresh),
-                                  Text('Reset Data'),
-                                ],
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Container(
+                                width: MediaQuery.of(context).size.width > 600
+                                    ? 400
+                                    : 100,
+                                height: 30,
+                                margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color: Colors.black.withOpacity(0.5)),
+                                ),
+                                child: TextField(
+                                  controller: _searchController,
+                                  textAlign: TextAlign.start,
+                                  decoration: const InputDecoration(
+                                    contentPadding: EdgeInsets.only(bottom: 15),
+                                    prefixIcon: Icon(Icons.search),
+                                    border: InputBorder.none,
+                                    hintText: 'Search',
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {});
+                                  },
+                                ),
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  // Reset the status to default in each document
-                                  for (var payrollDoc in filteredPayrollDocs) {
-                                    payrollDoc.reference
-                                        .update({'status': 'Not Done'});
-                                  }
-                                });
-                              },
-                            ),
+                              Container(
+                                width: 130,
+                                height: 30,
+                                padding: const EdgeInsets.all(0),
+                                margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                decoration: BoxDecoration(
+                                    color: Colors.teal,
+                                    border: Border.all(
+                                        color: Colors.teal.shade900
+                                            .withOpacity(0.5)),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal,
+                                    padding: const EdgeInsets.only(left: 5),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Icon(
+                                        Icons.refresh,
+                                        color: Colors.white,
+                                      ),
+                                      Text(
+                                        'Reset Data',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w400,
+                                            letterSpacing: 1,
+                                            color: Colors.white),
+                                      ),
+                                    ],
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      // Reset the status to default in each document
+                                      for (var payrollDoc
+                                          in filteredPayrollDocs) {
+                                        payrollDoc.reference
+                                            .update({'status': 'Not Done'});
+                                      }
+                                    });
+                                  },
+                                ),
+                              ),
+                              Container(
+                                width: 130,
+                                height: 30,
+                                padding: const EdgeInsets.all(0),
+                                margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                decoration: BoxDecoration(
+                                    color: Colors.teal,
+                                    border: Border.all(
+                                        color: Colors.teal.shade900
+                                            .withOpacity(0.5)),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal,
+                                    padding: const EdgeInsets.only(left: 5),
+                                  ),
+                                  onPressed: () {
+                                    calculatePayslipTotals();
+                                  },
+                                  child: Text(
+                                    'Calculate Totals',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        letterSpacing: 1,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -689,18 +788,41 @@ class _PayslipPageState extends State<PayslipPage> {
                               height: 50,
                               padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
                               decoration: BoxDecoration(
-                                color: Colors.blue[200],
+                                color: Colors.green[200],
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.blue.shade200),
+                                border:
+                                    Border.all(color: Colors.green.shade200),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  Text(
-                                    '0.00',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                    ),
+                                  FutureBuilder<void>(
+                                    future:
+                                        _fetchTotalFuture, // Use the future variable
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<void> snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        // Show a loading indicator or placeholder while fetching data
+                                        return CircularProgressIndicator(); // Example loading indicator
+                                      } else if (snapshot.hasError) {
+                                        // Handle error
+                                        return Text('Error: ${snapshot.error}');
+                                      } else {
+                                        // Data has been successfully fetched, display it
+                                        return Text(
+                                          NumberFormat.currency(
+                                                  locale: 'en_PH',
+                                                  symbol: '₱ ',
+                                                  decimalDigits: 2)
+                                              .format(totalGrossPay ?? 0.0),
+                                          // Assuming totalGrossPay is accessible in this scope
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                          ),
+                                        );
+                                      }
+                                    },
                                   ),
                                 ],
                               ),
@@ -718,14 +840,36 @@ class _PayslipPageState extends State<PayslipPage> {
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: Colors.red.shade200),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  Text(
-                                    '0.00',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                    ),
+                                  FutureBuilder<void>(
+                                    future:
+                                        _fetchTotalFuture2, // Use the future variable
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<void> snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        // Show a loading indicator or placeholder while fetching data
+                                        return CircularProgressIndicator(); // Example loading indicator
+                                      } else if (snapshot.hasError) {
+                                        // Handle error
+                                        return Text('Error: ${snapshot.error}');
+                                      } else {
+                                        // Data has been successfully fetched, display it
+                                        return Text(
+                                          NumberFormat.currency(
+                                                  locale: 'en_PH',
+                                                  symbol: '₱ ',
+                                                  decimalDigits: 2)
+                                              .format(totalDeductions ?? 0.0),
+                                          // Assuming totalGrossPay is accessible in this scope
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                          ),
+                                        );
+                                      }
+                                    },
                                   ),
                                 ],
                               ),
@@ -739,19 +883,40 @@ class _PayslipPageState extends State<PayslipPage> {
                               height: 50,
                               padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
                               decoration: BoxDecoration(
-                                color: Colors.green[200],
+                                color: Colors.blue[200],
                                 borderRadius: BorderRadius.circular(8),
-                                border:
-                                    Border.all(color: Colors.green.shade200),
+                                border: Border.all(color: Colors.blue.shade200),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  Text(
-                                    '0.00',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                    ),
+                                  FutureBuilder<void>(
+                                    future:
+                                        _fetchTotalFuture3, // Use the future variable
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<void> snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        // Show a loading indicator or placeholder while fetching data
+                                        return CircularProgressIndicator(); // Example loading indicator
+                                      } else if (snapshot.hasError) {
+                                        // Handle error
+                                        return Text('Error: ${snapshot.error}');
+                                      } else {
+                                        // Data has been successfully fetched, display it
+                                        return Text(
+                                          NumberFormat.currency(
+                                                  locale: 'en_PH',
+                                                  symbol: '₱ ',
+                                                  decimalDigits: 2)
+                                              .format(totalNetPay ?? 0.0),
+                                          // Assuming totalGrossPay is accessible in this scope
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
+                                        );
+                                      }
+                                    },
                                   ),
                                 ],
                               ),
@@ -2489,6 +2654,19 @@ class _PayslipPageState extends State<PayslipPage> {
     } catch (e) {}
   }
 
+  Future<void> fetchTotal() async {
+    DocumentSnapshot totalPayslipSnapshot = await FirebaseFirestore.instance
+        .collection('TotalPayslip')
+        .doc('totals')
+        .get();
+
+    setState(() {
+      totalGrossPay = totalPayslipSnapshot['totalGrossPay'] ?? 0.0;
+      totalDeductions = totalPayslipSnapshot['totalDeductions'] ?? 0.0;
+      totalNetPay = totalPayslipSnapshot['totalNetPay'] ?? 0.0;
+    });
+  }
+
   Future<void> moveToRestdayOT(DocumentSnapshot overtimeDoc) async {
     try {
       Map<String, dynamic> overtimeData =
@@ -2547,148 +2725,183 @@ class _PayslipPageState extends State<PayslipPage> {
     }
   }
 
-  Future<void> moveToRegularHOT(DocumentSnapshot overtimeDoc) async {
-    try {
-      Map<String, dynamic> overtimeData =
-          Map<String, dynamic>.from(overtimeDoc.data() as Map<String, dynamic>);
+  Future<void> calculatePayslipTotals() async {
+    double totalGrossPay = 0.0;
+    double totalDeductions = 0.0;
+    double totalNetPay = 0.0;
 
-      String employeeId = overtimeData['employeeId'];
-      QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
-          .collection('RegularHolidayOT')
-          .where('employeeId', isEqualTo: employeeId)
-          .get();
+    QuerySnapshot payslipSnapshot =
+        await FirebaseFirestore.instance.collection('Payslip').get();
 
-      List<DocumentSnapshot> userOvertimeDocs = overtimeSnapshot.docs;
+    payslipSnapshot.docs.forEach((payslipDoc) {
+      Map<String, dynamic> payslipData =
+          payslipDoc.data() as Map<String, dynamic>;
 
-      // Loop through documents and move each one to ArchivesOvertime collection
-      for (DocumentSnapshot doc in userOvertimeDocs) {
-        Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
-        if (data != null) {
-          await FirebaseFirestore.instance
-              .collection('ArchivesRegularHOT')
-              .add(data); // Adding document data to ArchivesOvertime collection
-        }
-        await doc.reference
-            .delete(); // Delete the document from the original collection
-      }
-    } catch (e) {
-      print('Error moving record to ArchivesOvertime collection: $e');
-    }
+      double grossPay = payslipData['grossPay'] ?? 0.0;
+      double deductions = payslipData['total_deduction'] ?? 0.0;
+
+      totalGrossPay += grossPay;
+      totalDeductions += deductions;
+      totalNetPay += (grossPay - deductions);
+    });
+
+    // Storing the calculated totals in Firestore
+    await FirebaseFirestore.instance
+        .collection('TotalPayslip')
+        .doc('totals')
+        .set({
+      'totalGrossPay': totalGrossPay,
+      'totalDeductions': totalDeductions,
+      'totalNetPay': totalNetPay,
+      'timestamp': FieldValue.serverTimestamp(), // Optional: Add a timestamp
+    });
+    // Optionally, you can print the totals
+    print('Total Gross Pay: $totalGrossPay');
+    print('Total Deductions: $totalDeductions');
+    print('Total Net Pay: $totalNetPay');
   }
+}
 
-  Future<void> moveToRegularH(DocumentSnapshot overtimeDoc) async {
-    try {
-      Map<String, dynamic> overtimeData =
-          Map<String, dynamic>.from(overtimeDoc.data() as Map<String, dynamic>);
+Future<void> moveToRegularHOT(DocumentSnapshot overtimeDoc) async {
+  try {
+    Map<String, dynamic> overtimeData =
+        Map<String, dynamic>.from(overtimeDoc.data() as Map<String, dynamic>);
 
-      String employeeId = overtimeData['employeeId'];
-      QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
-          .collection('Holiday')
-          .where('employeeId', isEqualTo: employeeId)
-          .get();
+    String employeeId = overtimeData['employeeId'];
+    QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
+        .collection('RegularHolidayOT')
+        .where('employeeId', isEqualTo: employeeId)
+        .get();
 
-      List<DocumentSnapshot> userOvertimeDocs = overtimeSnapshot.docs;
+    List<DocumentSnapshot> userOvertimeDocs = overtimeSnapshot.docs;
 
-      // Loop through documents and move each one to ArchivesOvertime collection
-      for (DocumentSnapshot doc in userOvertimeDocs) {
-        Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
-        if (data != null) {
-          await FirebaseFirestore.instance
-              .collection('ArchivesRegularH')
-              .add(data); // Adding document data to ArchivesOvertime collection
-        }
-        await doc.reference
-            .delete(); // Delete the document from the original collection
+    // Loop through documents and move each one to ArchivesOvertime collection
+    for (DocumentSnapshot doc in userOvertimeDocs) {
+      Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+      if (data != null) {
+        await FirebaseFirestore.instance
+            .collection('ArchivesRegularHOT')
+            .add(data); // Adding document data to ArchivesOvertime collection
       }
-    } catch (e) {
-      print('Error moving record to ArchivesOvertime collection: $e');
+      await doc.reference
+          .delete(); // Delete the document from the original collection
     }
+  } catch (e) {
+    print('Error moving record to ArchivesOvertime collection: $e');
   }
+}
 
-  Future<void> moveToSpecialH(DocumentSnapshot overtimeDoc) async {
-    try {
-      Map<String, dynamic> overtimeData =
-          Map<String, dynamic>.from(overtimeDoc.data() as Map<String, dynamic>);
+Future<void> moveToRegularH(DocumentSnapshot overtimeDoc) async {
+  try {
+    Map<String, dynamic> overtimeData =
+        Map<String, dynamic>.from(overtimeDoc.data() as Map<String, dynamic>);
 
-      String employeeId = overtimeData['employeeId'];
-      QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
-          .collection('SpecialHoliday')
-          .where('employeeId', isEqualTo: employeeId)
-          .get();
+    String employeeId = overtimeData['employeeId'];
+    QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
+        .collection('Holiday')
+        .where('employeeId', isEqualTo: employeeId)
+        .get();
 
-      List<DocumentSnapshot> userOvertimeDocs = overtimeSnapshot.docs;
+    List<DocumentSnapshot> userOvertimeDocs = overtimeSnapshot.docs;
 
-      // Loop through documents and move each one to ArchivesOvertime collection
-      for (DocumentSnapshot doc in userOvertimeDocs) {
-        Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
-        if (data != null) {
-          await FirebaseFirestore.instance
-              .collection('ArchivesSpecialH')
-              .add(data); // Adding document data to ArchivesOvertime collection
-        }
-        await doc.reference
-            .delete(); // Delete the document from the original collection
+    // Loop through documents and move each one to ArchivesOvertime collection
+    for (DocumentSnapshot doc in userOvertimeDocs) {
+      Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+      if (data != null) {
+        await FirebaseFirestore.instance
+            .collection('ArchivesRegularH')
+            .add(data); // Adding document data to ArchivesOvertime collection
       }
-    } catch (e) {
-      print('Error moving record to ArchivesOvertime collection: $e');
+      await doc.reference
+          .delete(); // Delete the document from the original collection
     }
+  } catch (e) {
+    print('Error moving record to ArchivesOvertime collection: $e');
   }
+}
 
-  Widget _buildShimmerLoading() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: ShimmerPackage.Shimmer.fromColors(
-        baseColor: Colors.grey[300]!,
-        highlightColor: Colors.grey[100]!,
-        child: DataTable(
-          columns: const [
-            DataColumn(
-              label: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label: Text('ID', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label:
-                  Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label: Text('Department',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label: Text('Total Hours (h:m)',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label: Text('Overtime Pay',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label: Text('Overtime Type',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label:
-                  Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            // Added column for Status
-          ],
-          rows: List.generate(
-            10, // You can change this to the number of shimmer rows you want
-            (index) => DataRow(cells: [
-              DataCell(Container(width: 40, height: 16, color: Colors.white)),
-              DataCell(Container(width: 60, height: 16, color: Colors.white)),
-              DataCell(Container(width: 120, height: 16, color: Colors.white)),
-              DataCell(Container(width: 80, height: 16, color: Colors.white)),
-              DataCell(Container(width: 80, height: 16, color: Colors.white)),
-              DataCell(Container(width: 100, height: 16, color: Colors.white)),
-              DataCell(Container(width: 60, height: 16, color: Colors.white)),
-              DataCell(Container(width: 60, height: 16, color: Colors.white)),
-            ]),
+Future<void> moveToSpecialH(DocumentSnapshot overtimeDoc) async {
+  try {
+    Map<String, dynamic> overtimeData =
+        Map<String, dynamic>.from(overtimeDoc.data() as Map<String, dynamic>);
+
+    String employeeId = overtimeData['employeeId'];
+    QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
+        .collection('SpecialHoliday')
+        .where('employeeId', isEqualTo: employeeId)
+        .get();
+
+    List<DocumentSnapshot> userOvertimeDocs = overtimeSnapshot.docs;
+
+    // Loop through documents and move each one to ArchivesOvertime collection
+    for (DocumentSnapshot doc in userOvertimeDocs) {
+      Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+      if (data != null) {
+        await FirebaseFirestore.instance
+            .collection('ArchivesSpecialH')
+            .add(data); // Adding document data to ArchivesOvertime collection
+      }
+      await doc.reference
+          .delete(); // Delete the document from the original collection
+    }
+  } catch (e) {
+    print('Error moving record to ArchivesOvertime collection: $e');
+  }
+}
+
+Widget _buildShimmerLoading() {
+  return SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: ShimmerPackage.Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: DataTable(
+        columns: const [
+          DataColumn(
+            label: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
+          DataColumn(
+            label: Text('ID', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Department',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Total Hours (h:m)',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Overtime Pay',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label: Text('Overtime Type',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          DataColumn(
+            label:
+                Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          // Added column for Status
+        ],
+        rows: List.generate(
+          10, // You can change this to the number of shimmer rows you want
+          (index) => DataRow(cells: [
+            DataCell(Container(width: 40, height: 16, color: Colors.white)),
+            DataCell(Container(width: 60, height: 16, color: Colors.white)),
+            DataCell(Container(width: 120, height: 16, color: Colors.white)),
+            DataCell(Container(width: 80, height: 16, color: Colors.white)),
+            DataCell(Container(width: 80, height: 16, color: Colors.white)),
+            DataCell(Container(width: 100, height: 16, color: Colors.white)),
+            DataCell(Container(width: 60, height: 16, color: Colors.white)),
+            DataCell(Container(width: 60, height: 16, color: Colors.white)),
+          ]),
         ),
       ),
-    );
-  }
+    ),
+  );
 }
