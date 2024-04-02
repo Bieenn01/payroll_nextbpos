@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -29,7 +30,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
   bool endPicked = false;
   bool startPicked = false;
   bool filter = false;
-
+  late String _role = 'Guest';
   @override
   void initState() {
     super.initState();
@@ -37,13 +38,36 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
       'Regular Holiday',
       'Regular',
     ];
+    _fetchRole();
+  }
+
+  Future<void> _fetchRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user.uid)
+          .get();
+
+      setState(() {
+        final role = docSnapshot['role'];
+        _role = role != null
+            ? role
+            : 'Guest'; // Default to 'Guest' if role is not specified
+      });
+    }
+  }
+
+  String? getCurrentUserId() {
+    final user = FirebaseAuth.instance.currentUser;
+    return user?.uid;
   }
 
   @override
   Widget build(BuildContext context) {
     var styleFrom = ElevatedButton.styleFrom(
       backgroundColor: Colors.white,
-      padding: EdgeInsets.all(5),
+      padding: const EdgeInsets.all(5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
@@ -58,8 +82,8 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
             Expanded(
               child: SingleChildScrollView(
                 child: Container(
-                    margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
-                    padding: EdgeInsets.all(10),
+                    margin: const EdgeInsets.fromLTRB(15, 5, 15, 15),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(15),
@@ -70,7 +94,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                         const Row(
                           children: [
                             Padding(
-                              padding: const EdgeInsets.all(10.0),
+                              padding: EdgeInsets.all(10.0),
                               child: Text(
                                 "Regular Holiday Overtime",
                                 style: TextStyle(
@@ -80,13 +104,13 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                           ],
                         ),
                         dateFilterSearchRow(context, styleFrom),
-                        Divider(),
+                        const Divider(),
                         _buildTable(),
-                        SizedBox(height: 10),
-                        Divider(),
-                        SizedBox(height: 5),
+                        const SizedBox(height: 10),
+                        const Divider(),
+                        const SizedBox(height: 5),
                         pagination(),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                       ],
                     )),
               ),
@@ -109,15 +133,15 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
         ),
         child: Text('Previous', style: TextStyle(color: Colors.teal[900])),
       ),
-      SizedBox(width: 10),
+      const SizedBox(width: 10),
       Container(
           height: 35,
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.grey.shade200)),
           child: Text('$pageNum')),
-      SizedBox(width: 10),
+      const SizedBox(width: 10),
       ElevatedButton(
         onPressed: () {},
         style: ElevatedButton.styleFrom(
@@ -138,21 +162,25 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
         if (!snapshot.hasData) {
           return _buildShimmerLoading();
         } else if (snapshot.data!.docs.isEmpty) {
-          return Center(child: Text('No data available yet'));
+          return const Center(child: Text('No data available yet'));
         } else {
-          List<DocumentSnapshot> overtimeDocs = snapshot.data!.docs;
+          List<DocumentSnapshot> overtimeDocs = _role == 'Employee'
+              ? snapshot.data!.docs
+                  .where((doc) => doc['userId'] == getCurrentUserId())
+                  .toList()
+              : snapshot.data!.docs;
 
           overtimeDocs = overtimeDocs.where((doc) {
             DateTime timeIn = doc['timeIn'].toDate();
             DateTime timeOut = doc['timeOut'].toDate();
             if (fromDate != null && toDate != null) {
               return timeIn.isAfter(fromDate!) &&
-                  timeOut.isBefore(toDate!.add(Duration(
+                  timeOut.isBefore(toDate!.add(const Duration(
                       days: 1))); // Adjusted toDate to include end of the day
             } else if (fromDate != null) {
               return timeIn.isAfter(fromDate!);
             } else if (toDate != null) {
-              return timeOut.isBefore(toDate!.add(Duration(
+              return timeOut.isBefore(toDate!.add(const Duration(
                   days: 1))); // Adjusted toDate to include end of the day
             }
             return true;
@@ -247,7 +275,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
               DataColumn(
                 label: Container(
                   width: 100,
-                  padding: EdgeInsets.all(0),
+                  padding: const EdgeInsets.all(0),
                   child: InkWell(
                     onTap: () {
                       setState(() {
@@ -259,7 +287,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Overtime Pay',
+                          const Text('Overtime Pay',
                               style: TextStyle(
                                   color: Colors.black,
                                   fontWeight: FontWeight.bold)),
@@ -354,7 +382,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                     DataCell(
                       Container(
                         width: 100,
-                        padding: EdgeInsets.fromLTRB(5, 2, 2, 5),
+                        padding: const EdgeInsets.fromLTRB(5, 2, 2, 5),
                         decoration: BoxDecoration(
                           color: Colors.indigo[50],
                           border: Border.all(color: Colors.indigo.shade900),
@@ -363,9 +391,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Container(
-                              child: Text(totalHoursAndMinutes),
-                            ),
+                            Text(totalHoursAndMinutes),
                           ],
                         ),
                       ),
@@ -411,7 +437,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                             await _showConfirmationDialog4(overtimeDoc);
                           },
                           style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.all(5),
+                            padding: const EdgeInsets.all(5),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -464,7 +490,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
 
   Container dateFilterSearchRow(BuildContext context, ButtonStyle styleFrom) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
         children: [
           Flexible(
@@ -480,18 +506,18 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                     child: MediaQuery.of(context).size.width > 600
                         ? Row(
                             children: [
-                              Text('Show entries: '),
+                              const Text('Show entries: '),
                               Container(
                                 width: 70,
                                 height: 30,
-                                padding: EdgeInsets.only(left: 10),
+                                padding: const EdgeInsets.only(left: 10),
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
                                         color: Colors.grey.shade200)),
                                 child: DropdownButton<int>(
-                                  padding: EdgeInsets.all(5),
-                                  underline: SizedBox(),
+                                  padding: const EdgeInsets.all(5),
+                                  underline: const SizedBox(),
                                   value: _itemsPerPage,
                                   items: [5, 10, 15, 20, 25]
                                       .map<DropdownMenuItem<int>>(
@@ -509,7 +535,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                                   },
                                 ),
                               ),
-                              SizedBox(width: 10),
+                              const SizedBox(width: 10),
                             ],
                           )
                         : DropdownButton<int>(
@@ -541,7 +567,8 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                             onPressed: () async {
                               await _computeAndAddToOvertimePay();
                             },
-                            child: Text('Compute and Add to Overtime Pay'),
+                            child:
+                                const Text('Compute and Add to Overtime Pay'),
                           ),
                         ),
                         Flexible(
@@ -550,8 +577,8 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                                 ? 400
                                 : 100,
                             height: 30,
-                            margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
-                            padding: EdgeInsets.fromLTRB(3, 0, 0, 0),
+                            margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                            padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
@@ -576,8 +603,8 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                           child: Container(
                               width: 130,
                               height: 30,
-                              padding: EdgeInsets.all(0),
-                              margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
+                              padding: const EdgeInsets.all(0),
+                              margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
                               decoration: BoxDecoration(
                                   color: Colors.teal,
                                   border: Border.all(
@@ -587,7 +614,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.teal,
-                                  padding: EdgeInsets.only(left: 5),
+                                  padding: const EdgeInsets.only(left: 5),
                                 ),
                                 onPressed: () {
                                   setState(() {
@@ -616,7 +643,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                                           ),
                                         ],
                                       )
-                                    : Icon(
+                                    : const Icon(
                                         Icons.filter_alt_outlined,
                                         color: Colors.white,
                                       ),
@@ -629,7 +656,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
               ),
             ),
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
         ],
       ),
     );
@@ -645,7 +672,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                 Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    SizedBox(
+                    const SizedBox(
                       height: 130,
                     ),
                     AlertDialog(
@@ -660,7 +687,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
+                                const Text(
                                   'Filter Date',
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
@@ -671,14 +698,14 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                                     icon: const Icon(Icons.close)),
                               ],
                             ),
-                            Text('From :'),
+                            const Text('From :'),
                             _fromDate(context, styleFrom),
-                            SizedBox(
+                            const SizedBox(
                               width: 5,
                             ),
-                            Text('To :'),
+                            const Text('To :'),
                             _toDate(context, styleFrom),
-                            SizedBox(
+                            const SizedBox(
                               height: 5,
                             ),
                             clearDate(context, styleFrom),
@@ -695,8 +722,8 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
   Container clearDate(BuildContext context, ButtonStyle styleFrom) {
     return Container(
       height: 30,
-      padding: EdgeInsets.all(0),
-      margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+      padding: const EdgeInsets.all(0),
+      margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
       decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: Colors.red.withOpacity(0.5)),
@@ -725,7 +752,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
     return Flexible(
       child: Container(
         width: MediaQuery.of(context).size.width > 600 ? 150 : 50,
-        padding: EdgeInsets.all(2),
+        padding: const EdgeInsets.all(2),
         child: ElevatedButton(
             onPressed: () async {
               final DateTime? picked = await showDatePicker(
@@ -777,7 +804,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
     return Flexible(
       child: Container(
         width: MediaQuery.of(context).size.width > 600 ? 230 : 80,
-        padding: EdgeInsets.all(2),
+        padding: const EdgeInsets.all(2),
         child: ElevatedButton(
             onPressed: () async {
               final DateTime? picked = await showDatePicker(
@@ -831,8 +858,8 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
       barrierDismissible: false, // user must tap button for close dialog!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirmation'),
-          content: SingleChildScrollView(
+          title: const Text('Confirmation'),
+          content: const SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Text('Are you sure you want to proceed?'),
@@ -1044,7 +1071,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                     context: context,
                     barrierDismissible: false,
                     builder: (BuildContext context) {
-                      return Center(
+                      return const Center(
                         child: CircularProgressIndicator(),
                       );
                     },
@@ -1114,7 +1141,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                     builder: (BuildContext context) {
                       return AlertDialog(
                         title: Text('Error'),
-                        content: Text(
+                        content: const Text(
                             'Failed to update total overtime pay. Please try again.'),
                         actions: [
                           TextButton(
@@ -1146,7 +1173,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label + ': ', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
         Container(
             width: 100,
             padding: EdgeInsets.fromLTRB(5, 2, 5, 0),
@@ -1160,14 +1187,14 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label + ': ', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
         Container(
             width: 70,
-            padding: EdgeInsets.fromLTRB(5, 2, 5, 0),
+            padding: const EdgeInsets.fromLTRB(5, 2, 5, 0),
             decoration: BoxDecoration(border: Border.all(color: Colors.white)),
             child: Text(
               value,
-              style: TextStyle(fontWeight: FontWeight.w500),
+              style: const TextStyle(fontWeight: FontWeight.w500),
             )),
       ],
     );
@@ -1177,10 +1204,10 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label + ': ', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
         IntrinsicWidth(
           child: Container(
-              padding: EdgeInsets.fromLTRB(5, 2, 5, 0),
+              padding: const EdgeInsets.fromLTRB(5, 2, 5, 0),
               decoration:
                   BoxDecoration(border: Border.all(color: Colors.white)),
               child: Text(value)),
@@ -1235,7 +1262,7 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
             Timestamp? timeOutTimestamp = overtimeDoc['timeOut'];
 
             // Calculate the duration between timeIn and timeOut
-            Duration totalDuration = Duration();
+            Duration totalDuration = const Duration();
             if (timeInTimestamp != null && timeOutTimestamp != null) {
               DateTime timeIn = timeInTimestamp.toDate();
               DateTime timeOut = timeOutTimestamp.toDate();

@@ -31,6 +31,22 @@ Future<TreeNode> getMenuTree() async {
       TreeNode(key: "Logs", data: Icons.analytics),
       TreeNode(key: "Payroll", data: Icons.payments),
     ]);
+  } else {
+    defaultMenuItems.addAll([
+      TreeNode(key: "Overtime", data: Icons.access_time_filled_outlined)
+        ..addAll([
+          TreeNode(key: "Regular OT"),
+          TreeNode(key: "Rest day OT"),
+          TreeNode(key: "Regular Holiday OT"),
+          TreeNode(key: "Special Holiday OT"),
+        ]),
+      TreeNode(key: "Holiday", data: Icons.calendar_month_outlined)
+        ..addAll([
+          TreeNode(key: "Regular"),
+          TreeNode(key: "Special"),
+        ]),
+      TreeNode(key: "Logs", data: Icons.analytics)
+    ]);
   }
 
   return TreeNode.root()..addAll(defaultMenuItems);

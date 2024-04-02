@@ -29,7 +29,7 @@ class _UserListScreenState extends State<UserListScreen> {
   Widget build(BuildContext context) {
     var styleFrom = ElevatedButton.styleFrom(
       backgroundColor: Colors.white,
-      padding: EdgeInsets.all(5),
+      padding: const EdgeInsets.all(5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
@@ -56,7 +56,7 @@ class _UserListScreenState extends State<UserListScreen> {
                 child: SingleChildScrollView(
                   child: Container(
                     margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(15),
@@ -195,7 +195,7 @@ class _UserListScreenState extends State<UserListScreen> {
                                                       employeeId:
                                                           data['employeeId'],
                                                       role: data['role'],
-                                                      maxLeaveDays: {
+                                                      maxLeaveDays: const {
                                                         'Leave with Pay': 15,
                                                         'Leave Without Pay': 30,
                                                         'Sick Leave': 10,
@@ -209,7 +209,8 @@ class _UserListScreenState extends State<UserListScreen> {
                                                 );
                                               },
                                               style: ElevatedButton.styleFrom(
-                                                padding: EdgeInsets.all(5),
+                                                padding:
+                                                    const EdgeInsets.all(5),
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(8),
@@ -256,7 +257,7 @@ class _UserListScreenState extends State<UserListScreen> {
 
   Container dateFilterSearchRow(BuildContext context, ButtonStyle styleFrom) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
         children: [
           Flexible(
@@ -272,18 +273,18 @@ class _UserListScreenState extends State<UserListScreen> {
                     child: MediaQuery.of(context).size.width > 600
                         ? Row(
                             children: [
-                              Text('Show entries: '),
+                              const Text('Show entries: '),
                               Container(
                                 width: 70,
                                 height: 30,
-                                padding: EdgeInsets.only(left: 10),
+                                padding: const EdgeInsets.only(left: 10),
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
                                         color: Colors.grey.shade200)),
                                 child: DropdownButton<int>(
-                                  padding: EdgeInsets.all(5),
-                                  underline: SizedBox(),
+                                  padding: const EdgeInsets.all(5),
+                                  underline: const SizedBox(),
                                   value: _rowsPerPage,
                                   items: [5, 10, 15, 20, 25]
                                       .map<DropdownMenuItem<int>>(
@@ -301,12 +302,12 @@ class _UserListScreenState extends State<UserListScreen> {
                                   },
                                 ),
                               ),
-                              SizedBox(width: 10),
+                              const SizedBox(width: 10),
                             ],
                           )
                         : DropdownButton<int>(
-                            padding: EdgeInsets.all(5),
-                            underline: SizedBox(),
+                            padding: const EdgeInsets.all(5),
+                            underline: const SizedBox(),
                             items:
                                 [5, 10, 15, 20, 25].map<DropdownMenuItem<int>>(
                               (int value) {
@@ -333,8 +334,8 @@ class _UserListScreenState extends State<UserListScreen> {
                                 ? 400
                                 : 100,
                             height: 30,
-                            margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
-                            padding: EdgeInsets.fromLTRB(3, 0, 0, 0),
+                            margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                            padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
@@ -397,12 +398,12 @@ class _UserLeaveRequestsState extends State<UserLeaveRequests> {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('View Leave Records'),
+          const Text('View Leave Records'),
           IconButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            icon: Icon(Icons.close),
+            icon: const Icon(Icons.close),
           ),
         ],
       ),
@@ -418,13 +419,13 @@ class _UserLeaveRequestsState extends State<UserLeaveRequests> {
                   .snapshots(),
               builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
                 if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                  return Center(child: Text(''));
+                  return const Center(child: Text(''));
                 }
 
                 // Assuming you want to display the fullName of the first document
@@ -448,12 +449,14 @@ class _UserLeaveRequestsState extends State<UserLeaveRequests> {
                           CircleAvatar(
                             radius: 30,
                             backgroundImage: widget.role == 'Admin'
-                                ? AssetImage('assets/images/Admin.jpg')
+                                ? const AssetImage('assets/images/Admin.jpg')
                                 : widget.role == 'Superadmin'
-                                    ? AssetImage('assets/images/SAdmin.jpg')
-                                    : AssetImage('assets/images/Employee.jpg'),
+                                    ? const AssetImage(
+                                        'assets/images/SAdmin.jpg')
+                                    : const AssetImage(
+                                        'assets/images/Employee.jpg'),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             width: 10,
                           ),
                           Column(
@@ -461,8 +464,8 @@ class _UserLeaveRequestsState extends State<UserLeaveRequests> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Text(widget.employeeId,
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
                               Text("$fullName"),
                               Text('$department Department')
                             ],
@@ -476,8 +479,8 @@ class _UserLeaveRequestsState extends State<UserLeaveRequests> {
                           });
                         },
                         child: _showDataTable
-                            ? Text('Hide Logs')
-                            : Text('View Logs'),
+                            ? const Text('Hide Logs')
+                            : const Text('View Logs'),
                       ),
                     ],
                   ),
@@ -492,13 +495,13 @@ class _UserLeaveRequestsState extends State<UserLeaveRequests> {
                     .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
                   if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   }
                   if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                    return Center(child: Text('No leave requests found'));
+                    return const Center(child: Text('No leave requests found'));
                   }
 
                   // Calculate leave type counts
@@ -560,8 +563,8 @@ class _UserLeaveRequestsState extends State<UserLeaveRequests> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Divider(),
-                      SizedBox(
+                      const Divider(),
+                      const SizedBox(
                         height: 10,
                       ),
                       Column(
@@ -593,7 +596,7 @@ class _UserLeaveRequestsState extends State<UserLeaveRequests> {
                           ),
                         ],
                       ),
-                      Divider(),
+                      const Divider(),
                       _showDataTable
                           ? MediaQuery.of(context).size.width > 1500
                               ? SizedBox(
@@ -662,7 +665,7 @@ class _UserLeaveRequestsState extends State<UserLeaveRequests> {
     final remaining = maxDays - count;
     return Container(
       width: 250,
-      margin: EdgeInsets.fromLTRB(8, 0, 8, 0),
+      margin: const EdgeInsets.fromLTRB(8, 0, 8, 0),
       child: LeaveTypeCountCard(
         leaveType: leaveType,
         count: count,
@@ -690,18 +693,18 @@ class LeaveTypeCountCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '$leaveType',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              leaveType,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text('Count: $count'),
             Text('Max: $maxLeaveDays'),
             Text('Remaining: $remaining'),

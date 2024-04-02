@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
   int _itemsPerPage = 5;
   int _currentPage = 0;
   int indexRow = 0;
+  late String _role = 'Guest';
 
   @override
   void initState() {
@@ -32,6 +34,29 @@ class _RegularOTPageState extends State<RegularOTPage> {
         _showFilterCategory = _searchFocusNode.hasFocus;
       });
     });
+    _fetchRole();
+  }
+
+  Future<void> _fetchRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user.uid)
+          .get();
+
+      setState(() {
+        final role = docSnapshot['role'];
+        _role = role != null
+            ? role
+            : 'Guest'; // Default to 'Guest' if role is not specified
+      });
+    }
+  }
+
+  String? getCurrentUserId() {
+    final user = FirebaseAuth.instance.currentUser;
+    return user?.uid;
   }
 
   DateTime? fromDate;
@@ -51,7 +76,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
   Widget build(BuildContext context) {
     var styleFrom = ElevatedButton.styleFrom(
       backgroundColor: Colors.white,
-      padding: EdgeInsets.all(5),
+      padding: const EdgeInsets.all(5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
@@ -68,7 +93,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
                 child: SingleChildScrollView(
                   child: Container(
                     margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(15),
@@ -89,12 +114,12 @@ class _RegularOTPageState extends State<RegularOTPage> {
                           ],
                         ),
                         dateFilterSearchRow(context, styleFrom),
-                        Divider(),
+                        const Divider(),
                         dataTable(),
-                        Divider(),
-                        SizedBox(height: 5),
+                        const Divider(),
+                        const SizedBox(height: 5),
                         Pagination(),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                       ],
                     ),
                   ),
@@ -119,7 +144,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
         ),
         child: Text('Previous', style: TextStyle(color: Colors.teal[900])),
       ),
-      SizedBox(width: 10),
+      const SizedBox(width: 10),
       Container(
           height: 35,
           padding: EdgeInsets.all(8),
@@ -129,7 +154,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
           child: Text(
             '$pageNum',
           )),
-      SizedBox(width: 10),
+      const SizedBox(width: 10),
       ElevatedButton(
         onPressed: () {},
         style: ElevatedButton.styleFrom(
@@ -149,9 +174,13 @@ class _RegularOTPageState extends State<RegularOTPage> {
         if (!snapshot.hasData) {
           return _buildShimmerLoading();
         } else if (snapshot.data!.docs.isEmpty) {
-          return Center(child: Text('No data available yet'));
+          return const Center(child: Text('No data available yet'));
         } else {
-          List<DocumentSnapshot> overtimeDocs = snapshot.data!.docs;
+          List<DocumentSnapshot> overtimeDocs = _role == 'Employee'
+              ? snapshot.data!.docs
+                  .where((doc) => doc['userId'] == getCurrentUserId())
+                  .toList()
+              : snapshot.data!.docs;
 
           List<DocumentSnapshot> filteredDocs = overtimeDocs.where((document) {
             Map<String, dynamic> data = document.data() as Map<String, dynamic>;
@@ -181,12 +210,12 @@ class _RegularOTPageState extends State<RegularOTPage> {
             DateTime timeOut = doc['timeOut'].toDate();
             if (fromDate != null && toDate != null) {
               return timeIn.isAfter(fromDate!) &&
-                  timeOut.isBefore(toDate!.add(Duration(
+                  timeOut.isBefore(toDate!.add(const Duration(
                       days: 1))); // Adjusted toDate to include end of the day
             } else if (fromDate != null) {
               return timeIn.isAfter(fromDate!);
             } else if (toDate != null) {
-              return timeOut.isBefore(toDate!.add(Duration(
+              return timeOut.isBefore(toDate!.add(const Duration(
                   days: 1))); // Adjusted toDate to include end of the day
             }
             return true;
@@ -222,12 +251,13 @@ class _RegularOTPageState extends State<RegularOTPage> {
 
           var dataTable = DataTable(
             columns: [
-              DataColumn(label: Flexible(child: Text('#', style: textStyle))),
-              DataColumn(
+              const DataColumn(
+                  label: Flexible(child: Text('#', style: textStyle))),
+              const DataColumn(
                   label: Flexible(
                 child: Text('ID', style: textStyle),
               )),
-              DataColumn(
+              const DataColumn(
                   label: Flexible(child: Text('Name', style: textStyle))),
               DataColumn(
                 label: PopupMenuButton<String>(
@@ -281,7 +311,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
               DataColumn(
                 label: Container(
                   width: 100,
-                  padding: EdgeInsets.all(0),
+                  padding: const EdgeInsets.all(0),
                   child: InkWell(
                     onTap: () {
                       setState(() {
@@ -336,7 +366,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
               Timestamp? timeOutTimestamp = overtimeDoc['timeOut'];
 
               // Calculate the duration between timeIn and timeOut
-              Duration totalDuration = Duration();
+              Duration totalDuration = const Duration();
               if (timeInTimestamp != null && timeOutTimestamp != null) {
                 DateTime timeIn = timeInTimestamp.toDate();
                 DateTime timeOut = timeOutTimestamp.toDate();
@@ -371,7 +401,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
                     DataCell(
                       Container(
                         width: 100,
-                        padding: EdgeInsets.fromLTRB(5, 2, 2, 5),
+                        padding: const EdgeInsets.fromLTRB(5, 2, 2, 5),
                         decoration: BoxDecoration(
                           color: Colors.indigo[50],
                           border: Border.all(color: Colors.indigo.shade900),
@@ -391,7 +421,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
                         NumberFormat.currency(
                                 locale: 'en_PH', symbol: '₱ ', decimalDigits: 2)
                             .format(overtimeData['overtimePay'] ?? 0.0),
-                        style: TextStyle(fontWeight: FontWeight.bold))),
+                        style: const TextStyle(fontWeight: FontWeight.bold))),
                     DataCell(
                       SizedBox(
                         child: IntrinsicWidth(
@@ -437,13 +467,13 @@ class _RegularOTPageState extends State<RegularOTPage> {
                     DataCell(
                       Container(
                         width: 80,
-                        padding: EdgeInsets.all(0),
+                        padding: const EdgeInsets.all(0),
                         child: ElevatedButton(
                           onPressed: () async {
                             await _showConfirmationDialog4(overtimeDoc);
                           },
                           style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.all(5),
+                            padding: const EdgeInsets.all(5),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -513,18 +543,18 @@ class _RegularOTPageState extends State<RegularOTPage> {
                     child: MediaQuery.of(context).size.width > 600
                         ? Row(
                             children: [
-                              Text('Show entries: '),
+                              const Text('Show entries: '),
                               Container(
                                 width: 70,
                                 height: 30,
-                                padding: EdgeInsets.only(left: 10),
+                                padding: const EdgeInsets.only(left: 10),
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
                                         color: Colors.grey.shade200)),
                                 child: DropdownButton<int>(
-                                  padding: EdgeInsets.all(5),
-                                  underline: SizedBox(),
+                                  padding: const EdgeInsets.all(5),
+                                  underline: const SizedBox(),
                                   value: _itemsPerPage,
                                   items: [5, 10, 15, 20, 25]
                                       .map<DropdownMenuItem<int>>(
@@ -542,12 +572,12 @@ class _RegularOTPageState extends State<RegularOTPage> {
                                   },
                                 ),
                               ),
-                              SizedBox(width: 10),
+                              const SizedBox(width: 10),
                             ],
                           )
                         : DropdownButton<int>(
-                            padding: EdgeInsets.all(5),
-                            underline: SizedBox(),
+                            padding: const EdgeInsets.all(5),
+                            underline: const SizedBox(),
                             value: _itemsPerPage,
                             items:
                                 [5, 10, 15, 20, 25].map<DropdownMenuItem<int>>(
@@ -574,7 +604,8 @@ class _RegularOTPageState extends State<RegularOTPage> {
                             onPressed: () async {
                               await _computeAndAddToOvertimePay();
                             },
-                            child: Text('Compute and Add to Overtime Pay'),
+                            child:
+                                const Text('Compute and Add to Overtime Pay'),
                           ),
                         ),
                         Flexible(
@@ -583,8 +614,8 @@ class _RegularOTPageState extends State<RegularOTPage> {
                                 ? 400
                                 : 100,
                             height: 30,
-                            margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
-                            padding: EdgeInsets.fromLTRB(3, 0, 0, 0),
+                            margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                            padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
@@ -609,8 +640,8 @@ class _RegularOTPageState extends State<RegularOTPage> {
                           child: Container(
                               width: 130,
                               height: 30,
-                              padding: EdgeInsets.all(0),
-                              margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
+                              padding: const EdgeInsets.all(0),
+                              margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
                               decoration: BoxDecoration(
                                   color: Colors.teal,
                                   border: Border.all(
@@ -620,7 +651,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.teal,
-                                  padding: EdgeInsets.only(left: 5),
+                                  padding: const EdgeInsets.only(left: 5),
                                 ),
                                 onPressed: () {
                                   setState(() {
@@ -649,7 +680,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
                                           ),
                                         ],
                                       )
-                                    : Icon(
+                                    : const Icon(
                                         Icons.filter_alt_outlined,
                                         color: Colors.white,
                                       ),
@@ -662,7 +693,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
               ),
             ),
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
         ],
       ),
     );
@@ -678,12 +709,12 @@ class _RegularOTPageState extends State<RegularOTPage> {
                 Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    SizedBox(
+                    const SizedBox(
                       height: 130,
                     ),
                     AlertDialog(
                       surfaceTintColor: Colors.white,
-                      content: Container(
+                      content: SizedBox(
                         height: 200,
                         width: 200,
                         child: Column(
@@ -693,7 +724,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
+                                const Text(
                                   'Filter Date',
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
@@ -704,14 +735,14 @@ class _RegularOTPageState extends State<RegularOTPage> {
                                     icon: const Icon(Icons.close)),
                               ],
                             ),
-                            Text('From :'),
+                            const Text('From :'),
                             _fromDate(context, styleFrom),
-                            SizedBox(
+                            const SizedBox(
                               width: 5,
                             ),
-                            Text('To :'),
+                            const Text('To :'),
                             _toDate(context, styleFrom),
-                            SizedBox(
+                            const SizedBox(
                               height: 5,
                             ),
                             clearDate(context, styleFrom),
@@ -728,8 +759,8 @@ class _RegularOTPageState extends State<RegularOTPage> {
   Container clearDate(BuildContext context, ButtonStyle styleFrom) {
     return Container(
       height: 30,
-      padding: EdgeInsets.all(0),
-      margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+      padding: const EdgeInsets.all(0),
+      margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
       decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: Colors.red.withOpacity(0.5)),
@@ -758,7 +789,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
     return Flexible(
       child: Container(
         width: MediaQuery.of(context).size.width > 600 ? 150 : 50,
-        padding: EdgeInsets.all(2),
+        padding: const EdgeInsets.all(2),
         child: ElevatedButton(
             onPressed: () async {
               final DateTime? picked = await showDatePicker(
@@ -810,7 +841,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
     return Flexible(
       child: Container(
         width: MediaQuery.of(context).size.width > 600 ? 230 : 80,
-        padding: EdgeInsets.all(2),
+        padding: const EdgeInsets.all(2),
         child: ElevatedButton(
             onPressed: () async {
               final DateTime? picked = await showDatePicker(
@@ -970,7 +1001,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Done'),
+              child: const Text('Done'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -985,10 +1016,10 @@ class _RegularOTPageState extends State<RegularOTPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label + ': ', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
         Container(
             width: 100,
-            padding: EdgeInsets.fromLTRB(5, 2, 5, 0),
+            padding: const EdgeInsets.fromLTRB(5, 2, 5, 0),
             decoration: BoxDecoration(border: Border.all(color: Colors.white)),
             child: Text(value)),
       ],
@@ -999,14 +1030,14 @@ class _RegularOTPageState extends State<RegularOTPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label + ': ', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text('$label: ', style: TextStyle(fontWeight: FontWeight.bold)),
         Container(
             width: 70,
-            padding: EdgeInsets.fromLTRB(5, 2, 5, 0),
+            padding: const EdgeInsets.fromLTRB(5, 2, 5, 0),
             decoration: BoxDecoration(border: Border.all(color: Colors.white)),
             child: Text(
               value,
-              style: TextStyle(fontWeight: FontWeight.w500),
+              style: const TextStyle(fontWeight: FontWeight.w500),
             )),
       ],
     );
@@ -1016,10 +1047,10 @@ class _RegularOTPageState extends State<RegularOTPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label + ': ', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
         IntrinsicWidth(
           child: Container(
-              padding: EdgeInsets.fromLTRB(5, 2, 5, 0),
+              padding: const EdgeInsets.fromLTRB(5, 2, 5, 0),
               decoration:
                   BoxDecoration(border: Border.all(color: Colors.white)),
               child: Text(value)),
@@ -1074,7 +1105,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
         Timestamp? timeOutTimestamp = overtimeDoc['timeOut'];
 
         // Calculate the duration between timeIn and timeOut
-        Duration totalDuration = Duration();
+        Duration totalDuration = const Duration();
         if (timeInTimestamp != null && timeOutTimestamp != null) {
           DateTime timeIn = timeInTimestamp.toDate();
           DateTime timeOut = timeOutTimestamp.toDate();
@@ -1094,7 +1125,7 @@ class _RegularOTPageState extends State<RegularOTPage> {
               DataCell(Text(_formatTime(overtimeDoc['timeOut']))),
               DataCell(
                 Container(
-                    padding: EdgeInsets.fromLTRB(5, 3, 5, 3),
+                    padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
                     decoration: BoxDecoration(
                         color: Colors.teal[50],
                         borderRadius: BorderRadius.circular(8),
@@ -1240,8 +1271,8 @@ class _RegularOTPageState extends State<RegularOTPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           surfaceTintColor: Colors.white,
-          title: Text('Confirmation'),
-          content: SingleChildScrollView(
+          title: const Text('Confirmation'),
+          content: const SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Text('Are you sure you want to proceed?'),
@@ -1275,8 +1306,8 @@ class _RegularOTPageState extends State<RegularOTPage> {
       barrierDismissible: false, // user must tap button for close dialog!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirmation'),
-          content: SingleChildScrollView(
+          title: const Text('Confirmation'),
+          content: const SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Text('Are you sure you want to proceed?'),
@@ -1310,8 +1341,8 @@ class _RegularOTPageState extends State<RegularOTPage> {
       barrierDismissible: false, // user must tap button for close dialog!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirmation'),
-          content: SingleChildScrollView(
+          title: const Text('Confirmation'),
+          content: const SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Text('Are you sure you want to proceed?'),

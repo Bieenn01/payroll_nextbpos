@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,11 +24,35 @@ class _AttendancePageState extends State<AttendancePage> {
   int index = 0;
   String selectedDepartment = 'All';
   bool filter = false;
+  late String _role = 'Guest';
 
   @override
   void initState() {
     super.initState();
     _fetchUserRecords(_itemsPerPage);
+    _fetchRole();
+  }
+
+  Future<void> _fetchRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user.uid)
+          .get();
+
+      setState(() {
+        final role = docSnapshot['role'];
+        _role = role != null
+            ? role
+            : 'Guest'; // Default to 'Guest' if role is not specified
+      });
+    }
+  }
+
+  String? getCurrentUserId() {
+    final user = FirebaseAuth.instance.currentUser;
+    return user?.uid;
   }
 
   void _nextPage() {
@@ -136,7 +161,11 @@ class _AttendancePageState extends State<AttendancePage> {
             );
           }
 
-          List<DocumentSnapshot> userRecords = snapshot.data!.docs;
+          List<DocumentSnapshot> userRecords = _role == 'Employee'
+              ? snapshot.data!.docs
+                  .where((doc) => doc['userId'] == getCurrentUserId())
+                  .toList()
+              : snapshot.data!.docs;
 
           List<DocumentSnapshot> filteredDocs = userRecords.where((document) {
             Map<String, dynamic> data = document.data() as Map<String, dynamic>;
