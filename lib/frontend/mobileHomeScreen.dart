@@ -54,64 +54,97 @@ class _MobileHomeScreenState extends State<MobileHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
+      appBar: AppBar(
+        title: const Text(
+          'ATTENDANCE',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              alignment: Alignment.centerLeft,
-              child: RichText(
-                text: TextSpan(text: formattedDate),
-              ),
-            ),
-            Container(
-              alignment: Alignment.centerLeft,
-              child: RichText(
-                text: TextSpan(
-                  text: currentTime,
+            const SizedBox(height: 20),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  backgroundImage: AssetImage('assets/images/Employee.jpg'),
+                  radius: 50, // Adjust as needed
                 ),
-              ),
+              ],
             ),
-            Text(
-              'Hello: ${userData['fname']} ${userData['mname']} ${userData['lname']}',
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${userData['fname']} ${userData['mname']} ${userData['lname']}',
+                  style: const TextStyle(fontSize: 24),
+                ),
+              ],
             ),
-            Text(
-              checkedIn ? 'You timed in!' : 'You timed out',
-              style: TextStyle(fontSize: 24.0),
+            const SizedBox(height: 20),
+            Center(
+              child: checkedIn
+                  ? const Text(
+                      'You are currently timed in.',
+                      style: TextStyle(fontSize: 24, color: Colors.green),
+                    )
+                  : const Text(
+                      'You are currently timed out.',
+                      style: TextStyle(fontSize: 24, color: Colors.red),
+                    ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                if (!checkedIn && !isProcessing) {
-                  recordTimeIn();
-                }
-              },
-              child: Text('Time In'),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        if (!checkedIn && !isProcessing) {
+                          recordTimeIn();
+                        }
+                      },
+                      child: isProcessing
+                          ? const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(width: 10),
+                                Text('Processing...'),
+                              ],
+                            )
+                          : const Text('Time In'),
+                    ),
+                    const SizedBox(
+                        width:
+                            20), // Adjust the width between buttons as needed
+                    ElevatedButton(
+                      onPressed: () {
+                        if (checkedIn && !isProcessing) {
+                          recordTimeOut();
+                        }
+                      },
+                      child: isProcessing
+                          ? const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(width: 10),
+                                Text('Processing...'),
+                              ],
+                            )
+                          : const Text('Time Out'),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                if (checkedIn && !isProcessing) {
-                  recordTimeOut();
-                }
-              },
-              child: Text('Time Out'),
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            ElevatedButton(
-                onPressed: () {
-                  FirebaseAuth.instance.signOut(); // Sign out the user
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            Login()), // Navigate back to the login page
-                    (route) =>
-                        false, // Remove all existing routes from the navigation stack
-                  );
-                },
-                child: Text('Logout'))
           ],
         ),
       ),

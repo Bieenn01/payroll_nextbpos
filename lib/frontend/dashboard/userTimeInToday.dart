@@ -16,6 +16,7 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
   late Stream<QuerySnapshot> _userRecordsStream;
 
   bool table = false;
+  late String _role = 'Guest';
 
   String selectedDepartment = 'All';
 
@@ -23,6 +24,29 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
   void initState() {
     super.initState();
     _fetchUserTimedInToday();
+    _fetchRole();
+  }
+
+  Future<void> _fetchRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user.uid)
+          .get();
+
+      setState(() {
+        final role = docSnapshot['role'];
+        _role = role != null
+            ? role
+            : 'Guest'; // Default to 'Guest' if role is not specified
+      });
+    }
+  }
+
+  String? getCurrentUserId() {
+    final user = FirebaseAuth.instance.currentUser;
+    return user?.uid;
   }
 
   void _fetchUserTimedInToday() {
@@ -134,7 +158,11 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
           );
         }
 
-        final List<DocumentSnapshot> documents = snapshot.data!.docs;
+        final List<DocumentSnapshot> documents = _role == 'Employee'
+            ? snapshot.data!.docs
+                .where((doc) => doc['userId'] == getCurrentUserId())
+                .toList()
+            : snapshot.data!.docs;
         final int rowsPerPage = 10; // Number of rows per page
         List<DocumentSnapshot> filteredDocuments = documents;
         if (selectedDepartment != 'All') {
@@ -251,7 +279,12 @@ class _UserTimedInTodayState extends State<UserTimedInToday> {
           );
         }
 
-        final List<DocumentSnapshot> documents = snapshot.data!.docs;
+        final List<DocumentSnapshot> documents = _role == 'Employee'
+            ? snapshot.data!.docs
+                .where((doc) => doc['userId'] == getCurrentUserId())
+                .toList()
+            : snapshot.data!.docs;
+        ;
         final int rowsPerPage = 10; // Number of rows per page
         List<DocumentSnapshot> filteredDocuments = documents;
         if (selectedDepartment != 'All') {

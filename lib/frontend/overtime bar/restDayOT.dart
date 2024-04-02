@@ -767,29 +767,31 @@ class _RestDayOTPage extends State<RestDayOTPage> {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
-                    DataCell(
-                      DropdownButton<String>(
-                        value: _selectedOvertimeTypes[0],
-                        items: <String>[
-                          'Rest Day',
-                          'Regular',
-                        ].map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) async {
-                          if (newValue == 'Regular') {
-                            await moveRecordToRegularOT(overtimeDoc);
-                            await deleteRecordFromRestdayOT(overtimeDoc);
-                          }
-                          setState(() {
-                            _selectedOvertimeTypes[index] = newValue!;
-                          });
-                        },
-                      ),
-                    ),
+                    _role == 'Employee'
+                        ? DataCell(Text('Rest Day OT'))
+                        : DataCell(
+                            DropdownButton<String>(
+                              value: _selectedOvertimeTypes[0],
+                              items: <String>[
+                                'Rest Day',
+                                'Regular',
+                              ].map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) async {
+                                if (newValue == 'Regular') {
+                                  await moveRecordToRegularOT(overtimeDoc);
+                                  await deleteRecordFromRestdayOT(overtimeDoc);
+                                }
+                                setState(() {
+                                  _selectedOvertimeTypes[index] = newValue!;
+                                });
+                              },
+                            ),
+                          ),
                     DataCell(
                       Container(
                         width: 100,
