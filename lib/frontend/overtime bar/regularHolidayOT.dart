@@ -404,30 +404,32 @@ class _RegularHolidayOTPage extends State<RegularHolidayOTPage> {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
-                    DataCell(
-                      IntrinsicWidth(
-                        child: DropdownButton<String>(
-                          value: _selectedOvertimeTypes[0],
-                          items: <String>[
-                            'Regular Holiday',
-                            'Regular',
-                          ].map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) async {
-                            if (newValue == 'Regular') {
-                              await _showConfirmationDialog(overtimeDoc);
-                            }
-                            setState(() {
-                              _selectedOvertimeTypes[index] = newValue!;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
+                    _role == 'Employee'
+                        ? DataCell(Text('Regular Holiday OT'))
+                        : DataCell(
+                            IntrinsicWidth(
+                              child: DropdownButton<String>(
+                                value: _selectedOvertimeTypes[0],
+                                items: <String>[
+                                  'Regular Holiday',
+                                  'Regular',
+                                ].map<DropdownMenuItem<String>>((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) async {
+                                  if (newValue == 'Regular') {
+                                    await _showConfirmationDialog(overtimeDoc);
+                                  }
+                                  setState(() {
+                                    _selectedOvertimeTypes[index] = newValue!;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
                     DataCell(
                       Container(
                         width: 100,
