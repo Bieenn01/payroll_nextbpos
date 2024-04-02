@@ -310,6 +310,7 @@ class _LoginState extends State<Login> {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection('User')
           .where('username', isEqualTo: usernameController.text)
+          .where('isActive', isEqualTo: true) // Add this condition
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {

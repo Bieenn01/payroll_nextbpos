@@ -248,6 +248,23 @@ class _AttendancePageState extends State<AttendancePage> {
               Color? rowColor =
                   index % 2 == 0 ? Colors.grey[200] : Colors.white;
               index++;
+
+              // Extract timestamps for timeIn and timeOut
+              Timestamp? timeInTimestamp = data['timeIn'];
+              Timestamp? timeOutTimestamp = data['timeOut'];
+
+              // Calculate the duration between timeIn and timeOut
+              Duration totalDuration = Duration();
+              if (timeInTimestamp != null && timeOutTimestamp != null) {
+                DateTime timeIn = timeInTimestamp.toDate();
+                DateTime timeOut = timeOutTimestamp.toDate();
+                totalDuration = timeOut.difference(timeIn);
+              }
+
+              // Format the duration to display total hours
+              String totalHoursAndMinutes =
+                  '${totalDuration.inHours} hrs, ${totalDuration.inMinutes.remainder(60)} mins';
+
               return DataRow(
                 color: MaterialStateColor.resolveWith((states) => rowColor!),
                 cells: [
@@ -262,16 +279,31 @@ class _AttendancePageState extends State<AttendancePage> {
                   )),
                   DataCell(Container(
                     width: 150,
-                    child: Text(_formatTimestamp(data['timeIn'])),
+                    child: Text(_formatTimestamp(timeInTimestamp)),
                   )),
                   DataCell(Container(
                     width: 150,
-                    child: Text(_formatTimestamp(data['timeOut'])),
+                    child: Text(_formatTimestamp(timeOutTimestamp)),
                   )),
-                  DataCell(Container(
-                    width: 150,
-                    child: Text('TOTAL HOURS'),
-                  )),
+                  DataCell(
+                    Container(
+                      width: 100,
+                      padding: EdgeInsets.fromLTRB(5, 2, 2, 5),
+                      decoration: BoxDecoration(
+                        color: Colors.indigo[50],
+                        border: Border.all(color: Colors.indigo.shade900),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            child: Text(totalHoursAndMinutes),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               );
             }),
@@ -429,7 +461,7 @@ class _AttendancePageState extends State<AttendancePage> {
                 Flexible(
                   child: Container(
                     width:
-                        400, // or use MediaQuery.of(context).size.width > 600 ? 400 : 50
+                        500, // or use MediaQuery.of(context).size.width > 600 ? 400 : 50
                     height: 30,
                     margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
                     padding: EdgeInsets.fromLTRB(3, 0, 0, 0),
@@ -452,35 +484,93 @@ class _AttendancePageState extends State<AttendancePage> {
                     ),
                   ),
                 ),
-                filter ? fromDate(context, styleFrom) : Container(),
-                filter ? toDate(context, styleFrom) : Container(),
-                filter ? clearDate(context, styleFrom) : Container(),
                 Flexible(
                   child: Container(
-                    width: 100,
-                    height: 30,
-                    padding: EdgeInsets.all(0),
-                    margin: EdgeInsets.all(0),
-                    decoration: BoxDecoration(
-                        color: Colors.teal,
-                        border: Border.all(
-                            color: Colors.teal.shade900.withOpacity(0.5)),
-                        borderRadius: BorderRadius.circular(8)),
-                    child: ElevatedButton(
+                      width: 130,
+                      height: 30,
+                      padding: EdgeInsets.all(0),
+                      margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
+                      decoration: BoxDecoration(
+                          color: Colors.teal,
+                          border: Border.all(
+                              color: Colors.teal.shade900.withOpacity(0.5)),
+                          borderRadius: BorderRadius.circular(8)),
+                      child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: filter
-                              ? Colors.teal.shade200
-                              : Colors.teal.shade700,
-                          padding: EdgeInsets.all(5),
-                          shape: RoundedRectangleBorder(),
+                          backgroundColor: Colors.teal,
+                          padding: EdgeInsets.only(left: 5),
                         ),
                         onPressed: () {
                           setState(() {
                             filter = !filter;
                           });
+                          filtermodal(
+                            context,
+                            styleFrom,
+                          );
                         },
-                        child: Text('Filter Date')),
-                  ),
+                        child: MediaQuery.of(context).size.width > 800
+                            ? const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.filter_alt_outlined,
+                                    color: Colors.white,
+                                  ),
+                                  Text(
+                                    'Filter Date',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        letterSpacing: 1,
+                                        color: Colors.white),
+                                  ),
+                                ],
+                              )
+                            : Icon(
+                                Icons.filter_alt_outlined,
+                                color: Colors.white,
+                              ),
+                      )),
+                ),
+                Flexible(
+                  child: Container(
+                      width: 130,
+                      height: 30,
+                      padding: EdgeInsets.all(0),
+                      margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
+                      decoration: BoxDecoration(
+                          color: Colors.teal,
+                          border: Border.all(
+                              color: Colors.teal.shade900.withOpacity(0.5)),
+                          borderRadius: BorderRadius.circular(8)),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal,
+                          padding: EdgeInsets.only(left: 5),
+                        ),
+                        onPressed: () {},
+                        child: MediaQuery.of(context).size.width > 800
+                            ? const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.cloud_download_outlined,
+                                    color: Colors.white,
+                                  ),
+                                  Text(
+                                    ' Export',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        letterSpacing: 1,
+                                        color: Colors.white),
+                                  ),
+                                ],
+                              )
+                            : const Icon(
+                                Icons.cloud_download_outlined,
+                                color: Colors.white,
+                              ),
+                      )),
                 ),
               ],
             ),
@@ -490,29 +580,69 @@ class _AttendancePageState extends State<AttendancePage> {
     );
   }
 
-  Flexible clearDate(BuildContext context, ButtonStyle styleFrom) {
-    return Flexible(
-        child: Container(
-      child: ElevatedButton(
-        onPressed: () {
-          setState(() {
-            _startDate = null;
-            _endDate = null;
-          });
-        },
-        child: Text('Clear filter'),
-      ),
-    ));
+  Future<dynamic> filtermodal(BuildContext context, ButtonStyle styleFrom) {
+    return showDialog(
+        context: context,
+        builder: (_) => Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 130,
+                    ),
+                    AlertDialog(
+                      surfaceTintColor: Colors.white,
+                      content: Container(
+                        height: 200,
+                        width: 200,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Filter Date',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                IconButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    icon: const Icon(Icons.close)),
+                              ],
+                            ),
+                            Text('From :'),
+                            fromDate(context, styleFrom),
+                            SizedBox(
+                              width: 5,
+                            ),
+                            Text('To :'),
+                            toDate(context, styleFrom),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            clearDate(context, styleFrom),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ));
   }
 
-  Flexible toDate(BuildContext context, ButtonStyle styleFrom) {
-    return Flexible(
-      child: Container(
-        width: MediaQuery.of(context).size.width > 600
-            ? 150
-            : 50, // or use MediaQuery.of(context).size.width > 600 ? 150 : 50
-        padding: EdgeInsets.all(2),
-        child: ElevatedButton(
+  Container toDate(BuildContext context, ButtonStyle styleFrom) {
+    return Container(
+      margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+      width: 150, // or use MediaQuery.of(context).size.width > 600 ? 150 : 80
+      padding: EdgeInsets.all(2),
+      child: ElevatedButton(
           onPressed: () async {
             final DateTime? picked = await showDatePicker(
               context: context,
@@ -525,67 +655,43 @@ class _AttendancePageState extends State<AttendancePage> {
                 _endDate = picked;
                 endPicked = true;
               });
+              Navigator.of(context).pop();
             }
           },
           style: styleFrom,
-          child: MediaQuery.of(context).size.width > 800
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          'To: ',
-                          style: TextStyle(
-                              color: Colors.black, fontWeight: FontWeight.bold),
-                        ),
-                        MediaQuery.of(context).size.width > 1100
-                            ? Text(
-                                _endDate != null
-                                    ? DateFormat('yyyy-MM-dd').format(_endDate!)
-                                    : 'Select Date',
-                                style: TextStyle(
-                                    color: endPicked == !true
-                                        ? Colors.black
-                                        : Colors.teal.shade800),
-                              )
-                            : Text(
-                                _endDate != null
-                                    ? DateFormat('MM-dd').format(_endDate!)
-                                    : '',
-                                style: TextStyle(
-                                    color: endPicked == !true
-                                        ? Colors.black
-                                        : Colors.teal.shade800),
-                              ),
-                      ],
-                    ),
-                    SizedBox(width: 3),
-                    Icon(
-                      Icons.calendar_month,
-                      color: Colors.black,
-                      size: 20,
-                    ),
-                  ],
-                )
-              : Icon(
-                  Icons.calendar_month,
-                  color: Colors.black,
-                  size: 20,
-                ),
-        ),
-      ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    _endDate != null
+                        ? DateFormat('yyyy-MM-dd').format(_endDate!)
+                        : 'Select Date',
+                    style: TextStyle(
+                        color: endPicked == !true
+                            ? Colors.black
+                            : Colors.teal.shade800),
+                  )
+                ],
+              ),
+              const SizedBox(width: 3),
+              const Icon(
+                Icons.calendar_month,
+                color: Colors.black,
+                size: 20,
+              ),
+            ],
+          )),
     );
   }
 
-  Flexible fromDate(BuildContext context, ButtonStyle styleFrom) {
-    return Flexible(
-      child: Container(
-        width: MediaQuery.of(context).size.width > 600
-            ? 230
-            : 80, // or use MediaQuery.of(context).size.width > 600 ? 150 : 80
-        padding: EdgeInsets.all(2),
-        child: ElevatedButton(
+  Container fromDate(BuildContext context, ButtonStyle styleFrom) {
+    return Container(
+      margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+      width: 150, // or use MediaQuery.of(context).size.width > 600 ? 150 : 80
+      padding: EdgeInsets.all(2),
+      child: ElevatedButton(
           onPressed: () async {
             final DateTime? picked = await showDatePicker(
               context: context,
@@ -601,135 +707,143 @@ class _AttendancePageState extends State<AttendancePage> {
             }
           },
           style: styleFrom,
-          child: MediaQuery.of(context).size.width > 800
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Text(
-                          'From: ',
-                          style: TextStyle(
-                              color: Colors.black, fontWeight: FontWeight.bold),
-                        ),
-                        MediaQuery.of(context).size.width > 1100
-                            ? Text(
-                                _startDate != null
-                                    ? DateFormat('yyyy-MM-dd')
-                                        .format(_startDate!)
-                                    : 'Select Date',
-                                style: TextStyle(
-                                    color: startPicked == !true
-                                        ? Colors.black
-                                        : Colors.teal.shade800),
-                              )
-                            : Text(
-                                _startDate != null
-                                    ? DateFormat('MM-dd').format(_startDate!)
-                                    : '',
-                                style: TextStyle(
-                                    color: startPicked == !true
-                                        ? Colors.black
-                                        : Colors.teal.shade800),
-                              ),
-                      ],
-                    ),
-                    SizedBox(width: 3),
-                    Icon(
-                      Icons.calendar_month,
-                      color: Colors.black,
-                      size: 20,
-                    ),
-                  ],
-                )
-              : Icon(
-                  Icons.calendar_month,
-                  color: Colors.black,
-                  size: 20,
-                ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    _startDate != null
+                        ? DateFormat('yyyy-MM-dd').format(_startDate!)
+                        : 'Select Date',
+                    style: TextStyle(
+                        color: startPicked == !true
+                            ? Colors.black
+                            : Colors.teal.shade800),
+                  )
+                ],
+              ),
+              const SizedBox(width: 3),
+              const Icon(
+                Icons.calendar_month,
+                color: Colors.black,
+                size: 20,
+              ),
+            ],
+          )),
+    );
+  }
+
+  Container clearDate(BuildContext context, ButtonStyle styleFrom) {
+    return Container(
+      height: 30,
+      padding: EdgeInsets.all(0),
+      margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Colors.red.withOpacity(0.5)),
+          borderRadius: BorderRadius.circular(12)),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white, padding: EdgeInsets.all(3)),
+        onPressed: () {
+          setState(() {
+            _startDate = null;
+            _endDate = null;
+            filter = false;
+          });
+          Navigator.of(context).pop();
+        },
+        child: const Text(
+          'Reset Date',
+          style: TextStyle(
+              fontWeight: FontWeight.w400, letterSpacing: 1, color: Colors.red),
         ),
       ),
     );
   }
-}
 
-Widget _buildShimmerLoading() {
-  return SingleChildScrollView(
-    scrollDirection: Axis.horizontal,
-    child: ShimmerPackage.Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: DataTable(
-        columns: const [
-          DataColumn(
-            label: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
+  Widget _buildShimmerLoading() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: ShimmerPackage.Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: DataTable(
+          columns: const [
+            DataColumn(
+              label: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label: Text('ID', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label:
+                  Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label: Text('Username',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label:
+                  Text('Type', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label: Text('Department',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label:
+                  Text('Shift', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label:
+                  Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label:
+                  Text('Status', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            // Added column for Status
+          ],
+          rows: List.generate(
+            10, // You can change this to the number of shimmer rows you want
+            (index) => DataRow(cells: [
+              DataCell(Container(width: 40, height: 16, color: Colors.white)),
+              DataCell(Container(width: 60, height: 16, color: Colors.white)),
+              DataCell(Container(width: 120, height: 16, color: Colors.white)),
+              DataCell(Container(width: 80, height: 16, color: Colors.white)),
+              DataCell(Container(width: 80, height: 16, color: Colors.white)),
+              DataCell(Container(width: 100, height: 16, color: Colors.white)),
+              DataCell(Container(width: 60, height: 16, color: Colors.white)),
+              DataCell(Container(width: 60, height: 16, color: Colors.white)),
+              DataCell(Container(width: 60, height: 16, color: Colors.white)),
+            ]),
           ),
-          DataColumn(
-            label: Text('ID', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label:
-                Text('Username', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Type', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Department',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Shift', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label:
-                Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label:
-                Text('Status', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          // Added column for Status
-        ],
-        rows: List.generate(
-          10, // You can change this to the number of shimmer rows you want
-          (index) => DataRow(cells: [
-            DataCell(Container(width: 40, height: 16, color: Colors.white)),
-            DataCell(Container(width: 60, height: 16, color: Colors.white)),
-            DataCell(Container(width: 120, height: 16, color: Colors.white)),
-            DataCell(Container(width: 80, height: 16, color: Colors.white)),
-            DataCell(Container(width: 80, height: 16, color: Colors.white)),
-            DataCell(Container(width: 100, height: 16, color: Colors.white)),
-            DataCell(Container(width: 60, height: 16, color: Colors.white)),
-            DataCell(Container(width: 60, height: 16, color: Colors.white)),
-            DataCell(Container(width: 60, height: 16, color: Colors.white)),
-          ]),
         ),
       ),
-    ),
-  );
-}
-
-String _formatTimestamp(dynamic timestamp) {
-  if (timestamp == null) return '-------';
-
-  if (timestamp is Timestamp) {
-    DateTime dateTime = timestamp.toDate();
-    return DateFormat('MMMM dd, yyyy HH:mm:ss:a').format(dateTime);
-  } else {
-    return timestamp.toString();
+    );
   }
-}
 
-DataColumn ColumnInput(String label) {
-  return DataColumn(
-      label: Text(
-    label,
-    style: const TextStyle(
-      fontWeight: FontWeight.w900,
-    ),
-  ));
+  String _formatTimestamp(dynamic timestamp) {
+    if (timestamp == null) return '-------';
+
+    if (timestamp is Timestamp) {
+      DateTime dateTime = timestamp.toDate();
+      return DateFormat('MMMM dd, yyyy HH:mm:ss:a').format(dateTime);
+    } else {
+      return timestamp.toString();
+    }
+  }
+
+  DataColumn ColumnInput(String label) {
+    return DataColumn(
+        label: Text(
+      label,
+      style: const TextStyle(
+        fontWeight: FontWeight.w900,
+      ),
+    ));
+  }
 }

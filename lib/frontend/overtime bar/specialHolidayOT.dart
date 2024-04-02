@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:shimmer/shimmer.dart' as ShimmerPackage;
 
 class SpecialHolidayOTPage extends StatefulWidget {
   const SpecialHolidayOTPage({Key? key}) : super(key: key);
@@ -20,12 +19,6 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
 
   DateTime? fromDate;
   DateTime? toDate;
-  bool _sortAscending = false;
-
-  bool sortPay = false;
-  bool table = false;
-
-  String selectedDepartment = 'All';
   bool endPicked = false;
   bool startPicked = false;
 
@@ -52,40 +45,38 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: SingleChildScrollView(
-                child: Container(
-                    margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Text(
-                                "Special Holiday Overtime",
-                                style: TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                              ),
+              child: Container(
+                  margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Text(
+                              "Special Holiday Overtime",
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
                             ),
-                          ],
-                        ),
-                        dateFilterSearchRow(context, styleFrom),
-                        Divider(),
-                        _buildTable(),
-                        SizedBox(height: 10),
-                        Divider(),
-                        SizedBox(height: 5),
-                        pagination(),
-                        SizedBox(height: 20),
-                      ],
-                    )),
-              ),
+                          ),
+                        ],
+                      ),
+                      dateFilterSearchRow(context, styleFrom),
+                      Divider(),
+                      _buildTable(),
+                      SizedBox(height: 10),
+                      Divider(),
+                      SizedBox(height: 5),
+                      pagination(),
+                      SizedBox(height: 20),
+                    ],
+                  )),
             ),
           ],
         ),
@@ -108,42 +99,17 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Flexible(
-                    child: MediaQuery.of(context).size.width > 600
-                        ? Row(
-                            children: [
-                              Text('Show entries: '),
-                              Container(
-                                width: 70,
-                                height: 30,
-                                padding: EdgeInsets.only(left: 10),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                        color: Colors.grey.shade200)),
-                                child: DropdownButton<int>(
-                                  padding: EdgeInsets.all(5),
-                                  underline: SizedBox(),
-                                  value: _itemsPerPage,
-                                  items: [5, 10, 15, 20, 25]
-                                      .map<DropdownMenuItem<int>>(
-                                    (int value) {
-                                      return DropdownMenuItem<int>(
-                                        value: value,
-                                        child: Text('$value'),
-                                      );
-                                    },
-                                  ).toList(),
-                                  onChanged: (int? newValue) {
-                                    setState(() {
-                                      _itemsPerPage = newValue!;
-                                    });
-                                  },
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                            ],
-                          )
-                        : DropdownButton<int>(
+                    child: Row(
+                      children: [
+                        Text('Show entries: '),
+                        Container(
+                          width: 70,
+                          height: 30,
+                          padding: EdgeInsets.only(left: 10),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade200)),
+                          child: DropdownButton<int>(
                             padding: EdgeInsets.all(5),
                             underline: SizedBox(),
                             value: _itemsPerPage,
@@ -162,24 +128,28 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
                               });
                             },
                           ),
+                        ),
+                        SizedBox(width: 10),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await _computeAndAddToOvertimePay();
+                      },
+                      child: Text('Compute and Add to SpecialOT Pay'),
+                    ),
                   ),
                   Flexible(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Flexible(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              await _computeAndAddToOvertimePay();
-                            },
-                            child: Text('Compute and Add to SpecialOT Pay'),
-                          ),
-                        ),
-                        Flexible(
                           child: Container(
                             width: MediaQuery.of(context).size.width > 600
                                 ? 400
-                                : 100,
+                                : 50,
                             height: 30,
                             margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
                             padding: EdgeInsets.fromLTRB(3, 0, 0, 0),
@@ -207,7 +177,7 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
                         Flexible(
                           child: Container(
                             width: MediaQuery.of(context).size.width > 600
-                                ? 230
+                                ? 150
                                 : 80,
                             padding: EdgeInsets.all(2),
                             child: ElevatedButton(
@@ -226,56 +196,34 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
                                 }
                               },
                               style: styleFrom,
-                              child: MediaQuery.of(context).size.width > 800
+                              child: MediaQuery.of(context).size.width > 600
                                   ? Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Flexible(
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                'From: ',
-                                                style: TextStyle(
+                                        Row(
+                                          children: [
+                                            const Text(
+                                              'From: ',
+                                              style: TextStyle(
                                                   color: Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      1100
-                                                  ? Text(
-                                                      fromDate != null
-                                                          ? DateFormat(
-                                                                  'yyyy-MM-dd')
-                                                              .format(fromDate!)
-                                                          : 'Select',
-                                                      style: TextStyle(
-                                                        color:
-                                                            startPicked == !true
-                                                                ? Colors.black
-                                                                : Colors.teal
-                                                                    .shade800,
-                                                      ),
-                                                    )
-                                                  : Text(
-                                                      fromDate != null
-                                                          ? DateFormat('MM-dd')
-                                                              .format(fromDate!)
-                                                          : '',
-                                                      style: TextStyle(
-                                                        color:
-                                                            startPicked == !true
-                                                                ? Colors.black
-                                                                : Colors.teal
-                                                                    .shade800,
-                                                      ),
-                                                    ),
-                                            ],
-                                          ),
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            Text(
+                                              fromDate != null
+                                                  ? DateFormat('yyyy-MM-dd')
+                                                      .format(fromDate!)
+                                                  : 'Select Date',
+                                              style: TextStyle(
+                                                  color: startPicked == !true
+                                                      ? Colors.black
+                                                      : Colors.teal.shade800),
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(width: 3),
+                                        const SizedBox(
+                                          width: 3,
+                                        ),
                                         const Icon(
                                           Icons.calendar_month,
                                           color: Colors.black,
@@ -286,7 +234,6 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
                                   : const Icon(
                                       Icons.calendar_month,
                                       color: Colors.black,
-                                      size: 20,
                                     ),
                             ),
                           ),
@@ -314,56 +261,34 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
                                 }
                               },
                               style: styleFrom,
-                              child: MediaQuery.of(context).size.width > 800
+                              child: MediaQuery.of(context).size.width > 600
                                   ? Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Flexible(
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                'To: ',
-                                                style: TextStyle(
+                                        Row(
+                                          children: [
+                                            const Text(
+                                              'To: ',
+                                              style: TextStyle(
                                                   color: Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      1100
-                                                  ? Text(
-                                                      toDate != null
-                                                          ? DateFormat(
-                                                                  'yyyy-MM-dd')
-                                                              .format(toDate!)
-                                                          : 'Select',
-                                                      style: TextStyle(
-                                                        color:
-                                                            endPicked == !true
-                                                                ? Colors.black
-                                                                : Colors.teal
-                                                                    .shade800,
-                                                      ),
-                                                    )
-                                                  : Text(
-                                                      toDate != null
-                                                          ? DateFormat('MM-dd')
-                                                              .format(toDate!)
-                                                          : '',
-                                                      style: TextStyle(
-                                                        color:
-                                                            endPicked == !true
-                                                                ? Colors.black
-                                                                : Colors.teal
-                                                                    .shade800,
-                                                      ),
-                                                    ),
-                                            ],
-                                          ),
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            Text(
+                                              toDate != null
+                                                  ? DateFormat('yyyy-MM-dd')
+                                                      .format(toDate!)
+                                                  : 'Select Date',
+                                              style: TextStyle(
+                                                  color: endPicked == !true
+                                                      ? Colors.black
+                                                      : Colors.teal.shade800),
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(width: 3),
+                                        const SizedBox(
+                                          width: 3,
+                                        ),
                                         const Icon(
                                           Icons.calendar_month,
                                           color: Colors.black,
@@ -374,7 +299,6 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
                                   : const Icon(
                                       Icons.calendar_month,
                                       color: Colors.black,
-                                      size: 20,
                                     ),
                             ),
                           ),
@@ -455,7 +379,7 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
           FirebaseFirestore.instance.collection('SpecialHolidayOT').snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (!snapshot.hasData) {
-          return _buildShimmerLoading();
+          return Center(child: CircularProgressIndicator());
         } else if (snapshot.data!.docs.isEmpty) {
           return Center(child: Text('No data available yet'));
         } else {
@@ -484,284 +408,169 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
                   userName.contains(searchText);
             }).toList();
           }
-          _sortAscending
-              ? overtimeDocs.sort((a, b) {
-                  double overtimePayA = a['overtimePay'] ?? 0.0;
-                  double overtimePayB = b['overtimePay'] ?? 0.0;
-                  return overtimePayA.compareTo(overtimePayB);
-                })
-              : overtimeDocs.sort((b, a) {
-                  double overtimePayA = a['overtimePay'] ?? 0.0;
-                  double overtimePayB = b['overtimePay'] ?? 0.0;
-                  return overtimePayA.compareTo(overtimePayB);
-                });
-
-          List<DocumentSnapshot> filteredDocuments = overtimeDocs;
-          if (selectedDepartment != 'All') {
-            filteredDocuments = overtimeDocs
-                .where((doc) => doc['department'] == selectedDepartment)
-                .toList();
-            filteredDocuments.sort((a, b) {
-              Timestamp aTimestamp = a['timeIn'];
-              Timestamp bTimestamp = b['timeIn'];
-              return bTimestamp.compareTo(aTimestamp);
-            });
-          }
+          // Sort documents by timestamp in descending order
+          overtimeDocs.sort((a, b) {
+            Timestamp aTimestamp = a['timeIn'];
+            Timestamp bTimestamp = b['timeIn'];
+            return bTimestamp.compareTo(aTimestamp);
+          });
           const textStyle = TextStyle(fontWeight: FontWeight.bold);
 
-          var dataTable = DataTable(
-            columns: [
-              const DataColumn(
-                  label: Flexible(child: Text('#', style: textStyle))),
-              const DataColumn(
-                  label: Flexible(
-                child: Text('Employee ID', style: textStyle),
-              )),
-              const DataColumn(
-                  label: Flexible(child: Text('Name', style: textStyle))),
-              DataColumn(
-                label: PopupMenuButton<String>(
-                  child: const Row(
-                    children: [
-                      Text(
-                        'Department',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+          return SizedBox(
+            height: 610,
+            child: SingleChildScrollView(
+              child: DataTable(
+                columns: const [
+                  DataColumn(label: Text('#', style: textStyle)),
+                  DataColumn(label: Text('Employee ID', style: textStyle)),
+                  DataColumn(label: Text('Name', style: textStyle)),
+                  DataColumn(label: Text('Department', style: textStyle)),
+                  DataColumn(label: Text('Total Hours (h:m)')),
+                  DataColumn(label: Text('Overtime Pay', style: textStyle)),
+                  DataColumn(label: Text('Overtime Type', style: textStyle)),
+                  DataColumn(label: Text('Action', style: textStyle)),
+                ],
+                rows: List.generate(overtimeDocs.length, (index) {
+                  DocumentSnapshot overtimeDoc = overtimeDocs[index];
+                  Map<String, dynamic> overtimeData =
+                      overtimeDoc.data() as Map<String, dynamic>;
+                  _selectedOvertimeTypes.add('Regular');
+                  FutureBuilder<double>(
+                    future: calculateSpecialHolidayOT(
+                      overtimeData['userId'],
+                      Duration(
+                        hours: overtimeData['hours_overtime'],
+                        minutes: overtimeData['minute_overtime'],
                       ),
-                      Icon(Icons.arrow_drop_down)
-                    ],
-                  ),
-                  onSelected: (String value) {
-                    setState(() {
-                      selectedDepartment = value;
-                    });
-                  },
-                  itemBuilder: (BuildContext context) => [
-                    'All', // Default option
-                    'IT',
-                    'HR',
-                    'ACCOUNTING',
-                    'SERVICING',
-                  ].map((String value) {
-                    return PopupMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-              ),
-              const DataColumn(
-                  label: Flexible(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text('Overtime Hours',
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.bold)),
-                    Text('(h:m)',
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              )),
-              DataColumn(
-                label: Container(
-                  width: 100,
-                  padding: EdgeInsets.all(0),
-                  child: InkWell(
-                    onTap: () {
-                      setState(() {
-                        _sortAscending = !_sortAscending;
-                      });
+                    ),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Text(
+                            'Calculating...'); // Or any loading indicator
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        double overtimePay = snapshot.data ??
+                            0; // Use snapshot.data, default to 0 if null
+                        return Text(overtimePay.toStringAsFixed(2));
+                      }
                     },
-                    child: Flexible(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Overtime Pay',
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold)),
-                          const SizedBox(
-                              width:
-                                  4), // Add some space between the text and the icon
-                          Flexible(
-                            child: Icon(
-                              _sortAscending
-                                  ? Icons.arrow_drop_down
-                                  : Icons.arrow_drop_up,
-                              size: 20,
+                  );
+                  Color? rowColor = indexRow % 2 == 0
+                      ? Colors.white
+                      : Colors.grey[200]; // Alternating row colors
+                  indexRow++; //
+
+                  return DataRow(
+                      color:
+                          MaterialStateColor.resolveWith((states) => rowColor!),
+                      cells: [
+                        DataCell(Text('#')),
+                        DataCell(Text(overtimeData['employeeId'])),
+                        DataCell(
+                          Text(overtimeData['userName'] ?? 'Not Available Yet'),
+                        ),
+                        DataCell(
+                          Text(overtimeData['department'] ??
+                              'Not Available Yet'),
+                        ),
+                        DataCell(
+                          Container(
+                            width: 100,
+                            decoration:
+                                BoxDecoration(color: Colors.amber.shade200),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        overtimeData['hours_overtime']
+                                                ?.toString() ??
+                                            'Not Available Yet',
+                                        style: textStyle,
+                                      ),
+                                      Text(':'),
+                                      Text(
+                                        overtimeData['minute_overtime']
+                                                ?.toString() ??
+                                            'Not Available Yet',
+                                        style: textStyle,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const DataColumn(
-                  label: Flexible(
-                child: Text('Overtime Type', style: textStyle),
-              )),
-              const DataColumn(
-                  label: Flexible(
-                child: Text('Action', style: textStyle),
-              )),
-            ],
-            rows: List.generate(filteredDocuments.length, (index) {
-              DocumentSnapshot overtimeDoc = filteredDocuments[index];
-              Map<String, dynamic> overtimeData =
-                  overtimeDoc.data() as Map<String, dynamic>;
-              _selectedOvertimeTypes.add('Regular');
-              FutureBuilder<double>(
-                future: calculateSpecialHolidayOT(
-                  overtimeData['userId'],
-                  Duration(
-                    hours: overtimeData['hours_overtime'],
-                    minutes: overtimeData['minute_overtime'],
-                  ),
-                ),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Text('Calculating...'); // Or any loading indicator
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else {
-                    double overtimePay = snapshot.data ??
-                        0; // Use snapshot.data, default to 0 if null
-                    return Text(overtimePay.toStringAsFixed(2));
-                  }
-                },
-              );
-              Color? rowColor = indexRow % 2 == 0
-                  ? Colors.white
-                  : Colors.grey[200]; // Alternating row colors
-              indexRow++; //
-
-              return DataRow(
-                  color: MaterialStateColor.resolveWith((states) => rowColor!),
-                  cells: [
-                    DataCell(Text((index + 1).toString())),
-                    DataCell(Text(overtimeData['employeeId'])),
-                    DataCell(
-                      Text(overtimeData['userName'] ?? 'Not Available Yet'),
-                    ),
-                    DataCell(
-                      Text(overtimeData['department'] ?? 'Not Available Yet'),
-                    ),
-                    DataCell(
-                      Container(
-                        width: 100,
-                        decoration: BoxDecoration(color: Colors.amber.shade200),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              child: Row(
+                        ),
+                        DataCell(
+                          Text(NumberFormat.currency(
+                                  locale: 'en_PH',
+                                  symbol: '₱ ',
+                                  decimalDigits: 2)
+                              .format(overtimeData['overtimePay'] ?? 0.0)),
+                        ),
+                        DataCell(
+                          DropdownButton<String>(
+                            value: _selectedOvertimeTypes[index],
+                            items: <String>[
+                              'Regular',
+                            ].map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) async {
+                              if (newValue == 'Regular') {
+                                await _showConfirmationDialog(overtimeDoc);
+                              }
+                              setState(() {
+                                _selectedOvertimeTypes[index] = newValue!;
+                              });
+                            },
+                          ),
+                        ),
+                        DataCell(
+                          Container(
+                            width: 100,
+                            padding: EdgeInsets.all(0),
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                await _showConfirmationDialog4(overtimeDoc);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.all(5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  Text(
-                                    overtimeData['hours_overtime']
-                                            ?.toString() ??
-                                        'Not Available Yet',
-                                    style: textStyle,
+                                  Icon(
+                                    Icons.visibility,
+                                    color: Colors.blue,
+                                    size: 15,
                                   ),
-                                  Text(':'),
                                   Text(
-                                    overtimeData['minute_overtime']
-                                            ?.toString() ??
-                                        'Not Available Yet',
-                                    style: textStyle,
+                                    'View Logs',
+                                    style: TextStyle(
+                                        fontSize: 10, color: Colors.blue),
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Text(NumberFormat.currency(
-                              locale: 'en_PH', symbol: '₱ ', decimalDigits: 2)
-                          .format(overtimeData['overtimePay'] ?? 0.0)),
-                    ),
-                    DataCell(
-                      DropdownButton<String>(
-                        value: _selectedOvertimeTypes[index],
-                        items: <String>[
-                          'Regular',
-                        ].map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) async {
-                          if (newValue == 'Regular') {
-                            await _showConfirmationDialog(overtimeDoc);
-                          }
-                          setState(() {
-                            _selectedOvertimeTypes[index] = newValue!;
-                          });
-                        },
-                      ),
-                    ),
-                    DataCell(
-                      Container(
-                        width: 100,
-                        padding: EdgeInsets.all(0),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            await _showConfirmationDialog4(overtimeDoc);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.all(5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Icon(
-                                Icons.visibility,
-                                color: Colors.blue,
-                                size: 15,
-                              ),
-                              Text(
-                                'View Logs',
-                                style:
-                                    TextStyle(fontSize: 10, color: Colors.blue),
-                              ),
-                            ],
                           ),
                         ),
-                      ),
-                    ),
-                  ]);
-            }),
+                      ]);
+                }),
+              ),
+            ),
           );
-          return MediaQuery.of(context).size.width > 1500
-              ? SizedBox(
-                  height: 600,
-                  child: SingleChildScrollView(
-                    child: Flexible(
-                      child: dataTable,
-                    ),
-                  ),
-                )
-              : SizedBox(
-                  height: 600,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: Flexible(
-                        child: dataTable,
-                      ),
-                    ),
-                  ),
-                );
         }
       },
     );
@@ -1037,8 +846,7 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
                 label: Text('Total Hours (h:m)',
                     style: TextStyle(fontWeight: FontWeight.bold))),
             DataColumn(
-              label: Text('Overtime Pay',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              label: Text('Overtime Pay'),
             ),
           ],
           rows: overtimeDocs.map((overtimeDoc) {
@@ -1074,9 +882,7 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
                     ],
                   )),
                   DataCell(
-                    Text(NumberFormat.currency(
-                            locale: 'en_PH', symbol: '₱ ', decimalDigits: 2)
-                        .format(overtimeDoc['overtimePay'] ?? 0.0)),
+                    Text(overtimeDoc['overtimePay'].toString()),
                   ),
                 ]);
           }).toList(),
@@ -1256,62 +1062,4 @@ class _SpecialHolidayOTPage extends State<SpecialHolidayOTPage> {
       print('Error computing and adding to OvertimePay collection: $e');
     }
   }
-}
-
-Widget _buildShimmerLoading() {
-  return SingleChildScrollView(
-    scrollDirection: Axis.horizontal,
-    child: ShimmerPackage.Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: DataTable(
-        columns: const [
-          DataColumn(
-            label: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Employee ID',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Department',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Total Hours (h:m)',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Overtime Pay',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Overtime Type',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label:
-                Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          // Added column for Status
-        ],
-        rows: List.generate(
-          10, // You can change this to the number of shimmer rows you want
-          (index) => DataRow(cells: [
-            DataCell(Container(width: 40, height: 16, color: Colors.white)),
-            DataCell(Container(width: 60, height: 16, color: Colors.white)),
-            DataCell(Container(width: 120, height: 16, color: Colors.white)),
-            DataCell(Container(width: 80, height: 16, color: Colors.white)),
-            DataCell(Container(width: 80, height: 16, color: Colors.white)),
-            DataCell(Container(width: 100, height: 16, color: Colors.white)),
-            DataCell(Container(width: 60, height: 16, color: Colors.white)),
-            DataCell(Container(width: 60, height: 16, color: Colors.white)),
-          ]),
-        ),
-      ),
-    ),
-  );
 }

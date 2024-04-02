@@ -11,6 +11,7 @@ import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_mobile.dart
 import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_page.dart';
 import 'package:project_payroll_nextbpo/frontend/holiday/holiday.dart';
 import 'package:project_payroll_nextbpo/frontend/holiday/specialholiday.dart';
+import 'package:project_payroll_nextbpo/frontend/leaverecord.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regularHolidayOT.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restDayOT.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/specialHolidayOT.dart';
@@ -57,7 +58,7 @@ class ScreensView extends StatelessWidget {
           ),
         );
         break;
-      case 'Regular (OT)':
+      case 'Regular OT':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -72,7 +73,7 @@ class ScreensView extends StatelessWidget {
           ),
         );
         break;
-      case 'Rest day':
+      case 'Rest day OT':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -87,7 +88,7 @@ class ScreensView extends StatelessWidget {
           ),
         );
         break;
-      case 'Special Holiday (SH)':
+      case 'Special Holiday OT':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -102,7 +103,7 @@ class ScreensView extends StatelessWidget {
           ),
         );
         break;
-      case 'Regular Holiday (RH)':
+      case 'Regular Holiday OT':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -133,9 +134,9 @@ class ScreensView extends StatelessWidget {
           ),
         );
         break;
-      case 'Account List':
-        page = buildAddAccountPage();
-        break;
+      // case 'Account List':
+      //   page = buildAddAccountPage();
+      //   break;
       case 'Calendar':
         page = Container(
           color: Colors.teal.shade700,
@@ -213,6 +214,21 @@ class ScreensView extends StatelessWidget {
               Flexible(
                 flex: 7,
                 child: PayslipPage(),
+              ),
+            ],
+          ),
+        );
+        break;
+      case 'Leave':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 120, child: TopBar()),
+              Flexible(
+                flex: 7,
+                child: UserListScreen(),
               ),
             ],
           ),

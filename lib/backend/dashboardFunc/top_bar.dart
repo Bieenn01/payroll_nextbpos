@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/user_profile.dart';
 import 'package:project_payroll_nextbpo/frontend/login.dart'; // Import your login page file
 
@@ -123,16 +124,32 @@ class _TopBarState extends State<TopBar> {
                     showMenu(
                       context: context,
                       position: const RelativeRect.fromLTRB(80, 100, 50, 0),
-                      items: const [
-                        PopupMenuItem(
-                          value: 'user_profile',
-                          child: Text('User Profile'),
-                        ),
-                        PopupMenuItem(
-                          value: 'log_out',
-                          child: Text('Log out'),
-                        ),
-                      ],
+                      items: _role ==
+                              'Superadmin' // Conditionally render the menu items based on the role
+                          ? [
+                              PopupMenuItem(
+                                value: 'user_profile',
+                                child: Text('User Profile'),
+                              ),
+                              PopupMenuItem(
+                                value: 'account_list',
+                                child: Text('Account List'),
+                              ),
+                              PopupMenuItem(
+                                value: 'log_out',
+                                child: Text('Log out'),
+                              ),
+                            ]
+                          : [
+                              PopupMenuItem(
+                                value: 'user_profile',
+                                child: Text('User Profile'),
+                              ),
+                              PopupMenuItem(
+                                value: 'log_out',
+                                child: Text('Log out'),
+                              ),
+                            ],
                       elevation: 8.0,
                     ).then((value) {
                       if (value == 'log_out') {
@@ -147,6 +164,11 @@ class _TopBarState extends State<TopBar> {
                         );
                       } else if (value == 'user_profile') {
                         UserProfile(context);
+                      } else if (value == 'account_list') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => PovUser()),
+                        );
                       }
                     });
                   },
@@ -165,7 +187,7 @@ class _TopBarState extends State<TopBar> {
                               CircleAvatar(
                                 backgroundImage: _role == 'Admin'
                                     ? AssetImage('assets/images/Admin.jpg')
-                                    : _role == 'Super Admin'
+                                    : _role == 'Superadmin'
                                         ? AssetImage('assets/images/SAdmin.jpg')
                                         : AssetImage(
                                             'assets/images/Employee.jpg'),
@@ -199,10 +221,14 @@ class _TopBarState extends State<TopBar> {
                               const Icon(Icons.arrow_drop_down),
                             ],
                           )
-                        : const CircleAvatar(
-                            child: Icon(
-                              Icons.person,
-                            ),
+                        : CircleAvatar(
+                            backgroundImage: _role == 'Admin'
+                                ? const AssetImage('assets/images/Admin.jpg')
+                                : _role == 'Superadmin'
+                                    ? const AssetImage(
+                                        'assets/images/SAdmin.jpg')
+                                    : const AssetImage(
+                                        'assets/images/Employee.jpg'),
                           ),
                   ),
                 ),

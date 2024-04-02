@@ -107,6 +107,7 @@ class _CalendarPageState extends State<CalendarPage> {
             child: Switch(
               value: _showHolidays,
               onChanged: _toggleDataSource,
+              activeColor: Colors.teal.shade700,
             ),
           ),
         ],

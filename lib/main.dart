@@ -8,6 +8,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_dashboard.dart';
+import 'package:project_payroll_nextbpo/frontend/leaverecord.dart';
 import 'package:project_payroll_nextbpo/frontend/login.dart';
 import 'package:project_payroll_nextbpo/frontend/mobileHomeScreen.dart';
 
