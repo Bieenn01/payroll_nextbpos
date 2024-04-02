@@ -11,6 +11,7 @@ import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_mobile.dart
 import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_page.dart';
 import 'package:project_payroll_nextbpo/frontend/holiday/holiday.dart';
 import 'package:project_payroll_nextbpo/frontend/holiday/specialholiday.dart';
+import 'package:project_payroll_nextbpo/frontend/leaverecord.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regularHolidayOT.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/restDayOT.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/specialHolidayOT.dart';
@@ -18,7 +19,6 @@ import 'package:project_payroll_nextbpo/backend/dashboardFunc/top_bar.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regularOT.dart';
 import 'package:project_payroll_nextbpo/frontend/payslip/payslip_page.dart';
-import 'package:project_payroll_nextbpo/leaverecord.dart';
 
 class ScreensView extends StatelessWidget {
   final String menu;

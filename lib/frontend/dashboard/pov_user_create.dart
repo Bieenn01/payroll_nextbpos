@@ -703,7 +703,7 @@ class _UserState extends State<PovUser> {
             },
           ),
         );
-        return MediaQuery.of(context).size.width > 1450
+        return MediaQuery.of(context).size.width > 1300
             ? SizedBox(
                 height: 650,
                 child: SingleChildScrollView(
