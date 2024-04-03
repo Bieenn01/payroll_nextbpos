@@ -62,15 +62,15 @@ class _SidebarMenuState extends State<SidebarMenu> {
                                   Column(
                                     children: [
                                       Image.asset(
-                                        'assets/images/nextbpologo-removebg.png', // Replace 'assets/logo.png' with the path to your image asset
+                                        'assets/images/nextbpologo-removebg.png',
                                         width:
-                                            500, // Adjust the width of the image as needed
+                                            500, 
                                         height:
-                                            80, // Adjust the height of the image as needed
+                                            80,
                                       ),
                                       SizedBox(
                                           width:
-                                              10), // Adjust the spacing between image and text as needed
+                                              10), 
                                     ],
                                   ),
                                 ],
