@@ -101,129 +101,74 @@ class _DashboardMobileState extends State<DashboardMobile> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    child: _role == 'Employee'
-                        ? Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Flexible(
-                                flex: 1,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Container(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container1Dashboard(context),
+                        SizedBox(
+                          height: 5,
+                        ),
+                        MediaQuery.of(context).size.width > 1100
+                            ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Flexible(
+                                    flex: 1,
+                                    child: Container(
+                                      height: 500,
                                       padding: EdgeInsets.all(8),
-                                      height: 200,
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(15),
                                       ),
                                       child: UserTimedInToday(),
                                     ),
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    Container(
+                                  ),
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  Flexible(
+                                    flex: 1,
+                                    child: Container(
+                                      height: 680,
                                       padding: EdgeInsets.all(8),
-                                      height: 500,
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(15),
                                       ),
-                                      child: MobileHomeScreen(),
+                                      child: CalendarPage(),
                                     ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Flexible(
-                                flex: 1,
-                                child: Container(
-                                  height: 710,
-                                  padding: EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(15),
                                   ),
-                                  child: CalendarPage(),
-                                ),
-                              ),
-                            ],
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Container1Dashboard(context),
-                              SizedBox(
-                                height: 5,
-                              ),
-                              MediaQuery.of(context).size.width > 1100
-                                  ? Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Flexible(
-                                          flex: 1,
-                                          child: Container(
-                                            height: 500,
-                                            padding: EdgeInsets.all(8),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                            ),
-                                            child: UserTimedInToday(),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 10,
-                                        ),
-                                        Flexible(
-                                          flex: 1,
-                                          child: Container(
-                                            height: 680,
-                                            padding: EdgeInsets.all(8),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                            ),
-                                            child: CalendarPage(),
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : Column(
-                                      children: [
-                                        Container(
-                                          height: 500,
-                                          padding: EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                          ),
-                                          child: UserTimedInToday(),
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        Container(
-                                          height: 650,
-                                          padding: EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                          ),
-                                          child: CalendarPage(),
-                                        ),
-                                      ],
-                                    )
-                            ],
-                          )),
+                                ],
+                              )
+                            : Column(
+                                children: [
+                                  Container(
+                                    height: 500,
+                                    padding: EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    child: UserTimedInToday(),
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  Container(
+                                    height: 650,
+                                    padding: EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    child: CalendarPage(),
+                                  ),
+                                ],
+                              )
+                      ],
+                    )),
               ),
             ),
           ],

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -13,6 +15,7 @@ import 'package:project_payroll_nextbpo/frontend/archivesRestdayOT.dart';
 import 'package:project_payroll_nextbpo/frontend/archivesSpecialHoliday.dart';
 import 'package:project_payroll_nextbpo/frontend/archivesSpecialOT.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/attendace_page.dart';
+import 'package:project_payroll_nextbpo/frontend/dashboard/dashboardUser.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_mobile.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_page.dart';
 import 'package:project_payroll_nextbpo/frontend/holiday/holiday.dart';
@@ -26,23 +29,64 @@ import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart'
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regularOT.dart';
 import 'package:project_payroll_nextbpo/frontend/payslip/payslip_page.dart';
 
-class ScreensView extends StatelessWidget {
+class ScreensView extends StatefulWidget {
   final String menu;
   const ScreensView({Key? key, required this.menu}) : super(key: key);
 
   @override
+  State<ScreensView> createState() => _ScreensViewState();
+}
+
+class _ScreensViewState extends State<ScreensView> {
+  late String _role = 'Guest';
+  @override
+  void initState() {
+    super.initState();
+    _fetchRole();
+  }
+
+  Future<void> _fetchRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user.uid)
+          .get();
+
+      setState(() {
+        final role = docSnapshot['role'];
+        _role = role != null
+            ? role
+            : 'Guest'; // Default to 'Guest' if role is not specified
+      });
+    }
+  }
+
+  Dashboard() {
+    if (_role == 'Employee') {
+      return EmployeeDashboard();
+    } else if (_role == 'Guest') {
+      return Container(
+        child: Text('Loading'),
+      );
+    } else {
+      return const DashboardMobile();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     Widget page;
-    switch (menu) {
+    switch (widget.menu) {
       case 'Dashboard':
         page = Container(
           color: Colors.teal.shade700,
-          child: const Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 120, child: TopBar()),
               Flexible(
-                child: DashboardMobile(),
+                child: Dashboard(),
               ),
             ],
           ),
@@ -370,19 +414,6 @@ class ScreensView extends StatelessWidget {
   }
 
   // Widget buildLogsPage() {
-  //   return Container(
-  //      color: Colors.transparent,
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         Flexible(
-  //           child: Logs(),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
   Widget buildAddAccountPage() {
     return Container(
       child: Column(
