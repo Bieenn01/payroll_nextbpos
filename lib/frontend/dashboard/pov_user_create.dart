@@ -113,11 +113,12 @@ class _UserState extends State<PovUser> {
   String selectedRole = 'Select Role';
   String selectedDep = 'Select Department';
   String typeEmployee = 'Type of Employee';
+    late String _role = 'Guest';
 
   @override
   void initState() {
     super.initState();
-    searchUsers;
+    _fetchRole();
     _fetchUsersWithPagination = _fetchUsers;
     _fetchUsersWithPagination(_pageSize, null);
   }
@@ -156,22 +157,26 @@ class _UserState extends State<PovUser> {
     });
   }
 
-  void searchUsers(String query) {
-    // Perform the search logic here
-    // Query the "User" collection in Firestore based on the provided search value
-    // For example:
-    FirebaseFirestore.instance
-        .collection('User')
-        .where('fname', isEqualTo: query) // Search by first name
-        .get()
-        .then((QuerySnapshot querySnapshot) {
-      // Process the querySnapshot to get the search results
-      // You can update the UI with the search results
-      // For example, update a ListView with the search results
-    }).catchError((error) {
-      // Handle errors gracefully
-      print('Error searching users: $error');
-    });
+  Future<void> _fetchRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user.uid)
+          .get();
+
+      setState(() {
+        final role = docSnapshot['role'];
+        _role = role != null
+            ? role
+            : 'Guest'; // Default to 'Guest' if role is not specified
+      });
+    }
+  }
+
+    String? getCurrentUserId() {
+    final user = FirebaseAuth.instance.currentUser;
+    return user?.uid;
   }
 
 // Initialize _lastVisibleSnapshot as null
@@ -311,6 +316,7 @@ class _UserState extends State<PovUser> {
           return Text('No users found.');
         }
 
+        
         if (snapshot.data != null && snapshot.data!.docs != null) {
           _allDocs = snapshot.data!.docs;
 
@@ -340,8 +346,29 @@ class _UserState extends State<PovUser> {
               return firstNameB.compareTo(firstNameA);
             });
           }
-          // filter column
-          List<DocumentSnapshot> filteredDocuments = _allDocs;
+                    List<DocumentSnapshot> userRecords = _role == 'Employee'
+              ? snapshot.data!.docs
+                  .where((doc) => doc['userId'] == getCurrentUserId())
+                  .toList()
+              : snapshot.data!.docs;
+              
+          List<DocumentSnapshot> filteredDocs = userRecords.where((document) {
+              Map<String, dynamic> data =
+                  document.data() as Map<String, dynamic>;
+              String employeeId = data['employeeId'];
+              String fname = data['fname'];
+              String mname = data['mname'];
+              String lname = data['lname'];
+              String query = _searchController.text.toLowerCase();
+              bool matchesSearchQuery =
+                  employeeId.toLowerCase().contains(query) ||
+                      fname.toLowerCase().contains(query) ||
+                      mname.toLowerCase().contains(query) ||
+                      lname.toLowerCase().contains(query);
+              return matchesSearchQuery;
+            }).toList();
+
+          List<DocumentSnapshot> filteredDocuments = filteredDocs;
           if (selectedDepartment != 'All') {
             filteredDocuments = filteredDocuments
                 .where((doc) => doc['department'] == selectedDepartment)
@@ -358,28 +385,34 @@ class _UserState extends State<PovUser> {
                 .toList();
           }
 
+          if (endIndex > filteredDocs.length) {
+            endIndex = filteredDocs.length;
+          }
+
+          
+
           // Ensure startIndex is within the bounds of _allDocs
           if (startIndex >= 0 &&
               endIndex >= 0 &&
               startIndex < filteredDocuments.length &&
               endIndex <= filteredDocuments.length) {
             _displayedDocs = filteredDocuments
-                .sublist(startIndex, endIndex)
-                .where((document) {
-              Map<String, dynamic> data =
-                  document.data() as Map<String, dynamic>;
-              String employeeId = data['employeeId'];
-              String fname = data['fname'];
-              String mname = data['mname'];
-              String lname = data['lname'];
-              String query = _searchController.text.toLowerCase();
-              bool matchesSearchQuery =
-                  employeeId.toLowerCase().contains(query) ||
-                      fname.toLowerCase().contains(query) ||
-                      mname.toLowerCase().contains(query) ||
-                      lname.toLowerCase().contains(query);
-              return matchesSearchQuery;
-            }).toList();
+                .sublist(startIndex, endIndex);
+            //     .where((document) {
+            //   Map<String, dynamic> data =
+            //       document.data() as Map<String, dynamic>;
+            //   String employeeId = data['employeeId'];
+            //   String fname = data['fname'];
+            //   String mname = data['mname'];
+            //   String lname = data['lname'];
+            //   String query = _searchController.text.toLowerCase();
+            //   bool matchesSearchQuery =
+            //       employeeId.toLowerCase().contains(query) ||
+            //           fname.toLowerCase().contains(query) ||
+            //           mname.toLowerCase().contains(query) ||
+            //           lname.toLowerCase().contains(query);
+            //   return matchesSearchQuery;
+            // }).toList();
           } else {
             // Handle invalid index range
             print("Invalid index range");
@@ -1735,6 +1768,7 @@ class _UserState extends State<PovUser> {
     );
   }
 
+
   Future<void> updateUserDetails(
       String userId, Map<String, dynamic> updatedUserData) async {
     try {
@@ -1757,7 +1791,7 @@ class _UserState extends State<PovUser> {
   }
 
   bool _passwordVisible = false;
-  void _togglePasswordVisibility() {
+void _togglePasswordVisibility() {
     setState(() {
       _passwordVisible = !_passwordVisible;
     });
@@ -1770,6 +1804,9 @@ class _UserState extends State<PovUser> {
         const textStyle = TextStyle(
           letterSpacing: 0.5,
         );
+
+        final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+        
         return Dialog(
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.white,
@@ -2712,10 +2749,33 @@ class _UserState extends State<PovUser> {
     ]);
   }
 
-  register(context) async {
+  register(BuildContext context) async {
+    // Validate fields before attempting registration
+    if (emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        firstNameController.text.isEmpty ||
+        middleNameController.text.isEmpty ||
+        lastNameController.text.isEmpty ||
+        mobilenumController.text.isEmpty ||
+        employeeIdController.text.isEmpty ||
+        salaryController.text.isEmpty ||
+        selectedDep.isEmpty ||
+        selectedRole.isEmpty ||
+        typeEmployee.isEmpty ||
+        sssController.text.isEmpty ||
+        tinController.text.isEmpty ||
+        taxCodeController.text.isEmpty ||
+        usernameController.text.isEmpty) {
+      showToast('Please fill in all fields.');
+      return; // Exit registration process if any field is empty
+    }
+
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: emailController.text, password: passwordController.text);
+        email: emailController.text,
+        password: passwordController.text,
+      );
+
       // Create the user object with the entered data
       User newUser = User(
         salary: double.parse(salaryController.text),
@@ -2760,6 +2820,7 @@ class _UserState extends State<PovUser> {
       Navigator.pop(context); // Close the dialog or navigate to the next screen
       showSuccess(context, 'Create', 'Account has been created successfully.');
       showToast("Registered Successfully!");
+      // Clear text fields after successful registration
       firstNameController.text = '';
       middleNameController.text = '';
       lastNameController.text = '';

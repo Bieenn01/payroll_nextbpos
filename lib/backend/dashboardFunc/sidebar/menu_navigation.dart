@@ -8,6 +8,12 @@ import 'package:project_payroll_nextbpo/backend/jsonfiles/regularHolidayOT.dart'
 import 'package:project_payroll_nextbpo/backend/jsonfiles/regularOT.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/restDayOT.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/specialHolidayOT.dart';
+import 'package:project_payroll_nextbpo/frontend/archivesHoliday.dart';
+import 'package:project_payroll_nextbpo/frontend/archivesOT.dart';
+import 'package:project_payroll_nextbpo/frontend/archivesRegularHOT.dart';
+import 'package:project_payroll_nextbpo/frontend/archivesRestdayOT.dart';
+import 'package:project_payroll_nextbpo/frontend/archivesSpecialHoliday.dart';
+import 'package:project_payroll_nextbpo/frontend/archivesSpecialOT.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/attendace_page.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/dashboardUser.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/dashboard_mobile.dart';
@@ -278,6 +284,113 @@ class _ScreensViewState extends State<ScreensView> {
           ),
         );
         break;
+
+        case 'Archives':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 120, child: TopBar()),
+              Flexible(
+                flex: 7,
+                child: ArchivesHoliday(),
+              ),
+            ],
+          ),
+        );
+        break;
+        case 'Holiday ':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 120, child: TopBar()),
+              Flexible(
+                flex: 7,
+                child: ArchivesHoliday(),
+              ),
+            ],
+          ),
+        );
+        break;
+      case 'Overtime ':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 120, child: TopBar()),
+              Flexible(
+                flex: 7,
+                child: ArchivesOT(),
+              ),
+            ],
+          ),
+        );
+        break;
+        case 'Regular Holiday Overtime':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 120, child: TopBar()),
+              Flexible(
+                flex: 7,
+                child: ArchivesRegularHOT(),
+              ),
+            ],
+          ),
+        );
+        break;
+        case 'Restday Overtime':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 120, child: TopBar()),
+              Flexible(
+                flex: 7,
+                child: ArchivesRestdayOT(),
+              ),
+            ],
+          ),
+        );
+        break;
+        case 'Special Holiday':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 120, child: TopBar()),
+              Flexible(
+                flex: 7,
+                child: ArchivesSpecialHoliday(),
+              ),
+            ],
+          ),
+        );
+        break;
+        case 'Special Holiday Overtime':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 120, child: TopBar()),
+              Flexible(
+                flex: 7,
+                child: ArchivesSpecialHOT(),
+              ),
+            ],
+          ),
+        );
+        break;
+
 
       default:
         page = Container(

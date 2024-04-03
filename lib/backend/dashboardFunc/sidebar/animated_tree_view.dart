@@ -30,6 +30,15 @@ Future<TreeNode> getMenuTree() async {
       TreeNode(key: "Leave", data: Icons.recent_actors_outlined),
       TreeNode(key: "Logs", data: Icons.analytics),
       TreeNode(key: "Payroll", data: Icons.payments),
+      TreeNode(key: "Archives", data: Icons.archive)
+        ..addAll([
+          TreeNode(key: "Holiday "),
+          TreeNode(key: "Overtime "),
+          TreeNode(key: "Regular Holiday Overtime"),
+          TreeNode(key: "Restday Overtime"),
+          TreeNode(key: "Special Holiday"),
+          TreeNode(key: "Special Holiday Overtime")
+        ])
     ]);
   } else {
     defaultMenuItems.addAll([
