@@ -93,6 +93,7 @@ class _LoginState extends State<Login> {
                           ),
                           Container(
                             padding: const EdgeInsets.fromLTRB(15, 5, 5, 5),
+                            height: 50,
                             decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12)),
@@ -112,6 +113,7 @@ class _LoginState extends State<Login> {
                           ),
                           Container(
                             padding: const EdgeInsets.fromLTRB(15, 5, 5, 5),
+                            height: 50,
                             decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12)),
@@ -143,7 +145,7 @@ class _LoginState extends State<Login> {
                             ),
                           ),
                           const SizedBox(
-                            height: 20,
+                            height: 10,
                           ),
                           ElevatedButton(
                             onPressed: () {
