@@ -49,8 +49,8 @@ class _SidebarMenuState extends State<SidebarMenu> {
                           Container(
                             color: Colors.white,
                             width: 200,
-                            child: const Padding(
-                              padding: EdgeInsets.only(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
                                 top: 15,
                                 left: 12,
                                 right: 12,
@@ -59,18 +59,25 @@ class _SidebarMenuState extends State<SidebarMenu> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    "NextBpoSolutions",
-                                    style: TextStyle(
-                                      color: Color.fromARGB(255, 4, 123, 109),
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  Column(
+                                    children: [
+                                      Image.asset(
+                                        'assets/images/nextbpologo-removebg.png', // Replace 'assets/logo.png' with the path to your image asset
+                                        width:
+                                            500, // Adjust the width of the image as needed
+                                        height:
+                                            80, // Adjust the height of the image as needed
+                                      ),
+                                      SizedBox(
+                                          width:
+                                              10), // Adjust the spacing between image and text as needed
+                                    ],
                                   ),
                                 ],
                               ),
                             ),
                           ),
+                          Divider(),
                           // Sidebar menu widget
                           Expanded(
                             child: Container(
