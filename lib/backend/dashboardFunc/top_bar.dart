@@ -39,7 +39,7 @@ class _TopBarState extends State<TopBar> {
     _fetchFirstName();
     _fetchRole();
     _fetchAdvice(); // Initial call to fetch advice
-    Timer.periodic(Duration(seconds: 10), (timer) {
+    Timer.periodic(Duration(seconds: 30), (timer) {
       _fetchAdvice(); // Fetch advice every 10 seconds
     });
   }
