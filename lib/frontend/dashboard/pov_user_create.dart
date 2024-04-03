@@ -1768,6 +1768,7 @@ class _UserState extends State<PovUser> {
     );
   }
 
+
   Future<void> updateUserDetails(
       String userId, Map<String, dynamic> updatedUserData) async {
     try {
@@ -1790,7 +1791,7 @@ class _UserState extends State<PovUser> {
   }
 
   bool _passwordVisible = false;
-  void _togglePasswordVisibility() {
+void _togglePasswordVisibility() {
     setState(() {
       _passwordVisible = !_passwordVisible;
     });
@@ -1803,6 +1804,9 @@ class _UserState extends State<PovUser> {
         const textStyle = TextStyle(
           letterSpacing: 0.5,
         );
+
+        final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+        
         return Dialog(
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.white,
@@ -2745,10 +2749,33 @@ class _UserState extends State<PovUser> {
     ]);
   }
 
-  register(context) async {
+  register(BuildContext context) async {
+    // Validate fields before attempting registration
+    if (emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        firstNameController.text.isEmpty ||
+        middleNameController.text.isEmpty ||
+        lastNameController.text.isEmpty ||
+        mobilenumController.text.isEmpty ||
+        employeeIdController.text.isEmpty ||
+        salaryController.text.isEmpty ||
+        selectedDep.isEmpty ||
+        selectedRole.isEmpty ||
+        typeEmployee.isEmpty ||
+        sssController.text.isEmpty ||
+        tinController.text.isEmpty ||
+        taxCodeController.text.isEmpty ||
+        usernameController.text.isEmpty) {
+      showToast('Please fill in all fields.');
+      return; // Exit registration process if any field is empty
+    }
+
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: emailController.text, password: passwordController.text);
+        email: emailController.text,
+        password: passwordController.text,
+      );
+
       // Create the user object with the entered data
       User newUser = User(
         salary: double.parse(salaryController.text),
@@ -2793,6 +2820,7 @@ class _UserState extends State<PovUser> {
       Navigator.pop(context); // Close the dialog or navigate to the next screen
       showSuccess(context, 'Create', 'Account has been created successfully.');
       showToast("Registered Successfully!");
+      // Clear text fields after successful registration
       firstNameController.text = '';
       middleNameController.text = '';
       lastNameController.text = '';
