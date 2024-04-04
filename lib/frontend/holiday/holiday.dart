@@ -27,12 +27,12 @@ class _HolidayPageState extends State<HolidayPage> {
 
   bool sortPay = false;
   bool table = false;
+  bool filter = false;
 
   String selectedDepartment = 'All';
   DateTime? fromDate;
   DateTime? toDate;
 
-  bool filter = false;
   bool endPicked = false;
   bool startPicked = false;
   late String _role = 'Guest';
@@ -99,7 +99,7 @@ class _HolidayPageState extends State<HolidayPage> {
                             Padding(
                               padding: const EdgeInsets.all(10.0),
                               child: Text(
-                                "Holiday Overtime",
+                                "Holiday",
                                 style: TextStyle(
                                     fontSize: 20, fontWeight: FontWeight.bold),
                               ),
@@ -788,12 +788,12 @@ class _HolidayPageState extends State<HolidayPage> {
                               Icon(
                                 Icons.visibility,
                                 color: Colors.blue,
-                                size: 15,
+                                size: 18,
                               ),
                               Text(
-                                'View Logs',
+                                'View',
                                 style:
-                                    TextStyle(fontSize: 10, color: Colors.blue),
+                                    TextStyle(fontSize: 14, color: Colors.blue),
                               ),
                             ],
                           ),
