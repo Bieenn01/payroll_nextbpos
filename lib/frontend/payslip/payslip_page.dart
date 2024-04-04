@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shimmer/shimmer.dart' as ShimmerPackage;
 import 'package:intl/intl.dart';
-import 'package:project_payroll_nextbpo/frontend/payslip/payslip._form.dart';
+import 'package:project_payroll_nextbpo/frontend/payslip._form.dart';
 
 class PayslipData {
   final DateTime startDate;
@@ -50,11 +50,11 @@ TextEditingController _searchController = TextEditingController();
 
 class _PayslipPageState extends State<PayslipPage> {
   bool viewTable = true;
-
+  String selectedDepartment = 'All';
   DateTime? fromDate;
   DateTime? toDate;
-  List<PayslipData> payrollData =
-      []; // Variable to store generated payroll data
+  List<PayslipData> payrollData = [];
+  // Variable to store generated payroll data
 
   @override
   Widget build(BuildContext context) {
@@ -291,86 +291,6 @@ class _PayslipPageState extends State<PayslipPage> {
     );
   }
 
-  Widget _buildDataTable() {
-    return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection('User').snapshots(),
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Center(child: Text('No data available yet'));
-        } else {
-          List<DocumentSnapshot> payrollDocs = snapshot.data!.docs;
-
-          // Filter payrollDocs based on search text
-          List<DocumentSnapshot> filteredPayrollDocs = _searchController
-                  .text.isNotEmpty
-              ? payrollDocs.where((doc) {
-                  final Map<String, dynamic> data =
-                      doc.data() as Map<String, dynamic>;
-                  return (data['employeeId'] != null &&
-                          data['employeeId'].toString().toLowerCase().contains(
-                              _searchController.text.toLowerCase())) ||
-                      (data['fname'] != null &&
-                          data['fname'].toString().toLowerCase().contains(
-                              _searchController.text.toLowerCase())) ||
-                      (data['mname'] != null &&
-                          data['mname'].toString().toLowerCase().contains(
-                              _searchController.text.toLowerCase())) ||
-                      (data['lname'] != null &&
-                          data['lname']
-                              .toString()
-                              .toLowerCase()
-                              .contains(_searchController.text.toLowerCase()));
-                }).toList()
-              : payrollDocs;
-
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: [
-                DataColumn(label: Text('Employee Id')),
-                DataColumn(label: Text('Name')),
-                DataColumn(label: Text('Department')),
-                DataColumn(label: Text('Action')),
-              ],
-              rows: List.generate(filteredPayrollDocs.length, (index) {
-                DocumentSnapshot payrollDoc = filteredPayrollDocs[index];
-                Map<String, dynamic> payrollData =
-                    payrollDoc.data() as Map<String, dynamic>;
-                final fullname =
-                    '${payrollData['fname']} ${payrollData['mname']} ${payrollData['lname']}';
-                return DataRow(
-                  cells: [
-                    DataCell(
-                      Text(payrollData['employeeId'] ?? 'Not Available Yet'),
-                    ),
-                    DataCell(
-                      Text(fullname ?? 'Not Available Yet'),
-                    ),
-                    DataCell(
-                      Text(payrollData['department'] ?? 'Not Available Yet'),
-                    ),
-                    DataCell(
-                      IconButton(
-                        icon: Icon(Icons.visibility, color: Colors.blue),
-                        onPressed: () {
-                          _showPayslipDialog(context, payrollData);
-                        },
-                      ),
-                    ),
-                  ],
-                );
-              }),
-            ),
-          );
-        }
-      },
-    );
-  }
-
   Future<void> generatePayroll() async {
     // Initialize an empty list to store generated payroll data
     List<PayslipData> generatedData = [];
@@ -537,6 +457,162 @@ class _PayslipPageState extends State<PayslipPage> {
     return grossPay - totalDeductions;
   }
 
+  Widget _buildDataTable() {
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection('User').snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Center(child: Text('No data available yet'));
+        } else {
+          List<DocumentSnapshot> payrollDocs = snapshot.data!.docs;
+
+          // Filter payrollDocs based on search text
+          List<DocumentSnapshot> filteredPayrollDocs = _searchController
+                  .text.isNotEmpty
+              ? payrollDocs.where((doc) {
+                  final Map<String, dynamic> data =
+                      doc.data() as Map<String, dynamic>;
+                  return (data['employeeId'] != null &&
+                          data['employeeId'].toString().toLowerCase().contains(
+                              _searchController.text.toLowerCase())) ||
+                      (data['fname'] != null &&
+                          data['fname'].toString().toLowerCase().contains(
+                              _searchController.text.toLowerCase())) ||
+                      (data['mname'] != null &&
+                          data['mname'].toString().toLowerCase().contains(
+                              _searchController.text.toLowerCase())) ||
+                      (data['lname'] != null &&
+                          data['lname']
+                              .toString()
+                              .toLowerCase()
+                              .contains(_searchController.text.toLowerCase()));
+                }).toList()
+              : List.from(
+                  payrollDocs); // Copying the list if no search text to maintain original data
+
+          if (selectedDepartment != 'All') {
+            filteredPayrollDocs = filteredPayrollDocs
+                .where((doc) => doc['department'] == selectedDepartment)
+                .toList();
+          }
+
+          return Column(
+            children: [
+              AppBar(
+                title: Text(''),
+                actions: [
+                  IconButton(
+                    icon: Icon(Icons.refresh),
+                    onPressed: () {
+                      setState(() {
+                        // Reset the status to default in each document
+                        for (var payrollDoc in filteredPayrollDocs) {
+                          payrollDoc.reference.update({'status': 'Not Done'});
+                        }
+                      });
+                    },
+                  ),
+                ],
+              ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: [
+                    DataColumn(label: Text('Employee Id')),
+                    DataColumn(label: Text('Name')),
+                    DataColumn(
+                      label: PopupMenuButton<String>(
+                        child: const Row(
+                          children: [
+                            Text(
+                              'Department',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Icon(Icons.arrow_drop_down)
+                          ],
+                        ),
+                        onSelected: (String value) {
+                          setState(() {
+                            selectedDepartment = value;
+                          });
+                        },
+                        itemBuilder: (BuildContext context) => [
+                          'All', // Default option
+                          'IT',
+                          'HR',
+                          'ACCOUNTING',
+                          'SERVICING',
+                        ].map((String value) {
+                          return PopupMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    DataColumn(label: Text('Action')),
+                    DataColumn(label: Text('Status')),
+                  ],
+                  rows: List.generate(filteredPayrollDocs.length, (index) {
+                    DocumentSnapshot payrollDoc = filteredPayrollDocs[index];
+                    Map<String, dynamic> payrollData =
+                        payrollDoc.data() as Map<String, dynamic>;
+                    final fullname =
+                        '${payrollData['fname']} ${payrollData['mname']} ${payrollData['lname']}';
+
+                    // Checking if the employeeId exists in _generateClickedList to highlight the row
+
+                    return DataRow(
+                      cells: [
+                        DataCell(
+                          Text(
+                              payrollData['employeeId'] ?? 'Not Available Yet'),
+                        ),
+                        DataCell(
+                          Text(fullname ?? 'Not Available Yet'),
+                        ),
+                        DataCell(
+                          Text(
+                              payrollData['department'] ?? 'Not Available Yet'),
+                        ),
+                        DataCell(Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.visibility, color: Colors.blue),
+                              onPressed: () {
+                                _showPayslipDialog2(context, payrollData);
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.payment, color: Colors.blue),
+                              onPressed: () {
+                                _showPayslipDialog(context, payrollData);
+                              },
+                            ),
+                          ],
+                        )),
+                        DataCell(
+                          Text(payrollData['status'] ?? 'Not Done'),
+                        ),
+                      ],
+                    );
+                  }),
+                ),
+              ),
+            ],
+          );
+        }
+      },
+    );
+  }
+
+// Define _generateClickedList to store employeeIds that have generated payslip
+  List<String> _generateClickedList = [];
+
   Future<void> _showPayslipDialog(
       BuildContext context, Map<String, dynamic> data) async {
     try {
@@ -579,7 +655,6 @@ class _PayslipPageState extends State<PayslipPage> {
       if (userDocSnapshot.docs.isNotEmpty) {
         var userData = userDocSnapshot.docs.first.data();
         var monthlySalary = userData['monthly_salary'] ?? 0;
-
         var regularOTDataQuery = await FirebaseFirestore.instance
             .collection('OvertimePay')
             .where('employeeId', isEqualTo: employeeId)
@@ -636,9 +711,9 @@ class _PayslipPageState extends State<PayslipPage> {
                 0
             : 0;
 
-        final TextEditingController advancesAmescoController =
-            TextEditingController();
         final TextEditingController nightDifferentialController =
+            TextEditingController();
+        final TextEditingController advancesAmescoController =
             TextEditingController();
 
         final TextEditingController standyAllowanceController =
@@ -747,7 +822,6 @@ class _PayslipPageState extends State<PayslipPage> {
         }
 
         double overallOTPay = regularHOTPay + specialHOTPay + regularOTPay;
-
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -771,201 +845,212 @@ class _PayslipPageState extends State<PayslipPage> {
                         width: 50,
                       ),
                       _buildInfoRow('Department: ', data['department']),
-                      DataTable(columns: const [
-                        DataColumn(
-                            label: Text('EARNINGS',
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1))),
-                        DataColumn(label: Text('Hours')),
-                        DataColumn(label: Text('Amount')),
-                      ], rows: [
-                        DataRow(cells: [
-                          DataCell(Text('Basic Salary')),
-                          DataCell(Text('')),
-                          DataCell(Text(monthlySalary.toString())),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text('Night Differential')),
-                          DataCell(Text('0')),
-                          DataCell(TextField(
-                              style: TextStyle(fontSize: 14),
-                              controller: nightDifferentialController,
+                      DataTable(
+                        columns: const [
+                          DataColumn(
+                              label: Text('EARNINGS',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1))),
+                          DataColumn(label: Text('Hours')),
+                          DataColumn(label: Text('Amount')),
+                        ],
+                        rows: [
+                          DataRow(
+                            cells: [
+                              DataCell(Text('Basic Salary')),
+                              DataCell(Text('')),
+                              DataCell(Text(monthlySalary.toString())),
+                            ],
+                          ),
+                          DataRow(
+                            cells: [
+                              DataCell(Text('Night Differential')),
+                              DataCell(Text('0')),
+                              DataCell(
+                                TextField(
+                                  style: TextStyle(fontSize: 14),
+                                  controller: nightDifferentialController,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(11),
+                                  ],
+                                  onChanged: (value) {
+                                    setState(() {
+                                      grossPay = calculateGrossPay();
+                                      // Recalculate
+                                      //the gross pay whenever night differential changes
+                                    });
+                                  },
+                                  decoration: InputDecoration(
+                                      border: InputBorder.none, hintText: '0'),
+                                ),
+                              ),
+                            ],
+                          ),
+                          DataRow(cells: [
+                            DataCell(Text('Overtime')),
+                            DataCell(Text('')),
+                            DataCell(Text(overallOTPay.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('RDOT')),
+                            DataCell(Text('')),
+                            DataCell(Text(restdayOTPay.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Regular Holiday')),
+                            DataCell(Text('')),
+                            DataCell(Text(holidayPay.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Special Holiday')),
+                            DataCell(Text('')),
+                            DataCell(Text(specialHPay.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Standy Allowance')),
+                            DataCell(Text('-')),
+                            DataCell(TextField(
+                              controller: standyAllowanceController,
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly,
                                 LengthLimitingTextInputFormatter(11),
                               ],
                               onChanged: (value) {
                                 setState(() {
-                                  // Recalculate the gross pay whenever night differential changes
                                   grossPay = calculateGrossPay();
                                 });
                               },
+                              style: TextStyle(fontSize: 14),
                               decoration: InputDecoration(
-                                  border: InputBorder.none, hintText: '0'))),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text('Overtime')),
-                          DataCell(Text('')),
-                          DataCell(Text(overallOTPay.toString())),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text('RDOT')),
-                          DataCell(Text('')),
-                          DataCell(Text(restdayOTPay.toString())),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text('Regular Holiday')),
-                          DataCell(Text('')),
-                          DataCell(Text(holidayPay.toString())),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text('Special Holiday')),
-                          DataCell(Text('')),
-                          DataCell(Text(specialHPay.toString())),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text('Standy Allowance')),
-                          DataCell(Text('0')),
-                          DataCell(TextField(
-                            controller: standyAllowanceController,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(11),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                grossPay = calculateGrossPay();
-                              });
-                            },
-                            style: TextStyle(fontSize: 14),
-                            decoration: InputDecoration(
-                                border: InputBorder.none, hintText: '0'),
-                          )),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text('Other Premium Pay')),
-                          DataCell(Text('0')),
-                          DataCell(TextField(
-                            controller: otherPremiumPayController,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(11),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                grossPay = calculateGrossPay();
-                              });
-                            },
-                            style: TextStyle(fontSize: 14),
-                            decoration: InputDecoration(
-                                border: InputBorder.none, hintText: '0'),
-                          )),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text('Allowance')),
-                          DataCell(Text('0')),
-                          DataCell(TextField(
-                            controller: allowanceController,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(11),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                grossPay = calculateGrossPay();
-                              });
-                            },
-                            style: TextStyle(fontSize: 14),
-                            decoration: InputDecoration(
-                                border: InputBorder.none, hintText: '0'),
-                          )),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text('Salary Adjustment')),
-                          DataCell(Text('0')),
-                          DataCell(TextField(
-                            controller: salaryAdjustmentController,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(11),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                grossPay = calculateGrossPay();
-                              });
-                            },
-                            style: TextStyle(fontSize: 14),
-                            decoration: InputDecoration(
-                                border: InputBorder.none, hintText: '0'),
-                          )),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text('OT Adjustment')),
-                          DataCell(Text('0')),
-                          DataCell(TextField(
-                            controller: otAdjustmentController,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(11),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                grossPay = calculateGrossPay();
-                              });
-                            },
-                            style: TextStyle(fontSize: 14),
-                            decoration: InputDecoration(
-                                border: InputBorder.none, hintText: '0'),
-                          )),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text('Referral Bonus')),
-                          DataCell(Text('0')),
-                          DataCell(TextField(
-                            controller: referralBonusController,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(11),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                grossPay = calculateGrossPay();
-                              });
-                            },
-                            style: TextStyle(fontSize: 14),
-                            decoration: InputDecoration(
-                                border: InputBorder.none, hintText: '0'),
-                          )),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text('Signing Bonus')),
-                          DataCell(Text('0')),
-                          DataCell(TextField(
-                            controller: signingBonusController,
-                            onChanged: (value) {
-                              setState(() {
-                                grossPay = calculateGrossPay();
-                              });
-                            },
-                            style: TextStyle(fontSize: 14),
-                            decoration: InputDecoration(
-                                border: InputBorder.none, hintText: '0'),
-                          )),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text(
-                            'GROSS PAY',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          )),
-                          DataCell(Text('')),
-                          DataCell(Text(
-                            grossPay.toString(),
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          )),
-                        ]),
-                      ]),
+                                  border: InputBorder.none, hintText: '0'),
+                            )),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Other Premium Pay')),
+                            DataCell(Text('-')),
+                            DataCell(TextField(
+                              controller: otherPremiumPayController,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(11),
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  grossPay = calculateGrossPay();
+                                });
+                              },
+                              style: TextStyle(fontSize: 14),
+                              decoration: InputDecoration(
+                                  border: InputBorder.none, hintText: '0'),
+                            )),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Allowance')),
+                            DataCell(Text('-')),
+                            DataCell(TextField(
+                              controller: allowanceController,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(11),
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  grossPay = calculateGrossPay();
+                                });
+                              },
+                              style: TextStyle(fontSize: 14),
+                              decoration: InputDecoration(
+                                  border: InputBorder.none, hintText: '0'),
+                            )),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Salary Adjustment')),
+                            DataCell(Text('-')),
+                            DataCell(TextField(
+                              controller: salaryAdjustmentController,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(11),
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  grossPay = calculateGrossPay();
+                                });
+                              },
+                              style: TextStyle(fontSize: 14),
+                              decoration: InputDecoration(
+                                  border: InputBorder.none, hintText: '0'),
+                            )),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('OT Adjustment')),
+                            DataCell(Text('-')),
+                            DataCell(TextField(
+                              controller: otAdjustmentController,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(11),
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  grossPay = calculateGrossPay();
+                                });
+                              },
+                              style: TextStyle(fontSize: 14),
+                              decoration: InputDecoration(
+                                  border: InputBorder.none, hintText: '0'),
+                            )),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Referral Bonus')),
+                            DataCell(Text('-')),
+                            DataCell(TextField(
+                              controller: referralBonusController,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(11),
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  grossPay = calculateGrossPay();
+                                });
+                              },
+                              style: TextStyle(fontSize: 14),
+                              decoration: InputDecoration(
+                                  border: InputBorder.none, hintText: '0'),
+                            )),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Signing Bonus')),
+                            DataCell(Text('-')),
+                            DataCell(TextField(
+                              controller: signingBonusController,
+                              onChanged: (value) {
+                                setState(() {
+                                  grossPay = calculateGrossPay();
+                                });
+                              },
+                              style: TextStyle(fontSize: 14),
+                              decoration: InputDecoration(
+                                  border: InputBorder.none, hintText: '0'),
+                            )),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text(
+                              'GROSS PAY',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            )),
+                            DataCell(Text('')),
+                            DataCell(Text(
+                              grossPay.toString(),
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            )),
+                          ]),
+                        ],
+                      ),
                       VerticalDivider(
                         width: 10,
                       ),
@@ -1264,187 +1349,222 @@ class _PayslipPageState extends State<PayslipPage> {
                   TextButton(
                     child: Text('Generate Payslip'),
                     onPressed: () async {
-                      final String advancesAmescoText =
-                          advancesAmescoController.text;
+                      bool confirmGenerate = await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                                title: Text('Confirmation'),
+                                content: Text(
+                                    'Are you sure you want to generate the payslip?'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop(true);
+                                    },
+                                    child: Text('Yes'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop(false);
+                                    },
+                                    child: Text('No'),
+                                  ),
+                                ]);
+                          });
 
-                      final String nightDifferentialText =
-                          nightDifferentialController.text;
+                      if (confirmGenerate == true) {
+                        final String nightDifferentialText =
+                            nightDifferentialController.text;
 
-                      final String standyAllowanceText =
-                          standyAllowanceController.text;
+                        final String advancesAmescoText =
+                            advancesAmescoController.text;
 
-                      final String otherPremiumText =
-                          otherPremiumPayController.text;
+                        final String standyAllowanceText =
+                            standyAllowanceController.text;
 
-                      final String allowanceText = allowanceController.text;
+                        final String otherPremiumText =
+                            otherPremiumPayController.text;
 
-                      final String salaryAdjustmentText =
-                          salaryAdjustmentController.text;
+                        final String allowanceText = allowanceController.text;
 
-                      final String otAdjustmentText =
-                          otAdjustmentController.text;
+                        final String salaryAdjustmentText =
+                            salaryAdjustmentController.text;
 
-                      final String referralBonusText =
-                          referralBonusController.text;
+                        final String otAdjustmentText =
+                            otAdjustmentController.text;
 
-                      final String signingBonusText =
-                          signingBonusController.text;
+                        final String referralBonusText =
+                            referralBonusController.text;
 
-                      final String sssContributionText =
-                          sssContributionController.text;
+                        final String signingBonusText =
+                            signingBonusController.text;
 
-                      final String pagibigContributionText =
-                          pagibigContributionController.text;
+                        final String sssContributionText =
+                            sssContributionController.text;
 
-                      final String phicContributionText =
-                          phicContributionController.text;
+                        final String pagibigContributionText =
+                            pagibigContributionController.text;
 
-                      final String withholdingTaxText =
-                          witholdingTaxController.text;
+                        final String phicContributionText =
+                            phicContributionController.text;
 
-                      final String sssLoanText = sssLoanController.text;
+                        final String withholdingTaxText =
+                            witholdingTaxController.text;
 
-                      final String pagibigLoanText = pagibigLoanController.text;
+                        final String sssLoanText = sssLoanController.text;
 
-                      final String advancesEyeCrafterText =
-                          advancesEyeCrafterController.text;
+                        final String pagibigLoanText =
+                            pagibigLoanController.text;
 
-                      final String advancesInsularText =
-                          advancesInsularController.text;
+                        final String advancesEyeCrafterText =
+                            advancesEyeCrafterController.text;
 
-                      final String vitalabBMCDCText =
-                          vitalabBMCDCController.text;
-                      final String otherAdvancesText =
-                          otherAdvanceController.text;
+                        final String advancesInsularText =
+                            advancesInsularController.text;
 
-                      try {
-                        final double advanceAmesco =
-                            advancesAmescoText.isNotEmpty
-                                ? double.tryParse(advancesAmescoText) ?? 0
-                                : 0;
+                        final String vitalabBMCDCText =
+                            vitalabBMCDCController.text;
+                        final String otherAdvancesText =
+                            otherAdvanceController.text;
 
-                        final double nightDifferential =
-                            double.tryParse(nightDifferentialText) ?? 0.0;
-                        final double standyAllowance =
-                            double.tryParse(standyAllowanceText) ?? 0.0;
-                        final double otherPremiumPay =
-                            double.tryParse(otherPremiumText) ?? 0.0;
-                        final double allowance =
-                            double.tryParse(allowanceText) ?? 0.0;
-                        final double salaryAdjustment =
-                            double.tryParse(salaryAdjustmentText) ?? 0.0;
-                        final double otAdjustment =
-                            double.tryParse(otAdjustmentText) ?? 0.0;
-                        final double referralBonus =
-                            double.tryParse(referralBonusText) ?? 0.0;
-                        final double signingBonus =
-                            double.tryParse(signingBonusText) ?? 0.0;
-                        final double sssContribution =
-                            double.tryParse(sssContributionText) ?? 0.0;
-                        final double pagibigContribution =
-                            double.tryParse(pagibigContributionText) ?? 0.0;
-                        final double phicContribution =
-                            double.tryParse(phicContributionText) ?? 0.0;
-                        final double withholdingTax =
-                            double.tryParse(withholdingTaxText) ?? 0.0;
-                        final double sssLoan =
-                            double.tryParse(sssLoanText) ?? 0.0;
-                        final double pagibigLoan =
-                            double.tryParse(pagibigLoanText) ?? 0.0;
-                        final double advancesEyeCrafter =
-                            double.tryParse(advancesEyeCrafterText) ?? 0.0;
-                        final double advancesInsular =
-                            double.tryParse(advancesInsularText) ?? 0.0;
-                        final double vitalabBMCDC =
-                            double.tryParse(vitalabBMCDCText) ?? 0.0;
-                        final double otherAdvances =
-                            double.tryParse(otherAdvancesText) ?? 0.0;
-                        double grossPay = calculateGrossPay();
-                        double totalDeduction = calculateDeductions();
-                        double netPay =
-                            calculateNetPay(grossPay, totalDeduction);
+                        try {
+                          final double advanceAmesco =
+                              advancesAmescoText.isNotEmpty
+                                  ? double.tryParse(advancesAmescoText) ?? 0
+                                  : 0;
+                          final double nightDifferential =
+                              double.tryParse(nightDifferentialText) ?? 0.0;
 
-                        var userData = userDocSnapshot.docs.first.data();
-                        var monthlySalary = userData['monthly_salary'] ?? 0;
+                          final double standyAllowance =
+                              double.tryParse(standyAllowanceText) ?? 0.0;
+                          final double otherPremiumPay =
+                              double.tryParse(otherPremiumText) ?? 0.0;
+                          final double allowance =
+                              double.tryParse(allowanceText) ?? 0.0;
+                          final double salaryAdjustment =
+                              double.tryParse(salaryAdjustmentText) ?? 0.0;
+                          final double otAdjustment =
+                              double.tryParse(otAdjustmentText) ?? 0.0;
+                          final double referralBonus =
+                              double.tryParse(referralBonusText) ?? 0.0;
+                          final double signingBonus =
+                              double.tryParse(signingBonusText) ?? 0.0;
+                          final double sssContribution =
+                              double.tryParse(sssContributionText) ?? 0.0;
+                          final double pagibigContribution =
+                              double.tryParse(pagibigContributionText) ?? 0.0;
+                          final double phicContribution =
+                              double.tryParse(phicContributionText) ?? 0.0;
+                          final double withholdingTax =
+                              double.tryParse(withholdingTaxText) ?? 0.0;
+                          final double sssLoan =
+                              double.tryParse(sssLoanText) ?? 0.0;
+                          final double pagibigLoan =
+                              double.tryParse(pagibigLoanText) ?? 0.0;
+                          final double advancesEyeCrafter =
+                              double.tryParse(advancesEyeCrafterText) ?? 0.0;
+                          final double advancesInsular =
+                              double.tryParse(advancesInsularText) ?? 0.0;
+                          final double vitalabBMCDC =
+                              double.tryParse(vitalabBMCDCText) ?? 0.0;
+                          final double otherAdvances =
+                              double.tryParse(otherAdvancesText) ?? 0.0;
+                          double grossPay = calculateGrossPay();
+                          double totalDeduction = calculateDeductions();
+                          double netPay =
+                              calculateNetPay(grossPay, totalDeduction);
 
-                        final holidayPay = holidayPayDataQuery.docs.isNotEmpty
-                            ? holidayPayDataQuery.docs.first
-                                    .data()['total_holidayPay'] ??
-                                0
-                            : 0;
-                        var specialHPay = specialHPayDataQuery.docs.isNotEmpty
-                            ? specialHPayDataQuery.docs.first
-                                    .data()['total_specialHolidayPay'] ??
-                                0
-                            : 0;
-                        var restdayOTPay = restdayOTDataQuery.docs.isNotEmpty
-                            ? restdayOTDataQuery.docs.first
-                                    .data()['total_restDayOTPay'] ??
-                                0
-                            : 0;
-                        // Assuming employeeId is accessible from the user object
-                        final String employeeId = userData[
-                            'employeeId']; // Adjust this line according to your actual user object structure
+                          var userData = userDocSnapshot.docs.first.data();
+                          var monthlySalary = userData['monthly_salary'] ?? 0;
+                          final holidayPay = holidayPayDataQuery.docs.isNotEmpty
+                              ? holidayPayDataQuery.docs.first
+                                      .data()['total_holidayPay'] ??
+                                  0
+                              : 0;
+                          var specialHPay = specialHPayDataQuery.docs.isNotEmpty
+                              ? specialHPayDataQuery.docs.first
+                                      .data()['total_specialHolidayPay'] ??
+                                  0
+                              : 0;
+                          var restdayOTPay = restdayOTDataQuery.docs.isNotEmpty
+                              ? restdayOTDataQuery.docs.first
+                                      .data()['total_restDayOTPay'] ??
+                                  0
+                              : 0;
+                          // Assuming employeeId is accessible from the user object
+                          final String employeeId = userData[
+                              'employeeId']; // Adjust this line according to your actual user object structure
 
-                        // User is authenticated, proceed with adding payslip
-                        await addPayslip(
-                          advances_amesco: advanceAmesco,
-                          employeeId: employeeId,
-                          advances_eyecrafter: advancesEyeCrafter,
-                          advances_insular: advancesInsular,
-                          allowance: allowance,
-                          night_differential: nightDifferential,
-                          ot_adjustment: otAdjustment,
-                          other_advances: otherAdvances,
-                          other_prem_pay: otherPremiumPay,
-                          overAllOTPay: overallOTPay,
-                          pagibig_contribution: pagibigContribution,
-                          pagibig_loan: pagibigLoan,
-                          phic_contribution: phicContribution,
-                          signing_bonus: signingBonus,
-                          salary_adjustment: salaryAdjustment,
-                          referral_bonus: referralBonus,
-                          sss_contribution: sssContribution,
-                          sss_loan: sssLoan,
-                          standy_allowance: standyAllowance,
-                          vitalab_bmcdc: vitalabBMCDC,
-                          witholding_tax: withholdingTax,
-                          total_deduction: totalDeduction,
-                          grossPay: grossPay,
-                          netPay: netPay,
-                          monthly_salary: monthlySalary,
-                          holidayPay: holidayPay,
-                          specialHOTPay: specialHOTPay,
-                          specialHPay: specialHPay,
-                          regularHOTPay: regularHOTPay,
-                          regularOTPay: regularOTPay,
-                          restdayOTPay: restdayOTPay,
-                          // Pass employeeId instead of userId
-                        );
-                        Navigator.of(context).pop();
-                      } catch (e) {
-                        print('Error generating payslip: $e');
-                      }
-                      for (var overtimeDoc in overtimeQuerySnapshot.docs) {
-                        await moveToArchiveOT(overtimeDoc);
-                      }
-                      for (var overtimeDoc in overtimeQuerySnapshot2.docs) {
-                        await moveToSpecialHOT(overtimeDoc);
-                      }
-                      for (var overtimeDoc in overtimeQuerySnapshot3.docs) {
-                        await moveToRestdayOT(overtimeDoc);
-                      }
+                          // User is authenticated, proceed with adding payslip
+                          await addPayslip(
+                            advances_amesco: advanceAmesco,
+                            employeeId: employeeId,
+                            night_differential: nightDifferential,
+                            advances_eyecrafter: advancesEyeCrafter,
+                            advances_insular: advancesInsular,
+                            allowance: allowance,
+                            ot_adjustment: otAdjustment,
+                            other_advances: otherAdvances,
+                            other_prem_pay: otherPremiumPay,
+                            overAllOTPay: overallOTPay,
+                            pagibig_contribution: pagibigContribution,
+                            pagibig_loan: pagibigLoan,
+                            phic_contribution: phicContribution,
+                            signing_bonus: signingBonus,
+                            salary_adjustment: salaryAdjustment,
+                            referral_bonus: referralBonus,
+                            sss_contribution: sssContribution,
+                            sss_loan: sssLoan,
+                            standy_allowance: standyAllowance,
+                            vitalab_bmcdc: vitalabBMCDC,
+                            witholding_tax: withholdingTax,
+                            total_deduction: totalDeduction,
+                            grossPay: grossPay,
+                            netPay: netPay,
+                            monthly_salary: monthlySalary,
+                            holidayPay: holidayPay,
+                            specialHOTPay: specialHOTPay,
+                            specialHPay: specialHPay,
+                            regularHOTPay: regularHOTPay,
+                            regularOTPay: regularOTPay,
+                            restdayOTPay: restdayOTPay,
 
-                      for (var overtimeDoc in overtimeQuerySnapshot4.docs) {
-                        await moveToRegularHOT(overtimeDoc);
-                      }
+                            // Pass employeeId instead of userId
+                          );
 
-                      for (var overtimeDoc in overtimeQuerySnapshot5.docs) {
-                        await moveToSpecialH(overtimeDoc);
-                      }
+                          // Update status to "Done" in Firestore document
+                          await userDocSnapshot.docs.first.reference.update({
+                            'status': 'Done',
+                          });
 
-                      for (var overtimeDoc in overtimeQuerySnapshot6.docs) {
-                        await moveToRegularH(overtimeDoc);
+                          // Add employeeId to _generateClickedList
+                          _generateClickedList.add(employeeId);
+
+                          Navigator.of(context).pop();
+                        } catch (e) {
+                          print('Error generating payslip: $e');
+                        }
+                        for (var overtimeDoc in overtimeQuerySnapshot.docs) {
+                          await moveToArchiveOT(overtimeDoc);
+                        }
+                        for (var overtimeDoc in overtimeQuerySnapshot2.docs) {
+                          await moveToSpecialHOT(overtimeDoc);
+                        }
+                        for (var overtimeDoc in overtimeQuerySnapshot3.docs) {
+                          await moveToRestdayOT(overtimeDoc);
+                        }
+
+                        for (var overtimeDoc in overtimeQuerySnapshot4.docs) {
+                          await moveToRegularHOT(overtimeDoc);
+                        }
+
+                        for (var overtimeDoc in overtimeQuerySnapshot5.docs) {
+                          await moveToSpecialH(overtimeDoc);
+                        }
+
+                        for (var overtimeDoc in overtimeQuerySnapshot6.docs) {
+                          await moveToRegularH(overtimeDoc);
+                        }
                       }
                     },
                   ),
@@ -1465,13 +1585,30 @@ class _PayslipPageState extends State<PayslipPage> {
     }
   }
 
+// Utility function to build info row in the dialog
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Text(value),
+        ],
+      ),
+    );
+  }
+
+// Placeholder function, replace this with actual implementation
   Future<void> addPayslip({
     required double advances_amesco,
     required String employeeId,
+    required double night_differential,
     required double advances_eyecrafter,
     required double advances_insular,
     required double allowance,
-    required double night_differential,
     required double ot_adjustment,
     required double other_advances,
     required double other_prem_pay,
@@ -1497,10 +1634,10 @@ class _PayslipPageState extends State<PayslipPage> {
     required double regularHOTPay,
     required double specialHOTPay,
     required double regularOTPay,
-    // Change parameter name and type
   }) async {
     try {
       final json = {
+        'employeeId': employeeId,
         'advances_amesco': advances_amesco,
         'advances_eyecrafter': advances_eyecrafter,
         'advances_insular': advances_insular,
@@ -1574,6 +1711,370 @@ class _PayslipPageState extends State<PayslipPage> {
     } catch (e) {
       print('Error moving record to ArchivesOvertime collection: $e');
     }
+  }
+
+  Future<void> _showPayslipDialog2(
+      BuildContext context, Map<String, dynamic> data) async {
+    try {
+      var employeeId = data['employeeId'];
+      var userDocSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .where('employeeId', isEqualTo: employeeId)
+          .get();
+      var userData = userDocSnapshot.docs.first.data();
+      var monthlySalary = userData['monthly_salary'] ?? 0;
+
+      var paySlipDataQuery = await FirebaseFirestore.instance
+          .collection('Payslip')
+          .where('employeeId', isEqualTo: employeeId)
+          .get();
+
+      var nightDifferential = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['night_differential'] ?? 0
+          : 0;
+
+      var overallOTPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['overAllOTPay'] ?? 0
+          : 0;
+
+      var restdayOTPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['restdayOTPay'] ?? 0
+          : 0;
+
+      var holidayPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['holidayPay'] ?? 0
+          : 0;
+
+      var specialHPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['specialHPay'] ?? 0
+          : 0;
+
+      var standyAllowance = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['standy_allowance'] ?? 0
+          : 0;
+
+      var otherPremiumPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['other_prem_pay'] ?? 0
+          : 0;
+
+      var allowance = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['allowance'] ?? 0
+          : 0;
+      var salaryAdjustment = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['salary_adjustment'] ?? 0
+          : 0;
+
+      var otAdjustment = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['ot_adjustment'] ?? 0
+          : 0;
+
+      var referralBonus = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['referral_bonus'] ?? 0
+          : 0;
+
+      var signingBonus = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['signing_bonus'] ?? 0
+          : 0;
+
+      var grossPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['grossPay'] ?? 0
+          : 0;
+
+      var sssContribution = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['sss_contribution'] ?? 0
+          : 0;
+
+      var pagibigContribution = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['pagibig_contribution'] ?? 0
+          : 0;
+      var phicContribution = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['phic_contribution'] ?? 0
+          : 0;
+      var withHoldingTax = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['witholding_tax'] ?? 0
+          : 0;
+
+      var sssLoan = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['sss_loan'] ?? 0
+          : 0;
+
+      var pagibigLoan = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['pagibig_loan'] ?? 0
+          : 0;
+
+      var advancesEyeCrafter = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['advances_eyecrafter'] ?? 0
+          : 0;
+
+      var advancesAmesco = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['advances_amesco'] ?? 0
+          : 0;
+
+      var advancesInsular = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['advances_insular'] ?? 0
+          : 0;
+      var vitalabBMCDC = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['vitalab_bmcdc'] ?? 0
+          : 0;
+
+      var otherAdvances = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['other_advances'] ?? 0
+          : 0;
+
+      var totalDeduction = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['total_deduction'] ?? 0
+          : 0;
+
+      var netPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['netPay'] ?? 0
+          : 0;
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return StatefulBuilder(builder: (BuildContext context, setSTate) {
+              return AlertDialog(
+                title: Text('Payslip Details'),
+                content: SingleChildScrollView(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoRow('Employee ID: ', data['employeeId']),
+                      SizedBox(
+                        width: 50,
+                      ),
+                      _buildInfoRow('Name: ',
+                          data['fname'] + data['mname'] + data['lname']),
+                      SizedBox(
+                        width: 50,
+                      ),
+                      _buildInfoRow('Department: ', data['department']),
+                      DataTable(
+                        columns: const [
+                          DataColumn(
+                              label: Text('EARNINGS',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1))),
+                          DataColumn(label: Text('Hours')),
+                          DataColumn(label: Text('Amount')),
+                        ],
+                        rows: [
+                          DataRow(cells: [
+                            DataCell(Text('Basic Salary')),
+                            DataCell(Text('')),
+                            DataCell(Text(monthlySalary.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Night Differential')),
+                            DataCell(Text('')),
+                            DataCell(Text(nightDifferential.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Overtime')),
+                            DataCell(Text('')),
+                            DataCell(Text(overallOTPay.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('RDOT')),
+                            DataCell(Text('')),
+                            DataCell(Text(restdayOTPay.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Regular Holiday')),
+                            DataCell(Text('')),
+                            DataCell(Text(holidayPay.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Special Holiday')),
+                            DataCell(Text('')),
+                            DataCell(Text(specialHPay.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Standy Allowance')),
+                            DataCell(Text('')),
+                            DataCell(Text(standyAllowance.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Other Premium Pay')),
+                            DataCell(Text('')),
+                            DataCell(Text(otherPremiumPay.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Allowance  ')),
+                            DataCell(Text('')),
+                            DataCell(Text(allowance.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Salary Adjustment  ')),
+                            DataCell(Text('')),
+                            DataCell(Text(salaryAdjustment.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('OT Adjustment')),
+                            DataCell(Text('')),
+                            DataCell(Text(otAdjustment.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Referral Bonus')),
+                            DataCell(Text('')),
+                            DataCell(Text(referralBonus.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('Signing Bonus')),
+                            DataCell(Text('')),
+                            DataCell(Text(signingBonus.toString())),
+                          ]),
+                          DataRow(cells: [
+                            DataCell(Text('GROSS PAY')),
+                            DataCell(Text('')),
+                            DataCell(Text(grossPay.toString())),
+                          ]),
+                        ],
+                      ),
+                      VerticalDivider(
+                        width: 10,
+                      ),
+                      DataTable(columns: const [
+                        DataColumn(
+                          label: Text(
+                            'DEDUCTIONS',
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Text('Amount'),
+                        ),
+                      ], rows: [
+                        DataRow(cells: [
+                          DataCell(Text('LWOP/ Tardiness')),
+                          DataCell(Text('0')),
+                        ]),
+                        DataRow(cells: [
+                          DataCell(Text('SSS Contribution')),
+                          DataCell(Text(sssContribution.toString())),
+                        ]),
+                        DataRow(cells: [
+                          DataCell(Text('Pag-ibig Contribution')),
+                          DataCell(Text(pagibigContribution.toString())),
+                        ]),
+                        DataRow(cells: [
+                          DataCell(Text('PHIC Contribution')),
+                          DataCell(Text(phicContribution.toString())),
+                        ]),
+                        DataRow(cells: [
+                          DataCell(Text('Witholding Tax')),
+                          DataCell(Text(withHoldingTax.toString())),
+                        ]),
+                        DataRow(cells: [
+                          DataCell(Text('SSS Loan')),
+                          DataCell(Text(sssLoan.toString())),
+                        ]),
+                        DataRow(cells: [
+                          DataCell(Text('Pag-ibig Loan')),
+                          DataCell(Text(pagibigLoan.toString())),
+                        ]),
+                        DataRow(cells: [
+                          DataCell(Text('Advances: Eye Crafter')),
+                          DataCell(Text(advancesEyeCrafter.toString())),
+                        ]),
+                        DataRow(cells: [
+                          DataCell(Text('Advances: Amesco')),
+                          DataCell(Text(advancesAmesco.toString())),
+                        ]),
+                        DataRow(cells: [
+                          DataCell(Text('Advances: Insular')),
+                          DataCell(Text(advancesInsular.toString())),
+                        ]),
+                        DataRow(cells: [
+                          DataCell(Text('Vitalab / BMCDC')),
+                          DataCell(Text(vitalabBMCDC.toString())),
+                        ]),
+                        DataRow(cells: [
+                          DataCell(Text('Other Advances')),
+                          DataCell(Text(otherAdvances.toString())),
+                        ]),
+                        DataRow(cells: [
+                          DataCell(Text('')),
+                          DataCell(Text('')),
+                        ]),
+                        DataRow(cells: [
+                          DataCell(Text('TOTAL DEDUCTIONS',
+                              style: TextStyle(fontWeight: FontWeight.bold))),
+                          DataCell(Text(totalDeduction.toString())),
+                        ]),
+                      ]),
+                      VerticalDivider(width: 40),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('SUMMARY',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              )),
+                          SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Gross Pay: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                grossPay.toString(),
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Total Deductions: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                totalDeduction.toString(),
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          Divider(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'NET PAY: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                netPay.toString(),
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 580),
+                          TextButton(
+                            child: Text('Close'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            });
+          });
+    } catch (e) {}
   }
 
   Future<void> moveToRestdayOT(DocumentSnapshot overtimeDoc) async {
@@ -1719,19 +2220,6 @@ class _PayslipPageState extends State<PayslipPage> {
     } catch (e) {
       print('Error moving record to ArchivesOvertime collection: $e');
     }
-  }
-
-  Widget _buildInfoRow(String label, dynamic value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
-          Text(value),
-        ],
-      ),
-    );
   }
 
   Widget _buildShimmerLoading() {
