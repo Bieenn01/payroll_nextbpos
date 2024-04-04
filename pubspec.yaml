@@ -59,6 +59,7 @@ dependencies:
   open_file: ^3.3.2
   syncfusion_flutter_xlsio: ^23.2.7
   universal_html: ^2.2.4
+  lottie: ^3.1.0
 
 dev_dependencies:
   flutter_test:
