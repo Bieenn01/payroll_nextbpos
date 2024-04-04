@@ -28,6 +28,7 @@ import 'package:project_payroll_nextbpo/backend/dashboardFunc/top_bar.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regularOT.dart';
 import 'package:project_payroll_nextbpo/frontend/payslip/payslip_page.dart';
+import 'package:lottie/lottie.dart';
 
 class ScreensView extends StatefulWidget {
   final String menu;
@@ -67,7 +68,14 @@ class _ScreensViewState extends State<ScreensView> {
       return EmployeeDashboard();
     } else if (_role == 'Guest') {
       return Container(
-        child: Text('Loading'),
+        child: Center(
+          child: Lottie.asset(
+            'assets/images/loading.json', // Change the path to your loading.json file
+            width: 100,
+            height: 100,
+            fit: BoxFit.cover,
+          ),
+        ),
       );
     } else {
       return const DashboardMobile();
