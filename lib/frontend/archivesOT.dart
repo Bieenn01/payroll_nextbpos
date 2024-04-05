@@ -531,7 +531,8 @@ class _ArchivesOT extends State<ArchivesOT> {
               DataColumn(label: Text('Overtime Pay', style: textStyle)),
               DataColumn(label: Text('Action', style: textStyle)),
             ],
-            rows: List.generate(overtimeDocs.length, (index) {
+            rows: List.generate(overtimeDocs.length.clamp(0, _itemsPerPage),
+                (index) {
               DocumentSnapshot overtimeDoc = overtimeDocs[index];
               Map<String, dynamic> overtimeData =
                   overtimeDoc.data() as Map<String, dynamic>;

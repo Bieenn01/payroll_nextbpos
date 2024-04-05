@@ -47,43 +47,47 @@ class _ArchivesSpecialHoliday extends State<ArchivesSpecialHoliday> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: Container(
-                  margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Text(
-                              "Archives Special Holiday",
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
+              child: SingleChildScrollView(
+                child: Container(
+                    margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Text(
+                                "Archives Special Holiday",
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      dateFilterSearchRow(context, styleFrom),
-                      Divider(),
-                      _buildTable(),
-                      SizedBox(height: 10),
-                      Divider(),
-                      SizedBox(height: 5),
-                      pagination(),
-                      SizedBox(height: 20),
-                    ],
-                  )),
-            ),
-          ],
+                          ],
+                        ),
+                        dateFilterSearchRow(context, styleFrom),
+                        Divider(),
+                        _buildTable(),
+                        SizedBox(height: 10),
+                        Divider(),
+                        SizedBox(height: 5),
+                        pagination(),
+                        SizedBox(height: 20),
+                      ],
+                    )
+                  ),
+                )
+              ),
+            ],
+          ),
         ),
-      ),
-    ));
+      )
+    );
   }
 
   Row pagination() {
@@ -529,7 +533,8 @@ class _ArchivesSpecialHoliday extends State<ArchivesSpecialHoliday> {
               DataColumn(label: Text('Holiday Pay', style: textStyle)),
               DataColumn(label: Text('Action', style: textStyle)),
             ],
-            rows: List.generate(overtimeDocs.length, (index) {
+            rows: List.generate(overtimeDocs.length.clamp(0, _itemsPerPage),
+                (index) {
               DocumentSnapshot overtimeDoc = overtimeDocs[index];
               Map<String, dynamic> overtimeData =
                   overtimeDoc.data() as Map<String, dynamic>;
