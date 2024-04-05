@@ -62,6 +62,7 @@ dependencies:
   excel: ^4.0.3
   pdf: ^3.10.8
   syncfusion_flutter_datagrid: ^23.2.7
+  lottie: ^3.1.0
 
 dev_dependencies:
   flutter_test:

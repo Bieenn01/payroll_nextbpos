@@ -28,6 +28,7 @@ import 'package:project_payroll_nextbpo/backend/dashboardFunc/top_bar.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regularOT.dart';
 import 'package:project_payroll_nextbpo/frontend/payslip/payslip_page.dart';
+import 'package:lottie/lottie.dart';
 
 class ScreensView extends StatefulWidget {
   final String menu;
@@ -67,7 +68,14 @@ class _ScreensViewState extends State<ScreensView> {
       return EmployeeDashboard();
     } else if (_role == 'Guest') {
       return Container(
-        child: Text('Loading'),
+        child: Center(
+          child: Lottie.asset(
+            'assets/images/loading.json', // Change the path to your loading.json file
+            width: 100,
+            height: 100,
+            fit: BoxFit.cover,
+          ),
+        ),
       );
     } else {
       return const DashboardMobile();
@@ -285,7 +293,7 @@ class _ScreensViewState extends State<ScreensView> {
         );
         break;
 
-        case 'Archives':
+      case 'Archives':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -300,7 +308,7 @@ class _ScreensViewState extends State<ScreensView> {
           ),
         );
         break;
-        case 'Holiday ':
+      case 'Holiday ':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -330,7 +338,7 @@ class _ScreensViewState extends State<ScreensView> {
           ),
         );
         break;
-        case 'Regular Holiday Overtime':
+      case 'Regular Holiday Overtime':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -345,7 +353,7 @@ class _ScreensViewState extends State<ScreensView> {
           ),
         );
         break;
-        case 'Restday Overtime':
+      case 'Restday Overtime':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -360,7 +368,7 @@ class _ScreensViewState extends State<ScreensView> {
           ),
         );
         break;
-        case 'Special Holiday':
+      case 'Special Holiday':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -375,7 +383,7 @@ class _ScreensViewState extends State<ScreensView> {
           ),
         );
         break;
-        case 'Special Holiday Overtime':
+      case 'Special Holiday Overtime':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -390,7 +398,6 @@ class _ScreensViewState extends State<ScreensView> {
           ),
         );
         break;
-
 
       default:
         page = Container(
