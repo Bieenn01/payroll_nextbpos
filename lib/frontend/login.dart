@@ -101,7 +101,7 @@ class _LoginState extends State<Login> {
                               controller: usernameController,
                               decoration: InputDecoration(
                                   border: InputBorder.none,
-                                  labelText: 'Username',
+                                  hintText: 'Username',
                                   labelStyle: TextStyle(
                                       color: myFocusNode.hasFocus
                                           ? Colors.blue
@@ -126,7 +126,7 @@ class _LoginState extends State<Login> {
                               },
                               decoration: InputDecoration(
                                 border: InputBorder.none,
-                                labelText: 'Password',
+                                hintText: 'Password',
                                 labelStyle: TextStyle(
                                     color: myFocusNode.hasFocus
                                         ? Colors.blue
