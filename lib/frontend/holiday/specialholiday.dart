@@ -1,8 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:shimmer/shimmer.dart' as ShimmerPackage;
 
 class SpecialHolidayPage extends StatefulWidget {
   const SpecialHolidayPage({Key? key}) : super(key: key);
@@ -17,46 +15,16 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
   int _itemsPerPage = 5;
   int _currentPage = 0;
   int indexRow = 0;
-  bool _sortAscending = false;
-  bool filter = false;
-  bool sortPay = false;
-  bool table = false;
-
-  String selectedDepartment = 'All';
 
   DateTime? fromDate;
   DateTime? toDate;
   bool endPicked = false;
   bool startPicked = false;
-  late String _role = 'Guest';
 
   @override
   void initState() {
     super.initState();
     _selectedHolidayTypes = [];
-    _fetchRole();
-  }
-
-  Future<void> _fetchRole() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final docSnapshot = await FirebaseFirestore.instance
-          .collection('User')
-          .doc(user.uid)
-          .get();
-
-      setState(() {
-        final role = docSnapshot['role'];
-        _role = role != null
-            ? role
-            : 'Guest'; // Default to 'Guest' if role is not specified
-      });
-    }
-  }
-
-  String? getCurrentUserId() {
-    final user = FirebaseAuth.instance.currentUser;
-    return user?.uid;
   }
 
   @override
@@ -76,40 +44,38 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: SingleChildScrollView(
-                child: Container(
-                    margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Text(
-                                "Special Holiday",
-                                style: TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                              ),
+              child: Container(
+                  margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Text(
+                              "Special Holiday",
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
                             ),
-                          ],
-                        ),
-                        dateFilterSearchRow(context, styleFrom),
-                        Divider(),
-                        _buildTable(),
-                        SizedBox(height: 10),
-                        Divider(),
-                        SizedBox(height: 5),
-                        pagination(),
-                        SizedBox(height: 20),
-                      ],
-                    )),
-              ),
+                          ),
+                        ],
+                      ),
+                      dateFilterSearchRow(context, styleFrom),
+                      Divider(),
+                      _buildTable(),
+                      SizedBox(height: 10),
+                      Divider(),
+                      SizedBox(height: 5),
+                      pagination(),
+                      SizedBox(height: 20),
+                    ],
+                  )),
             ),
           ],
         ),
@@ -164,44 +130,19 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Flexible(
-                    child: MediaQuery.of(context).size.width > 600
-                        ? Row(
-                            children: [
-                              const Text('Show entries: '),
-                              Container(
-                                width: 70,
-                                height: 30,
-                                padding: const EdgeInsets.only(left: 10),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                        color: Colors.grey.shade200)),
-                                child: DropdownButton<int>(
-                                  padding: const EdgeInsets.all(5),
-                                  underline: const SizedBox(),
-                                  value: _itemsPerPage,
-                                  items: [5, 10, 15, 20, 25]
-                                      .map<DropdownMenuItem<int>>(
-                                    (int value) {
-                                      return DropdownMenuItem<int>(
-                                        value: value,
-                                        child: Text('$value'),
-                                      );
-                                    },
-                                  ).toList(),
-                                  onChanged: (int? newValue) {
-                                    setState(() {
-                                      _itemsPerPage = newValue!;
-                                    });
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                            ],
-                          )
-                        : DropdownButton<int>(
-                            padding: const EdgeInsets.all(5),
-                            underline: const SizedBox(),
+                    child: Row(
+                      children: [
+                        Text('Show entries: '),
+                        Container(
+                          width: 70,
+                          height: 30,
+                          padding: EdgeInsets.only(left: 10),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade200)),
+                          child: DropdownButton<int>(
+                            padding: EdgeInsets.all(5),
+                            underline: SizedBox(),
                             value: _itemsPerPage,
                             items:
                                 [5, 10, 15, 20, 25].map<DropdownMenuItem<int>>(
@@ -218,6 +159,18 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                               });
                             },
                           ),
+                        ),
+                        SizedBox(width: 10),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await _computeAndAddSpecialHolidayPay();
+                      },
+                      child: Text('Compute All'),
+                    ),
                   ),
                   Flexible(
                     child: Row(
@@ -227,10 +180,10 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                           child: Container(
                             width: MediaQuery.of(context).size.width > 600
                                 ? 400
-                                : 100,
+                                : 50,
                             height: 30,
-                            margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                            padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                            margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
+                            padding: EdgeInsets.fromLTRB(3, 0, 0, 0),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
@@ -251,55 +204,135 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
                             ),
                           ),
                         ),
+                        SizedBox(width: 10),
                         Flexible(
                           child: Container(
-                              width: 130,
-                              height: 30,
-                              padding: const EdgeInsets.all(0),
-                              margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                              decoration: BoxDecoration(
-                                  color: Colors.teal,
-                                  border: Border.all(
-                                      color: Colors.teal.shade900
-                                          .withOpacity(0.5)),
-                                  borderRadius: BorderRadius.circular(8)),
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.teal,
-                                  padding: const EdgeInsets.only(left: 5),
-                                ),
-                                onPressed: () {
+                            width: MediaQuery.of(context).size.width > 600
+                                ? 150
+                                : 80,
+                            padding: EdgeInsets.all(2),
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                final DateTime? picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: fromDate ?? DateTime.now(),
+                                  firstDate: DateTime(2015, 8),
+                                  lastDate: DateTime(2101),
+                                );
+                                if (picked != null && picked != fromDate) {
                                   setState(() {
-                                    filter = !filter;
+                                    fromDate = picked;
+                                    startPicked = true;
                                   });
-                                  filtermodal(
-                                    context,
-                                    styleFrom,
-                                  );
-                                },
-                                child: MediaQuery.of(context).size.width > 800
-                                    ? const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.filter_alt_outlined,
-                                            color: Colors.white,
-                                          ),
-                                          Text(
-                                            'Filter Date',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.w400,
-                                                letterSpacing: 1,
-                                                color: Colors.white),
-                                          ),
-                                        ],
-                                      )
-                                    : const Icon(
-                                        Icons.filter_alt_outlined,
-                                        color: Colors.white,
-                                      ),
-                              )),
+                                }
+                              },
+                              style: styleFrom,
+                              child: MediaQuery.of(context).size.width > 600
+                                  ? Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            const Text(
+                                              'From: ',
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            Text(
+                                              fromDate != null
+                                                  ? DateFormat('yyyy-MM-dd')
+                                                      .format(fromDate!)
+                                                  : 'Select Date',
+                                              style: TextStyle(
+                                                  color: startPicked == !true
+                                                      ? Colors.black
+                                                      : Colors.teal.shade800),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(
+                                          width: 3,
+                                        ),
+                                        const Icon(
+                                          Icons.calendar_month,
+                                          color: Colors.black,
+                                          size: 20,
+                                        ),
+                                      ],
+                                    )
+                                  : const Icon(
+                                      Icons.calendar_month,
+                                      color: Colors.black,
+                                    ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Flexible(
+                          child: Container(
+                            width: MediaQuery.of(context).size.width > 600
+                                ? 150
+                                : 50,
+                            padding: EdgeInsets.all(2),
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                final DateTime? picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: toDate ?? DateTime.now(),
+                                  firstDate: DateTime(2015, 8),
+                                  lastDate: DateTime(2101),
+                                );
+                                if (picked != null && picked != toDate) {
+                                  setState(() {
+                                    toDate = picked;
+                                    endPicked = true;
+                                  });
+                                }
+                              },
+                              style: styleFrom,
+                              child: MediaQuery.of(context).size.width > 600
+                                  ? Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            const Text(
+                                              'To: ',
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            Text(
+                                              toDate != null
+                                                  ? DateFormat('yyyy-MM-dd')
+                                                      .format(toDate!)
+                                                  : 'Select Date',
+                                              style: TextStyle(
+                                                  color: endPicked == !true
+                                                      ? Colors.black
+                                                      : Colors.teal.shade800),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(
+                                          width: 3,
+                                        ),
+                                        const Icon(
+                                          Icons.calendar_month,
+                                          color: Colors.black,
+                                          size: 20,
+                                        ),
+                                      ],
+                                    )
+                                  : const Icon(
+                                      Icons.calendar_month,
+                                      color: Colors.black,
+                                    ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -308,198 +341,8 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
               ),
             ),
           ),
-          const SizedBox(width: 5),
+          SizedBox(width: 5),
         ],
-      ),
-    );
-  }
-
-  Future<dynamic> filtermodal(BuildContext context, ButtonStyle styleFrom) {
-    return showDialog(
-        context: context,
-        builder: (_) => Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const SizedBox(
-                      height: 130,
-                    ),
-                    AlertDialog(
-                      surfaceTintColor: Colors.white,
-                      content: SizedBox(
-                        height: 200,
-                        width: 200,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Filter Date',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                IconButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    icon: const Icon(Icons.close)),
-                              ],
-                            ),
-                            const Text('From :'),
-                            _fromDate(context, styleFrom),
-                            const SizedBox(
-                              width: 5,
-                            ),
-                            const Text('To :'),
-                            _toDate(context, styleFrom),
-                            const SizedBox(
-                              height: 5,
-                            ),
-                            clearDate(context, styleFrom),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ));
-  }
-
-  Container clearDate(BuildContext context, ButtonStyle styleFrom) {
-    return Container(
-      height: 30,
-      padding: const EdgeInsets.all(0),
-      margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.red.withOpacity(0.5)),
-          borderRadius: BorderRadius.circular(12)),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white, padding: EdgeInsets.all(3)),
-        onPressed: () {
-          setState(() {
-            toDate = null;
-            fromDate = null;
-            filter = false;
-          });
-          Navigator.of(context).pop();
-        },
-        child: const Text(
-          'Reset Date',
-          style: TextStyle(
-              fontWeight: FontWeight.w400, letterSpacing: 1, color: Colors.red),
-        ),
-      ),
-    );
-  }
-
-  Flexible _toDate(BuildContext context, ButtonStyle styleFrom) {
-    return Flexible(
-      child: Container(
-        width: MediaQuery.of(context).size.width > 600 ? 150 : 50,
-        padding: const EdgeInsets.all(2),
-        child: ElevatedButton(
-            onPressed: () async {
-              final DateTime? picked = await showDatePicker(
-                context: context,
-                initialDate: toDate ?? DateTime.now(),
-                firstDate: DateTime(2015, 8),
-                lastDate: DateTime(2101),
-              );
-              if (picked != null && picked != toDate) {
-                setState(() {
-                  toDate = picked;
-                  endPicked = true;
-                });
-              }
-            },
-            style: styleFrom,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Row(
-                    children: [
-                      Text(
-                        toDate != null
-                            ? DateFormat('yyyy-MM-dd').format(toDate!)
-                            : 'Select',
-                        style: TextStyle(
-                          color: endPicked == !true
-                              ? Colors.black
-                              : Colors.teal.shade800,
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 3),
-                const Icon(
-                  Icons.calendar_month,
-                  color: Colors.black,
-                  size: 20,
-                ),
-              ],
-            )),
-      ),
-    );
-  }
-
-  Flexible _fromDate(BuildContext context, ButtonStyle styleFrom) {
-    return Flexible(
-      child: Container(
-        width: MediaQuery.of(context).size.width > 600 ? 230 : 80,
-        padding: const EdgeInsets.all(2),
-        child: ElevatedButton(
-            onPressed: () async {
-              final DateTime? picked = await showDatePicker(
-                context: context,
-                initialDate: fromDate ?? DateTime.now(),
-                firstDate: DateTime(2015, 8),
-                lastDate: DateTime(2101),
-              );
-              if (picked != null && picked != fromDate) {
-                setState(() {
-                  fromDate = picked;
-                  startPicked = true;
-                });
-              }
-            },
-            style: styleFrom,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Row(
-                    children: [
-                      Text(
-                        fromDate != null
-                            ? DateFormat('yyyy-MM-dd').format(fromDate!)
-                            : 'Select',
-                        style: TextStyle(
-                          color: startPicked == !true
-                              ? Colors.black
-                              : Colors.teal.shade800,
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 3),
-                const Icon(
-                  Icons.calendar_month,
-                  color: Colors.black,
-                  size: 20,
-                ),
-              ],
-            )),
       ),
     );
   }
@@ -510,27 +353,11 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
           FirebaseFirestore.instance.collection('SpecialHoliday').snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (!snapshot.hasData) {
-          return _buildShimmerLoading();
+          return Center(child: CircularProgressIndicator());
         } else if (snapshot.data!.docs.isEmpty) {
           return Center(child: Text('No data available yet'));
         } else {
-          List<DocumentSnapshot> holidayDocs = _role == 'Employee'
-              ? snapshot.data!.docs
-                  .where((doc) => doc['userId'] == getCurrentUserId())
-                  .toList()
-              : snapshot.data!.docs;
-
-          _sortAscending
-              ? holidayDocs.sort((a, b) {
-                  double overtimePayA = a['holidayPay'] ?? 0.0;
-                  double overtimePayB = b['holidayPay'] ?? 0.0;
-                  return overtimePayA.compareTo(overtimePayB);
-                })
-              : holidayDocs.sort((b, a) {
-                  double overtimePayA = a['holidayPay'] ?? 0.0;
-                  double overtimePayB = b['holidayPay'] ?? 0.0;
-                  return overtimePayA.compareTo(overtimePayB);
-                });
+          List<DocumentSnapshot> holidayDocs = snapshot.data!.docs;
 
           holidayDocs = holidayDocs.where((doc) {
             DateTime timeIn = doc['timeIn'].toDate();
@@ -547,250 +374,152 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
             }
             return true;
           }).toList();
-
-          List<DocumentSnapshot> filteredDocuments = holidayDocs;
-          if (selectedDepartment != 'All') {
-            filteredDocuments = holidayDocs
-                .where((doc) => doc['department'] == selectedDepartment)
-                .toList();
+          if (_searchController.text.isNotEmpty) {
+            String searchText = _searchController.text.toLowerCase();
+            holidayDocs = holidayDocs.where((doc) {
+              String employeeId = doc['employeeId'].toString().toLowerCase();
+              String userName = doc['userName'].toString().toLowerCase();
+              return employeeId.contains(searchText) ||
+                  userName.contains(searchText);
+            }).toList();
           }
-
           // Sort documents by timestamp in descending order
-          // holidayDocs.sort((a, b) {
-          //   Timestamp aTimestamp = a['timeIn'];
-          //   Timestamp bTimestamp = b['timeIn'];
-          //   return bTimestamp.compareTo(aTimestamp);
-          // });
-          // // Sort the documents by timestamp in descending order
-          // holidayDocs.sort((a, b) =>
-          //     (b['timeIn'] as Timestamp).compareTo(a['timeIn'] as Timestamp));
+          holidayDocs.sort((a, b) {
+            Timestamp aTimestamp = a['timeIn'];
+            Timestamp bTimestamp = b['timeIn'];
+            return bTimestamp.compareTo(aTimestamp);
+          });
+          // Sort the documents by timestamp in descending order
+          holidayDocs.sort((a, b) =>
+              (b['timeIn'] as Timestamp).compareTo(a['timeIn'] as Timestamp));
 
           const textStyle = TextStyle(fontWeight: FontWeight.bold);
 
-          var dataTable = DataTable(
-            columns: [
-              const DataColumn(label: Text('#', style: textStyle)),
-              const DataColumn(label: Text('Employee ID', style: textStyle)),
-              const DataColumn(label: Text('Name', style: textStyle)),
-              DataColumn(
-                label: PopupMenuButton<String>(
-                  child: const Row(
-                    children: [
-                      Text(
-                        'Department',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Icon(Icons.arrow_drop_down)
-                    ],
-                  ),
-                  onSelected: (String value) {
-                    setState(() {
-                      selectedDepartment = value;
-                    });
-                  },
-                  itemBuilder: (BuildContext context) => [
-                    'All', // Default option
-                    'IT',
-                    'HR',
-                    'ACCOUNTING',
-                    'SERVICING',
-                  ].map((String value) {
-                    return PopupMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
+          return SizedBox(
+            height: 600,
+            child: SingleChildScrollView(
+              child: DataTable(
+                columns: const [
+                  DataColumn(label: Text('#', style: textStyle)),
+                  DataColumn(label: Text('ID', style: textStyle)),
+                  DataColumn(label: Text('Name', style: textStyle)),
+                  DataColumn(label: Text('Department', style: textStyle)),
+                  DataColumn(
+                      label: Text('Total Hours (h:m)', style: textStyle)),
+                  DataColumn(label: Text('Holiday Pay', style: textStyle)),
+                  DataColumn(label: Text('Holiday Type', style: textStyle)),
+                  DataColumn(label: Text('Action', style: textStyle))
+                ],
+                rows: List.generate(holidayDocs.length, (index) {
+                  DocumentSnapshot holidayDoc = holidayDocs[index];
+                  Map<String, dynamic> holidayData =
+                      holidayDoc.data() as Map<String, dynamic>;
+                  _selectedHolidayTypes.add('Special Holiday');
+
+                  Color? rowColor = indexRow % 2 == 0
+                      ? Colors.white
+                      : Colors.grey[200]; // Alternating row colors
+                  indexRow++; //
+
+                  return DataRow(
+                      color:
+                          MaterialStateColor.resolveWith((states) => rowColor!),
+                      cells: [
+                        DataCell(Text('#')),
+                        DataCell(Text(holidayData['employeeId'])),
+                        DataCell(Text(
+                            holidayData['userName'] ?? 'Not Available Yet')),
+                        DataCell(Text(
+                            holidayData['department'] ?? 'Not Available Yet')),
+                        DataCell(
+                          Container(
+                            width: 100,
+                            decoration:
+                                BoxDecoration(color: Colors.amber.shade200),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        holidayData['regular_hours']
+                                                ?.toString() ??
+                                            'Not Available Yet',
+                                        style: textStyle,
+                                      ),
+                                      Text(':'),
+                                      Text(
+                                        holidayData['regular_minute']
+                                                ?.toString() ??
+                                            '0',
+                                        style: textStyle,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Text(NumberFormat.currency(
+                                  locale: 'en_PH',
+                                  symbol: '₱ ',
+                                  decimalDigits: 2)
+                              .format(holidayData['holidayPay'] ?? 0.0)),
+                        ),
+                        DataCell(
+                          DropdownButton<String>(
+                            value: _selectedHolidayTypes[index],
+                            items: <String>[
+                              'Special Holiday',
+                              'Regular Holiday',
+                            ].map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) async {
+                              if (newValue == 'Regular Holiday') {
+                                await _showConfirmationDialog2(holidayDoc);
+                              }
+                              setState(() {
+                                _selectedHolidayTypes[index] = newValue!;
+                              });
+                              if (newValue == 'Special Holiday') {
+                                //   await _showConfirmationDialog2(holidayDoc);
+                              }
+                              setState(() {
+                                _selectedHolidayTypes[index] = newValue!;
+                              });
+                            },
+                          ),
+                        ),
+                        DataCell(
+                          Row(children: [
+                            IconButton(
+                              icon: Icon(Icons.delete,
+                                  color: Colors.red), // Setting color to red
+                              onPressed: () async {
+                                await _showConfirmationDialog3(holidayDoc);
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.visibility,
+                                  color: Colors.blue), // Setting color to red
+                              onPressed: () async {
+                                await _showConfirmationDialog4(holidayDoc);
+                              },
+                            ),
+                          ]),
+                        ),
+                      ]);
+                }),
               ),
-              const DataColumn(label: Text('Date', style: textStyle)),
-              const DataColumn(label: Text('Total Hours', style: textStyle)),
-              DataColumn(
-                label: Container(
-                  width: 100,
-                  padding: EdgeInsets.all(0),
-                  child: InkWell(
-                    onTap: () {
-                      setState(() {
-                        _sortAscending = !_sortAscending;
-                      });
-                    },
-                    child: Flexible(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Holiday Pay',
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold)),
-                          const SizedBox(
-                              width:
-                                  4), // Add some space between the text and the icon
-                          Flexible(
-                            child: Icon(
-                              _sortAscending
-                                  ? Icons.arrow_drop_down
-                                  : Icons.arrow_drop_up,
-                              size: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const DataColumn(label: Text('Holiday Type', style: textStyle)),
-              const DataColumn(label: Text('Action', style: textStyle)),
-            ],
-            rows: List.generate(filteredDocuments.length, (index) {
-              DocumentSnapshot holidayDoc = filteredDocuments[index];
-              Map<String, dynamic> holidayData =
-                  holidayDoc.data() as Map<String, dynamic>;
-              _selectedHolidayTypes.add('Special Holiday');
-
-              Timestamp? timeInTimestamp = holidayDoc['timeIn'];
-              Timestamp? timeOutTimestamp = holidayDoc['timeOut'];
-
-              // Calculate the duration between timeIn and timeOut
-              Duration totalDuration = const Duration();
-              if (timeInTimestamp != null && timeOutTimestamp != null) {
-                DateTime timeIn = timeInTimestamp.toDate();
-                DateTime timeOut = timeOutTimestamp.toDate();
-                totalDuration = timeOut.difference(timeIn);
-              }
-              // Format the duration to display total hours
-              String totalHoursAndMinutes =
-                  '${totalDuration.inHours} hrs, ${totalDuration.inMinutes.remainder(60)} mins';
-
-              Color? rowColor = indexRow % 2 == 0
-                  ? Colors.white
-                  : Colors.grey[200]; // Alternating row colors
-              indexRow++; //
-
-              return DataRow(
-                  color: MaterialStateColor.resolveWith((states) => rowColor!),
-                  cells: [
-                    DataCell(Text((index + 1).toString())),
-                    DataCell(
-                      Text(holidayData['employeeId'] ?? 'Not Available Yet'),
-                    ),
-                    DataCell(
-                        Text(holidayData['userName'] ?? 'Not Available Yet')),
-                    DataCell(
-                        Text(holidayData['department'] ?? 'Not Available Yet')),
-                    DataCell(
-                      Text(_formatDate(
-                          holidayData['timeIn'] ?? 'Not Available Yet')),
-                    ),
-                    DataCell(
-                      Container(
-                        width: 100,
-                        padding: const EdgeInsets.fromLTRB(5, 2, 2, 5),
-                        decoration: BoxDecoration(
-                          color: Colors.indigo[50],
-                          border: Border.all(color: Colors.indigo.shade900),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              child: Text(totalHoursAndMinutes),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Text(NumberFormat.currency(
-                              locale: 'en_PH', symbol: '₱ ', decimalDigits: 2)
-                          .format(holidayData['holidayPay'] ?? 0.0)),
-                    ),
-                    DataCell(
-                      DropdownButton<String>(
-                        value: _selectedHolidayTypes[index],
-                        items: <String>[
-                          'Special Holiday',
-                          'Regular Holiday',
-                        ].map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) async {
-                          if (newValue == 'Regular Holiday') {
-                            await _showConfirmationDialog2(holidayDoc);
-                          }
-                          setState(() {
-                            _selectedHolidayTypes[index] = newValue!;
-                          });
-                          if (newValue == 'Special Holiday') {
-                            //   await _showConfirmationDialog2(holidayDoc);
-                          }
-                          setState(() {
-                            _selectedHolidayTypes[index] = newValue!;
-                          });
-                        },
-                      ),
-                    ),
-                    DataCell(
-                      Container(
-                        width: 100,
-                        padding: EdgeInsets.all(0),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            await _showConfirmationDialog4(holidayDoc);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.all(5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Icon(
-                                Icons.visibility,
-                                color: Colors.blue,
-                                size: 15,
-                              ),
-                              Text(
-                                'View Logs',
-                                style:
-                                    TextStyle(fontSize: 10, color: Colors.blue),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ]);
-            }),
+            ),
           );
-          return MediaQuery.of(context).size.width > 1500
-              ? SizedBox(
-                  height: 600,
-                  child: SingleChildScrollView(
-                    child: Flexible(
-                      child: dataTable,
-                    ),
-                  ),
-                )
-              : SizedBox(
-                  height: 600,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: Flexible(
-                        child: dataTable,
-                      ),
-                    ),
-                  ),
-                );
         }
       },
     );
@@ -823,99 +552,125 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
         .get();
 
     List<DocumentSnapshot> userOvertimeDocs = overtimeSnapshot.docs;
-    userOvertimeDocs.sort((a, b) {
-      Timestamp aTimestamp = a['timeIn'];
-      Timestamp bTimestamp = b['timeIn'];
-      return bTimestamp.compareTo(aTimestamp);
-    });
 
-    int totalDays = 0;
-    double totalHours = 0.0;
-    double totalPays = 0.0;
-
-    // Calculate total days, hours, and pays
-    for (var overtimeDoc in userOvertimeDocs) {
-      Timestamp? timeInTimestamp = overtimeDoc['timeIn'];
-      Timestamp? timeOutTimestamp = overtimeDoc['timeOut'];
-
-      if (timeInTimestamp != null && timeOutTimestamp != null) {
-        DateTime timeIn = timeInTimestamp.toDate();
-        DateTime timeOut = timeOutTimestamp.toDate();
-        Duration totalDuration = timeOut.difference(timeIn);
-
-        totalDays++;
-        totalHours += totalDuration.inHours + totalDuration.inMinutes / 60;
-        totalPays += (overtimeDoc['holidayPay'] ?? 0.0);
-      }
-    }
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          surfaceTintColor: Colors.white,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Regular Overtime Logs',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              IconButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  icon: const Icon(
-                    Icons.close,
-                    size: 15,
-                  )),
-            ],
-          ),
+          title: Text('Special Holiday Logs'),
           content: SingleChildScrollView(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInfoRow('Employee ID',
-                            overtimeDoc['employeeId'] ?? 'Not Available'),
-                        _buildInfoRow2('Name           ',
-                            overtimeDoc['userName'] ?? 'Not Available'),
-                        _buildInfoRow('Department ',
-                            overtimeDoc['department'] ?? 'Not Available'),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        _buildInfoRow3('# of Days', totalDays.toString()),
-                        _buildInfoRow3(
-                            'Total Hours', totalHours.toStringAsFixed(2)),
-                        _buildInfoRow2(
-                          'Total Pays',
-                          NumberFormat.currency(
-                                  locale: 'en_PH',
-                                  symbol: '₱ ',
-                                  decimalDigits: 2)
-                              .format(totalPays ?? 0.0),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const Divider(),
+                _buildInfoRow('Employee ID', overtimeDoc['employeeId']),
+                _buildInfoRow(
+                    'Name', overtimeDoc['userName'] ?? 'Not Available'),
+                _buildInfoRow(
+                    'Department', overtimeDoc['department'] ?? 'Not Available'),
+                SizedBox(height: 10),
                 _buildOvertimeTable(userOvertimeDocs),
-                const Divider(),
               ],
             ),
           ),
           actions: <Widget>[
+//             TextButton(
+//               child: Text('Total Holiday Pay'),
+//               onPressed: () async {
+//                 try {
+//                   // Show a loading indicator
+//                   showDialog(
+//                     context: context,
+//                     barrierDismissible: false,
+//                     builder: (BuildContext context) {
+//                       return Center(
+//                         child: CircularProgressIndicator(),
+//                       );
+//                     },
+//                   );
+
+//                   // Delay Firestore operations by a very short duration
+//                   await Future.delayed(Duration(milliseconds: 10));
+
+//                   // Calculate total overtime pay
+//                   double totalspecialholidayPay = 0;
+//                   for (var holidayDoc in userOvertimeDocs) {
+//                     if (holidayDoc['holidayPay'] != null) {
+//                       totalspecialholidayPay += holidayDoc['holidayPay'];
+//                     }
+//                   }
+
+//                   // Update total_overtimePay in the Overtime collection
+//                   // Update total_overtimePay in the Overtime collection
+//                   DocumentReference userOvertimeDocRef = FirebaseFirestore
+//                       .instance
+//                       .collection('SpecialHolidayPay')
+//                       .doc(userId);
+
+// // Get user details
+//                   final userDoc = await FirebaseFirestore.instance
+//                       .collection('User')
+//                       .doc(userId)
+//                       .get();
+//                   final userData = userDoc.data() as Map<String, dynamic>;
+
+// // Check if the document exists
+//                   var docSnapshot = await userOvertimeDocRef.get();
+//                   if (docSnapshot.exists) {
+//                     // If the document exists, update it
+//                     await userOvertimeDocRef.update({
+//                       'total_specialHolidayPay': totalspecialholidayPay,
+//                       'employeeId': userData['employeeId'],
+//                       'userName':
+//                           '${userData['fname']} ${userData['mname']} ${userData['lname']}',
+//                       'department': userData['department'],
+//                     });
+//                   } else {
+//                     // If the document doesn't exist, create a new one
+//                     await userOvertimeDocRef.set({
+//                       'total_specialHolidayPay': totalspecialholidayPay,
+//                       'userId': userId,
+//                       'employeeId': userData['employeeId'],
+//                       'userName':
+//                           '${userData['fname']} ${userData['mname']} ${userData['lname']}',
+//                       'department': userData['department'],
+//                     });
+//                   }
+
+//                   // Dismiss the loading indicator
+//                   Navigator.of(context).pop();
+
+//                   // Dismiss the dialog
+//                   Navigator.of(context).pop();
+//                 } catch (e) {
+//                   // Handle any errors
+//                   print('Error updating total overtime pay: $e');
+//                   // Dismiss the loading indicator
+//                   Navigator.of(context).pop();
+//                   // Show an error message
+//                   showDialog(
+//                     context: context,
+//                     builder: (BuildContext context) {
+//                       return AlertDialog(
+//                         title: Text('Error'),
+//                         content: Text(
+//                             'Failed to update total overtime pay. Please try again.'),
+//                         actions: [
+//                           TextButton(
+//                             child: Text('OK'),
+//                             onPressed: () {
+//                               Navigator.of(context).pop();
+//                             },
+//                           ),
+//                         ],
+//                       );
+//                     },
+//                   );
+//                 }
+//               },
+//             ),
             TextButton(
-              child: const Text('Done'),
+              child: Text('Done'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -926,53 +681,6 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
-        Container(
-            width: 100,
-            padding: const EdgeInsets.fromLTRB(5, 2, 5, 0),
-            decoration: BoxDecoration(border: Border.all(color: Colors.white)),
-            child: Text(value)),
-      ],
-    );
-  }
-
-  Widget _buildInfoRow3(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text('$label: ', style: TextStyle(fontWeight: FontWeight.bold)),
-        Container(
-            width: 70,
-            padding: const EdgeInsets.fromLTRB(5, 2, 5, 0),
-            decoration: BoxDecoration(border: Border.all(color: Colors.white)),
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            )),
-      ],
-    );
-  }
-
-  Widget _buildInfoRow2(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
-        IntrinsicWidth(
-          child: Container(
-              padding: const EdgeInsets.fromLTRB(5, 2, 5, 0),
-              decoration:
-                  BoxDecoration(border: Border.all(color: Colors.white)),
-              child: Text(value)),
-        ),
-      ],
-    );
-  }
-
   Widget _buildOvertimeTable(List<DocumentSnapshot> overtimeDocs) {
     // Sort documents by timestamp in descending order
     overtimeDocs.sort((a, b) {
@@ -980,90 +688,71 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
       Timestamp bTimestamp = b['timeIn'];
       return bTimestamp.compareTo(aTimestamp);
     });
+
     int index = 0;
-
-    var dataTable = DataTable(
-      columns: const [
-        DataColumn(
-            label: Text(
-          '#',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        )),
-        DataColumn(
-            label: Text(
-          'Date',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        )),
-        DataColumn(
-            label:
-                Text('Time In', style: TextStyle(fontWeight: FontWeight.bold))),
-        DataColumn(
-            label: Text('Time Out',
-                style: TextStyle(fontWeight: FontWeight.bold))),
-        DataColumn(
-          label: Text('Holiday Hours',
-              style: TextStyle(fontWeight: FontWeight.bold)),
-        ),
-        DataColumn(
-          label: Text('Holiday Pay',
-              style: TextStyle(fontWeight: FontWeight.bold)),
-        ),
-      ],
-      rows: overtimeDocs.map((overtimeDoc) {
-        Color? rowColor = index % 2 == 0
-            ? Colors.grey[200]
-            : Colors.transparent; // Alternating row colors
-        index++; //
-
-        Timestamp? timeInTimestamp = overtimeDoc['timeIn'];
-        Timestamp? timeOutTimestamp = overtimeDoc['timeOut'];
-
-        // Calculate the duration between timeIn and timeOut
-        Duration totalDuration = const Duration();
-        if (timeInTimestamp != null && timeOutTimestamp != null) {
-          DateTime timeIn = timeInTimestamp.toDate();
-          DateTime timeOut = timeOutTimestamp.toDate();
-          totalDuration = timeOut.difference(timeIn);
-        }
-
-        // Format the duration to display total hours
-        String totalHoursAndMinutes =
-            '${totalDuration.inHours} hrs, ${totalDuration.inMinutes.remainder(60)} mins';
-
-        return DataRow(
-            color: MaterialStateColor.resolveWith((states) => rowColor!),
-            cells: [
-              DataCell(Text('$index')),
-              DataCell(Text(_formatDate(overtimeDoc['timeIn']))),
-              DataCell(Text(_formatTime(overtimeDoc['timeIn']))),
-              DataCell(Text(_formatTime(overtimeDoc['timeOut']))),
-              DataCell(
-                Container(
-                    padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
-                    decoration: BoxDecoration(
-                        color: Colors.teal[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.teal.shade900)),
-                    child: Text(totalHoursAndMinutes)),
-              ),
-              DataCell(
-                Text(
-                  NumberFormat.currency(
-                          locale: 'en_PH', symbol: '₱ ', decimalDigits: 2)
-                      .format(overtimeDoc['holidayPay'] ?? 0.0),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+    return Container(
+      height: 300,
+      decoration: BoxDecoration(
+          color: Colors.white, borderRadius: BorderRadius.circular(8)),
+      child: DataTable(
+        columns: const [
+          DataColumn(
+              label: Text('#', style: TextStyle(fontWeight: FontWeight.bold))),
+          DataColumn(
+              label:
+                  Text('Date', style: TextStyle(fontWeight: FontWeight.bold))),
+          DataColumn(
+              label: Text('Time In',
+                  style: TextStyle(fontWeight: FontWeight.bold))),
+          DataColumn(
+              label: Text('Time Out',
+                  style: TextStyle(fontWeight: FontWeight.bold))),
+          DataColumn(
+              label: Text('Total Hours (h:m)',
+                  style: TextStyle(fontWeight: FontWeight.bold))),
+          DataColumn(
+            label: Text('Holiday Pay'),
+          ),
+        ],
+        rows: overtimeDocs.map((overtimeDoc) {
+          Color? rowColor = index % 2 == 0
+              ? Colors.grey[200]
+              : Colors.transparent; // Alternating row colors
+          index++;
+          return DataRow(
+              color: MaterialStateColor.resolveWith((states) => rowColor!),
+              cells: [
+                DataCell(Text('#')),
+                DataCell(Text(_formatDate(overtimeDoc['timeIn']))),
+                DataCell(Text(_formatTime(overtimeDoc['timeIn']))),
+                DataCell(Text(_formatTime(overtimeDoc['timeOut']))),
+                DataCell(Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      child: Row(
+                        children: [
+                          Text(
+                              overtimeDoc['regular_hours']?.toString() ??
+                                  'Not Available Yet',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(':'),
+                          Text(
+                              overtimeDoc['regular_minute']?.toString() ??
+                                  'Not Available Yet',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    )
+                  ],
+                )),
+                DataCell(
+                  Text(overtimeDoc['holidayPay'].toString()),
                 ),
-              ),
-            ]);
-      }).toList(),
+              ]);
+        }).toList(),
+      ),
     );
-    return MediaQuery.of(context).size.width > 1000
-        ? SizedBox(height: 300, child: SingleChildScrollView(child: dataTable))
-        : SizedBox(
-            height: 300,
-            child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SingleChildScrollView(child: dataTable)));
   }
 
   String _formatDate(dynamic timestamp) {
@@ -1086,6 +775,16 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
     } else {
       return timestamp.toString();
     }
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label + ':', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text(value),
+      ],
+    );
   }
 
   Future<void> deleteRecordFromHoliday(DocumentSnapshot holidayDoc) async {
@@ -1217,62 +916,70 @@ class _SpecialHolidayPageState extends State<SpecialHolidayPage> {
       },
     );
   }
-}
 
-Widget _buildShimmerLoading() {
-  return SingleChildScrollView(
-    scrollDirection: Axis.horizontal,
-    child: ShimmerPackage.Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: DataTable(
-        columns: const [
-          DataColumn(
-            label: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Employee ID',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Department',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Total Hours (h:m)',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Overtime Pay',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Overtime Type',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label:
-                Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          // Added column for Status
-        ],
-        rows: List.generate(
-          10, // You can change this to the number of shimmer rows you want
-          (index) => DataRow(cells: [
-            DataCell(Container(width: 40, height: 16, color: Colors.white)),
-            DataCell(Container(width: 60, height: 16, color: Colors.white)),
-            DataCell(Container(width: 120, height: 16, color: Colors.white)),
-            DataCell(Container(width: 80, height: 16, color: Colors.white)),
-            DataCell(Container(width: 80, height: 16, color: Colors.white)),
-            DataCell(Container(width: 100, height: 16, color: Colors.white)),
-            DataCell(Container(width: 60, height: 16, color: Colors.white)),
-            DataCell(Container(width: 60, height: 16, color: Colors.white)),
-          ]),
-        ),
-      ),
-    ),
-  );
+  Future<void> _computeAndAddSpecialHolidayPay() async {
+    try {
+      // Get the list of all users from Firestore
+      QuerySnapshot usersSnapshot =
+          await FirebaseFirestore.instance.collection('User').get();
+
+      // Loop through each user
+      for (var userDoc in usersSnapshot.docs) {
+        String userId = userDoc.id;
+
+        // Fetch all overtime records for the current user
+        QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
+            .collection('SpecialHoliday')
+            .where('userId', isEqualTo: userId)
+            .get();
+
+        // List to store overtime documents
+        List<DocumentSnapshot> userOvertimeDocs = overtimeSnapshot.docs;
+
+        // Calculate total overtime pay for the current user
+        double totalspecialholidayPay = 0;
+        for (var overtimeDoc in userOvertimeDocs) {
+          if (overtimeDoc['holidayPay'] != null) {
+            totalspecialholidayPay += overtimeDoc['holidayPay'];
+          }
+        }
+
+        // Get user details
+        final userData = userDoc.data() as Map<String, dynamic>;
+
+        // Update total_overtimePay in the OvertimePay collection
+        DocumentReference userOvertimeDocRef = FirebaseFirestore.instance
+            .collection('SpecialHolidayPay')
+            .doc(userId);
+
+        // Check if the document exists
+        var docSnapshot = await userOvertimeDocRef.get();
+        if (docSnapshot.exists) {
+          // If the document exists, update it
+          await userOvertimeDocRef.update({
+            'total_specialHolidayPay': totalspecialholidayPay,
+            'employeeId': userData['employeeId'],
+            'userName':
+                '${userData['fname']} ${userData['mname']} ${userData['lname']}',
+            'department': userData['department'],
+          });
+        } else {
+          // If the document doesn't exist, create a new one
+          await userOvertimeDocRef.set({
+            'total_specialHolidayPay': totalspecialholidayPay,
+            'userId': userId,
+            'employeeId': userData['employeeId'],
+            'userName':
+                '${userData['fname']} ${userData['mname']} ${userData['lname']}',
+            'department': userData['department'],
+          });
+        }
+      }
+      // Show a success message
+      print('Total overtime pay computed and added to OvertimePay collection');
+    } catch (e) {
+      // Handle any errors
+      print('Error computing and adding to OvertimePay collection: $e');
+    }
+  }
 }
