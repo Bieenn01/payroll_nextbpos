@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:project_payroll_nextbpo/export.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_dashboard.dart';
 import 'package:project_payroll_nextbpo/frontend/leaverecord.dart';
 import 'package:project_payroll_nextbpo/frontend/login.dart';
@@ -108,7 +109,7 @@ class _MyAppState extends State<MyApp> {
                 userId: '',
               );
             } else {
-              return Login();
+              return ReportGenerationPage();
             }
           }),
     );
