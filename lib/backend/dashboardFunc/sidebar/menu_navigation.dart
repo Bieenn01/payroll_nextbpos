@@ -293,7 +293,7 @@ class _ScreensViewState extends State<ScreensView> {
         );
         break;
 
-        case 'Archives':
+      case 'Archives':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -308,7 +308,7 @@ class _ScreensViewState extends State<ScreensView> {
           ),
         );
         break;
-        case 'Holiday ':
+      case 'Holiday ':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -338,7 +338,7 @@ class _ScreensViewState extends State<ScreensView> {
           ),
         );
         break;
-        case 'Regular Holiday Overtime':
+      case 'Regular Holiday Overtime':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -353,7 +353,7 @@ class _ScreensViewState extends State<ScreensView> {
           ),
         );
         break;
-        case 'Restday Overtime':
+      case 'Restday Overtime':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -368,7 +368,7 @@ class _ScreensViewState extends State<ScreensView> {
           ),
         );
         break;
-        case 'Special Holiday':
+      case 'Special Holiday':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -383,7 +383,7 @@ class _ScreensViewState extends State<ScreensView> {
           ),
         );
         break;
-        case 'Special Holiday Overtime':
+      case 'Special Holiday Overtime':
         page = Container(
           color: Colors.teal.shade700,
           child: const Column(
@@ -398,7 +398,6 @@ class _ScreensViewState extends State<ScreensView> {
           ),
         );
         break;
-
 
       default:
         page = Container(
