@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 
 class ArchivesHoliday extends StatefulWidget {
   const ArchivesHoliday({Key? key}) : super(key: key);
@@ -15,6 +16,8 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
   int _itemsPerPage = 5;
   int _currentPage = 0;
   int indexRow = 0;
+  int _totalPages = 1;
+  
   bool _sortAscending = false;
 
   bool sortPay = false;
@@ -31,8 +34,9 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
   void initState() {
     super.initState();
     _selectedOvertimeTypes = [];
+     _itemsPerPage = 5;
   }
-
+  
   @override
   Widget build(BuildContext context) {
     var styleFrom = ElevatedButton.styleFrom(
@@ -50,6 +54,7 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
+              child: SingleChildScrollView(
               child: Container(
                   margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
                   padding: EdgeInsets.all(10),
@@ -83,42 +88,57 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
                     ],
                   )),
             ),
+            )
           ],
         ),
       ),
     ));
   }
 
-  Row pagination() {
-    return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-      ElevatedButton(
-        onPressed: () {},
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+Row pagination() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        ElevatedButton(
+          onPressed:
+              _currentPage > 1 ? () => _changePage(_currentPage - 1) : null,
+          style: ElevatedButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
+          child: Text('Previous'),
         ),
-        child: Text('Previous'),
-      ),
-      SizedBox(width: 10),
-      Container(
+        SizedBox(width: 10),
+        Container(
           height: 35,
           padding: EdgeInsets.all(8),
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade200)),
-          child: Text('$_currentPage')),
-      SizedBox(width: 10),
-      ElevatedButton(
-        onPressed: () {},
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade200),
           ),
+          child: Text('$_currentPage'),
         ),
-        child: Text('Next'),
-      ),
-    ]);
+        SizedBox(width: 10),
+        ElevatedButton(
+          onPressed: _currentPage < _totalPages
+              ? () => _changePage(_currentPage + 1)
+              : null,
+          style: ElevatedButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Text('Next'),
+        ),
+      ],
+    );
+  }
+
+  void _changePage(int page) {
+    setState(() {
+      _currentPage = page;
+    });
   }
 
   Container dateFilterSearchRow(BuildContext context, ButtonStyle styleFrom) {
@@ -139,55 +159,68 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
                     child: MediaQuery.of(context).size.width > 600
                         ? Row(
                             children: [
-                              const Text('Show entries: '),
+                              Text('Show entries: '),
                               Container(
                                 width: 70,
                                 height: 30,
-                                padding: const EdgeInsets.only(left: 10),
+                                padding: EdgeInsets.only(left: 10),
                                 decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                        color: Colors.grey.shade200)),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border:
+                                      Border.all(color: Colors.grey.shade200),
+                                ),
                                 child: DropdownButton<int>(
-                                  padding: const EdgeInsets.all(5),
-                                  underline: const SizedBox(),
+                                  padding: EdgeInsets.all(5),
+                                  underline: SizedBox(),
                                   value: _itemsPerPage,
-                                  items: [5, 10, 15, 20, 25]
-                                      .map<DropdownMenuItem<int>>(
-                                    (int value) {
-                                      return DropdownMenuItem<int>(
-                                        value: value,
-                                        child: Text('$value'),
-                                      );
-                                    },
-                                  ).toList(),
-                                  onChanged: (int? newValue) {
-                                    setState(() {
-                                      _itemsPerPage = newValue!;
-                                    });
+                                  items: [5, 10, 15, 25].map((_pageSize) {
+                                    return DropdownMenuItem<int>(
+                                      value: _pageSize,
+                                      child: Text(_pageSize.toString()),
+                                    );
+                                  }).toList(),
+                                  onChanged: (newValue) {
+                                    if (newValue != null) {
+                                      if ([5, 10, 15, 25].contains(newValue)) {
+                                        setState(() {
+                                          _itemsPerPage = newValue;
+                                        });
+                                      } else {
+                                        // Handle case where the selected value is not in the predefined range
+                                        // For example, you can show a dialog, display a message, or perform any appropriate action.
+                                        print(
+                                            "Selected value is not in the predefined range.");
+                                      }
+                                    }
                                   },
                                 ),
                               ),
-                              const SizedBox(width: 10),
+                              SizedBox(width: 10),
                             ],
                           )
                         : DropdownButton<int>(
-                            padding: const EdgeInsets.all(5),
-                            underline: const SizedBox(),
+                            padding: EdgeInsets.all(5),
+                            underline: SizedBox(),
                             value: _itemsPerPage,
-                            items:
-                                [5, 10, 15, 20, 25].map<DropdownMenuItem<int>>(
-                              (int value) {
-                                return DropdownMenuItem<int>(
-                                  value: value,
-                                  child: Text('$value'),
-                                );
-                              },
-                            ).toList(),
-                            onChanged: (int? newValue) {
-                              setState(() {
-                                _itemsPerPage = newValue!;
-                              });
+                            items: [5, 10, 15, 25].map((_pageSize) {
+                              return DropdownMenuItem<int>(
+                                value: _pageSize,
+                                child: Text(_pageSize.toString()),
+                              );
+                            }).toList(),
+                            onChanged: (newValue) {
+                              if (newValue != null) {
+                                if ([5, 10, 15, 25].contains(newValue)) {
+                                  setState(() {
+                                    _itemsPerPage = newValue;
+                                  });
+                                } else {
+                                  // Handle case where the selected value is not in the predefined range
+                                  // For example, you can show a dialog, display a message, or perform any appropriate action.
+                                  print(
+                                      "Selected value is not in the predefined range.");
+                                }
+                              }
                             },
                           ),
                   ),
@@ -487,6 +520,7 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
           return Center(child: Text('No data available yet'));
         } else {
           List<DocumentSnapshot> overtimeDocs = snapshot.data!.docs;
+          _totalPages = (overtimeDocs.length / _itemsPerPage).ceil();
 
           overtimeDocs = overtimeDocs.where((doc) {
             DateTime timeIn = doc['timeIn'].toDate();
@@ -535,7 +569,9 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
                   DataColumn(label: Text('Holiday Pay', style: textStyle)),
                   DataColumn(label: Text('Action', style: textStyle)),
                 ],
-                rows: List.generate(overtimeDocs.length, (index) {
+                rows: List.generate(overtimeDocs.length.clamp(0, _itemsPerPage),
+                    (index) {
+                      
                   DocumentSnapshot overtimeDoc = overtimeDocs[index];
                   Map<String, dynamic> overtimeData =
                       overtimeDoc.data() as Map<String, dynamic>;
@@ -646,7 +682,10 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
     );
   }
 
-  Future<void> _showConfirmationDialog4(DocumentSnapshot overtimeDoc) async {
+  Future<QuerySnapshot> _showConfirmationDialog4(
+      DocumentSnapshot overtimeDoc) async {
+    Completer<QuerySnapshot> completer = Completer<QuerySnapshot>();
+
     String userId = overtimeDoc['userId'];
     QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
         .collection('ArchivesRegularH')
@@ -680,7 +719,7 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
       }
     }
 
-    return showDialog<void>(
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
@@ -695,13 +734,14 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               IconButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  icon: Icon(
-                    Icons.close,
-                    size: 15,
-                  )),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                icon: Icon(
+                  Icons.close,
+                  size: 15,
+                ),
+              ),
             ],
           ),
           content: SingleChildScrollView(
@@ -750,12 +790,15 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
               child: Text('Done'),
               onPressed: () {
                 Navigator.of(context).pop();
+                completer.complete(overtimeSnapshot);
               },
             ),
           ],
         );
       },
     );
+
+    return completer.future;
   }
 
   Widget _buildInfoRow(String label, String value) {
