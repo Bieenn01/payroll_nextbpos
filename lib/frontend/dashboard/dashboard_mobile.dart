@@ -28,14 +28,14 @@ class _DashboardMobileState extends State<DashboardMobile> {
     super.initState();
     fetchEmployeeCount();
     _fetchRole();
-    fetchLateCount().then((lateCount) {
-      setState(() {
-        _lateCount = lateCount;
-      });
-    });
+    fetchLateCount();//.then((lateCount) {
+    //   setState(() {
+    //     _lateCount = lateCount;
+    //   });
+    // });
 
-    // Schedule count reset timer
-    _startResetTimer();
+    // // Schedule count reset timer
+    // _startResetTimer();
   }
 
   @override
@@ -88,20 +88,19 @@ class _DashboardMobileState extends State<DashboardMobile> {
   }
 
   Future<int> fetchLateCount() async {
-    try {
-      // Query Firestore for documents where lateCount is greater than 0
+    DateTime now = DateTime.now();
+    DateTime startOfDay = DateTime(now.year, now.month, now.day);
+    DateTime endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection('Records')
-          .where('lateCount', isGreaterThan: 0)
+          .where('lateTime', isGreaterThanOrEqualTo: startOfDay)
+          .where('lateTime', isLessThanOrEqualTo: endOfDay)
           .get();
 
-      // Return the count of documents matching the query
+
       return querySnapshot.size;
-    } catch (e) {
-      // Print error details and throw a custom exception
-      print('Error fetching late count: $e');
-      throw Exception('Failed to fetch late count: $e');
-    }
+
   }
 
   Future<void> _resetLateCount() async {

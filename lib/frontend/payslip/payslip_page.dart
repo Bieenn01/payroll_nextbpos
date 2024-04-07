@@ -655,7 +655,7 @@ class _PayslipPageState extends State<PayslipPage> {
 
       if (userDocSnapshot.docs.isNotEmpty) {
         var userData = userDocSnapshot.docs.first.data();
-        var monthlySalary = userData['monthly_salary'] ?? 0;
+        var monthlySalary = userData['salary'] ?? 0;
         var regularOTDataQuery = await FirebaseFirestore.instance
             .collection('OvertimePay')
             .where('employeeId', isEqualTo: employeeId)
@@ -1476,7 +1476,7 @@ class _PayslipPageState extends State<PayslipPage> {
                               calculateNetPay(grossPay, totalDeduction);
 
                           var userData = userDocSnapshot.docs.first.data();
-                          var monthlySalary = userData['monthly_salary'] ?? 0;
+                          var monthlySalary = userData['salary'] ?? 0;
                           final holidayPay = holidayPayDataQuery.docs.isNotEmpty
                               ? holidayPayDataQuery.docs.first
                                       .data()['total_holidayPay'] ??
@@ -1522,7 +1522,7 @@ class _PayslipPageState extends State<PayslipPage> {
                             total_deduction: totalDeduction,
                             grossPay: grossPay,
                             netPay: netPay,
-                            monthly_salary: monthlySalary,
+                            salary: monthlySalary,
                             holidayPay: holidayPay,
                             specialHOTPay: specialHOTPay,
                             specialHPay: specialHPay,
@@ -1628,7 +1628,7 @@ class _PayslipPageState extends State<PayslipPage> {
     required double total_deduction,
     required double grossPay,
     required double netPay,
-    required double monthly_salary,
+    required double salary,
     required double holidayPay,
     required double specialHPay,
     required double restdayOTPay,
@@ -1646,7 +1646,7 @@ class _PayslipPageState extends State<PayslipPage> {
         'holidayPay': holidayPay,
         'specialHPay': specialHPay,
         'restdayOTPay': restdayOTPay,
-        'monthly_salary': monthly_salary,
+        'salary': salary,
         'grossPay': grossPay,
         'netPay': netPay,
         'night_differential': night_differential,
@@ -1723,7 +1723,7 @@ class _PayslipPageState extends State<PayslipPage> {
           .where('employeeId', isEqualTo: employeeId)
           .get();
       var userData = userDocSnapshot.docs.first.data();
-      var monthlySalary = userData['monthly_salary'] ?? 0;
+      var monthlySalary = userData['salary'] ?? 0;
 
       var paySlipDataQuery = await FirebaseFirestore.instance
           .collection('Payslip')

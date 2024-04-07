@@ -194,7 +194,7 @@ class _MobileHomeScreenState extends State<MobileHomeScreen> {
     return false; // User arrived on time
   }
 
-  void recordTimeIn() async {
+ void recordTimeIn() async {
     if (currentUser != null) {
       setState(() {
         isProcessing = true;
@@ -218,8 +218,15 @@ class _MobileHomeScreenState extends State<MobileHomeScreen> {
               .get();
           final userData = userDoc.data() as Map<String, dynamic>;
 
-          // Determine if the user arrived late or on time
           bool isLate = checkLateArrival(userData['startShift']);
+
+          Timestamp? onTimeTimestamp;
+
+          if (isLate) {
+            onTimeTimestamp = Timestamp.fromDate(currentTime);
+          } else {
+            onTimeTimestamp = null;
+          }
 
           await _firestore.collection('Records').add({
             'userId': userId,
@@ -231,8 +238,7 @@ class _MobileHomeScreenState extends State<MobileHomeScreen> {
                 userData['department'], // Assuming department is in user data
             'role': userData['role'],
             'lateCount': isLate ? lateCount : 0, // Add lateCount field
-            'onTime':
-                !isLate, // Add onTime field indicating if user arrived on time
+            'lateTime': onTimeTimestamp, // Save timestamp for onTime field
           });
 
           setState(() {
