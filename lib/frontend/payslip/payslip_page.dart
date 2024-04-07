@@ -1,3 +1,4 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -710,7 +711,6 @@ class _PayslipPageState extends State<PayslipPage> {
 
       if (userDocSnapshot.docs.isNotEmpty) {
         var userData = userDocSnapshot.docs.first.data();
-        var monthlySalary = userData['salary'] ?? 0;
         var monthlySalary = userData['salary'] ?? 0;
         var regularOTDataQuery = await FirebaseFirestore.instance
             .collection('OvertimePay')
@@ -1661,26 +1661,6 @@ class _PayslipPageState extends State<PayslipPage> {
                                         double netPay = calculateNetPay(
                                             grossPay, totalDeduction);
 
-                          var userData = userDocSnapshot.docs.first.data();
-                          var monthlySalary = userData['salary'] ?? 0;
-                          final holidayPay = holidayPayDataQuery.docs.isNotEmpty
-                              ? holidayPayDataQuery.docs.first
-                                      .data()['total_holidayPay'] ??
-                                  0
-                              : 0;
-                          var specialHPay = specialHPayDataQuery.docs.isNotEmpty
-                              ? specialHPayDataQuery.docs.first
-                                      .data()['total_specialHolidayPay'] ??
-                                  0
-                              : 0;
-                          var restdayOTPay = restdayOTDataQuery.docs.isNotEmpty
-                              ? restdayOTDataQuery.docs.first
-                                      .data()['total_restDayOTPay'] ??
-                                  0
-                              : 0;
-                          // Assuming employeeId is accessible from the user object
-                          final String employeeId = userData[
-                              'employeeId']; // Adjust this line according to your actual user object structure
                                         var userData =
                                             userDocSnapshot.docs.first.data();
                                         var monthlySalary =
@@ -1710,39 +1690,6 @@ class _PayslipPageState extends State<PayslipPage> {
                                         final String employeeId = userData[
                                             'employeeId']; // Adjust this line according to your actual user object structure
 
-                          // User is authenticated, proceed with adding payslip
-                          await addPayslip(
-                            advances_amesco: advanceAmesco,
-                            employeeId: employeeId,
-                            night_differential: nightDifferential,
-                            advances_eyecrafter: advancesEyeCrafter,
-                            advances_insular: advancesInsular,
-                            allowance: allowance,
-                            ot_adjustment: otAdjustment,
-                            other_advances: otherAdvances,
-                            other_prem_pay: otherPremiumPay,
-                            overAllOTPay: overallOTPay,
-                            pagibig_contribution: pagibigContribution,
-                            pagibig_loan: pagibigLoan,
-                            phic_contribution: phicContribution,
-                            signing_bonus: signingBonus,
-                            salary_adjustment: salaryAdjustment,
-                            referral_bonus: referralBonus,
-                            sss_contribution: sssContribution,
-                            sss_loan: sssLoan,
-                            standy_allowance: standyAllowance,
-                            vitalab_bmcdc: vitalabBMCDC,
-                            witholding_tax: withholdingTax,
-                            total_deduction: totalDeduction,
-                            grossPay: grossPay,
-                            netPay: netPay,
-                            salary: monthlySalary,
-                            holidayPay: holidayPay,
-                            specialHOTPay: specialHOTPay,
-                            specialHPay: specialHPay,
-                            regularHOTPay: regularHOTPay,
-                            regularOTPay: regularOTPay,
-                            restdayOTPay: restdayOTPay,
                                         // User is authenticated, proceed with adding payslip
                                         await addPayslip(
                                           advances_amesco: advanceAmesco,
@@ -1903,7 +1850,6 @@ class _PayslipPageState extends State<PayslipPage> {
     required double grossPay,
     required double netPay,
     required double salary,
-    required double salary,
     required double holidayPay,
     required double specialHPay,
     required double restdayOTPay,
@@ -1921,7 +1867,6 @@ class _PayslipPageState extends State<PayslipPage> {
         'holidayPay': holidayPay,
         'specialHPay': specialHPay,
         'restdayOTPay': restdayOTPay,
-        'salary': salary,
         'salary': salary,
         'grossPay': grossPay,
         'netPay': netPay,
@@ -1999,7 +1944,6 @@ class _PayslipPageState extends State<PayslipPage> {
           .where('employeeId', isEqualTo: employeeId)
           .get();
       var userData = userDocSnapshot.docs.first.data();
-      var monthlySalary = userData['salary'] ?? 0;
       var monthlySalary = userData['salary'] ?? 0;
 
       var paySlipDataQuery = await FirebaseFirestore.instance
