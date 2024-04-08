@@ -4,11 +4,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:project_payroll_nextbpo/frontend/contribution.dart';
+import 'package:project_payroll_nextbpo/frontend/payslip/contribution.dart';
 import 'package:shimmer/shimmer.dart' as ShimmerPackage;
 import 'package:intl/intl.dart';
 
-import 'package:project_payroll_nextbpo/frontend/payslip._form.dart';
+import 'package:project_payroll_nextbpo/frontend/payslip/payslip._form.dart';
 
 class PayslipData {
   final DateTime startDate;
@@ -545,33 +545,109 @@ class _PayslipPageState extends State<PayslipPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Container(
-                            width: 150,
-                            child: ElevatedButton(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Icon(Icons.refresh),
-                                  Text('Reset Data'),
-                                ],
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Container(
+                                width: MediaQuery.of(context).size.width > 600
+                                    ? 400
+                                    : 100,
+                                height: 30,
+                                margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color: Colors.black.withOpacity(0.5)),
+                                ),
+                                child: TextField(
+                                  controller: _searchController,
+                                  textAlign: TextAlign.start,
+                                  decoration: const InputDecoration(
+                                    contentPadding: EdgeInsets.only(bottom: 15),
+                                    prefixIcon: Icon(Icons.search),
+                                    border: InputBorder.none,
+                                    hintText: 'Search',
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {});
+                                  },
+                                ),
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  // Reset the status to default in each document
-                                  for (var payrollDoc in filteredPayrollDocs) {
-                                    payrollDoc.reference
-                                        .update({'status': 'Not Done'});
-                                  }
-                                });
-                              },
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              calculatePayslipTotals();
-                            },
-                            child: Text('Calculate Totals'),
+                              Container(
+                                width: 130,
+                                height: 30,
+                                padding: const EdgeInsets.all(0),
+                                margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                decoration: BoxDecoration(
+                                    color: Colors.teal,
+                                    border: Border.all(
+                                        color: Colors.teal.shade900
+                                            .withOpacity(0.5)),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal,
+                                    padding: const EdgeInsets.only(left: 5),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Icon(
+                                        Icons.refresh,
+                                        color: Colors.white,
+                                      ),
+                                      Text(
+                                        'Reset Data',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w400,
+                                            letterSpacing: 1,
+                                            color: Colors.white),
+                                      ),
+                                    ],
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      // Reset the status to default in each document
+                                      for (var payrollDoc
+                                          in filteredPayrollDocs) {
+                                        payrollDoc.reference
+                                            .update({'status': 'Not Done'});
+                                      }
+                                    });
+                                  },
+                                ),
+                              ),
+                              Container(
+                                width: 130,
+                                height: 30,
+                                padding: const EdgeInsets.all(0),
+                                margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                decoration: BoxDecoration(
+                                    color: Colors.teal,
+                                    border: Border.all(
+                                        color: Colors.teal.shade900
+                                            .withOpacity(0.5)),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal,
+                                    padding: const EdgeInsets.only(left: 5),
+                                  ),
+                                  onPressed: () {
+                                    calculatePayslipTotals();
+                                  },
+                                  child: Text(
+                                    'Calculate Totals',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        letterSpacing: 1,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -712,9 +788,10 @@ class _PayslipPageState extends State<PayslipPage> {
                               height: 50,
                               padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
                               decoration: BoxDecoration(
-                                color: Colors.blue[200],
+                                color: Colors.green[200],
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.blue.shade200),
+                                border:
+                                    Border.all(color: Colors.green.shade200),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
@@ -734,8 +811,12 @@ class _PayslipPageState extends State<PayslipPage> {
                                       } else {
                                         // Data has been successfully fetched, display it
                                         return Text(
-                                          totalGrossPay
-                                              .toString(), // Assuming totalGrossPay is accessible in this scope
+                                          NumberFormat.currency(
+                                                  locale: 'en_PH',
+                                                  symbol: '₱ ',
+                                                  decimalDigits: 2)
+                                              .format(totalGrossPay ?? 0.0),
+                                          // Assuming totalGrossPay is accessible in this scope
                                           style: TextStyle(
                                             fontSize: 20,
                                           ),
@@ -777,8 +858,12 @@ class _PayslipPageState extends State<PayslipPage> {
                                       } else {
                                         // Data has been successfully fetched, display it
                                         return Text(
-                                          totalDeductions
-                                              .toString(), // Assuming totalGrossPay is accessible in this scope
+                                          NumberFormat.currency(
+                                                  locale: 'en_PH',
+                                                  symbol: '₱ ',
+                                                  decimalDigits: 2)
+                                              .format(totalDeductions ?? 0.0),
+                                          // Assuming totalGrossPay is accessible in this scope
                                           style: TextStyle(
                                             fontSize: 20,
                                           ),
@@ -798,10 +883,9 @@ class _PayslipPageState extends State<PayslipPage> {
                               height: 50,
                               padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
                               decoration: BoxDecoration(
-                                color: Colors.green[200],
+                                color: Colors.blue[200],
                                 borderRadius: BorderRadius.circular(8),
-                                border:
-                                    Border.all(color: Colors.green.shade200),
+                                border: Border.all(color: Colors.blue.shade200),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
@@ -821,11 +905,15 @@ class _PayslipPageState extends State<PayslipPage> {
                                       } else {
                                         // Data has been successfully fetched, display it
                                         return Text(
-                                          totalNetPay
-                                              .toString(), // Assuming totalGrossPay is accessible in this scope
+                                          NumberFormat.currency(
+                                                  locale: 'en_PH',
+                                                  symbol: '₱ ',
+                                                  decimalDigits: 2)
+                                              .format(totalNetPay ?? 0.0),
+                                          // Assuming totalGrossPay is accessible in this scope
                                           style: TextStyle(
-                                            fontSize: 20,
-                                          ),
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
                                         );
                                       }
                                     },
