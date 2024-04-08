@@ -33,6 +33,7 @@ class User {
   String mobilenum;
   double salary;
   bool isActive;
+  bool isATM;
   User(
       {required this.department,
       required this.email,
@@ -50,7 +51,9 @@ class User {
       required this.taxCode,
       required this.employeeId,
       required this.mobilenum,
-      required this.isActive});
+      required this.isActive, required this.isATM
+
+      });
 }
 
 class UsernameGenerator {
@@ -86,7 +89,7 @@ class _UserState extends State<PovUser> {
   DateTime? selectedDateTime;
   bool passwordVisible = false;
   int index = 0;
-  bool isATM = true;
+
   List<DocumentSnapshot> _allDocs = []; // Store all fetched documents
   List<DocumentSnapshot> _displayedDocs =
       []; // Documents to display on the current page
@@ -634,6 +637,12 @@ class _UserState extends State<PovUser> {
             ),
             const DataColumn(
               label: Flexible(
+                child: Text('ATM',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const DataColumn(
+              label: Flexible(
                 child: Text('Action',
                     style: TextStyle(fontWeight: FontWeight.bold)),
               ),
@@ -652,6 +661,7 @@ class _UserState extends State<PovUser> {
               String shift = getShiftText(startShift);
               String userId = document.id;
               bool isActive = data['isActive'] ?? false;
+              bool isATM = data['isATM'] ?? false;
 
               // Calculate the real index based on the current page and page size
               int realIndex = index + 1;
@@ -692,6 +702,34 @@ class _UserState extends State<PovUser> {
                               }
                             } else {
                               updateAccountStatus(userId, value);
+                              showToast("User Activated");
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    SizedBox(
+                      width: 50,
+                      height: 30,
+                      child: FittedBox(
+                        fit: BoxFit.fill,
+                        child: Switch(
+                          value: isATM,
+                          activeColor: Colors.green,
+                          onChanged: (value) async {
+                            if (!value) {
+                              bool verificationResult =
+                                  await passwordVerification(context);
+                              if (verificationResult) {
+                                updateATM(userId, value);
+                                showToast("User Deactivated");
+                              } else {
+                                // Handle unsuccessful or canceled verification
+                              }
+                            } else {
+                              updateATM(userId, value);
                               showToast("User Activated");
                             }
                           },
@@ -1023,6 +1061,23 @@ class _UserState extends State<PovUser> {
       CollectionReference users = FirebaseFirestore.instance.collection('User');
 
       users.doc(userId).update({'isActive': isActive});
+
+      setState(() {});
+
+      // showSuccess(
+      //     context, 'Status Update', 'Account status updated successfully.');
+
+      print('Account status updated successfully.');
+    } catch (e) {
+      print('Error updating account status: $e');
+    }
+  }
+
+    Future<void> updateATM(String userId, bool isATM) async {
+    try {
+      CollectionReference users = FirebaseFirestore.instance.collection('User');
+
+      users.doc(userId).update({'isATM': isATM});
 
       setState(() {});
 
@@ -1526,31 +1581,7 @@ class _UserState extends State<PovUser> {
                           ),
                         ),
                         SizedBox(width: 10),
-                        Flexible(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'ATM:',
-                              ),
-                              SizedBox(
-                                width: 80,
-                                height: 40,
-                                child: FittedBox(
-                                  fit: BoxFit.contain,
-                                  child: Switch(
-                                    value: isATM,
-                                    activeColor: Colors.blue,
-                                    onChanged: (value) async {
-                                      if (!value) {}
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
+                        
                       ],
                     ),
                     const SizedBox(
@@ -2406,34 +2437,6 @@ class _UserState extends State<PovUser> {
                           const SizedBox(
                             width: 10,
                           ),
-                          Flexible(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'ATM:',
-                                  style: textStyle,
-                                ),
-                                SizedBox(
-                                  width: 80,
-                                  height: 40,
-                                  child: FittedBox(
-                                    fit: BoxFit.contain,
-                                    child: Switch(
-                                      value: isATM,
-                                      activeColor: Colors.blue,
-                                      onChanged: (value) async {
-                                        setState(() {
-                                          isATM = value;
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
                         ],
                       ),
                       const SizedBox(
@@ -2956,6 +2959,8 @@ class _UserState extends State<PovUser> {
         employeeId: employeeIdController.text,
         mobilenum: mobilenumController.text,
         isActive: false,
+        isATM: false,
+
       );
 
       await addUser(
@@ -2976,6 +2981,7 @@ class _UserState extends State<PovUser> {
         newUser.employeeId,
         newUser.mobilenum,
         newUser.isActive,
+        newUser.isATM,
       );
 
       Navigator.pop(context); // Close the dialog or navigate to the next screen
