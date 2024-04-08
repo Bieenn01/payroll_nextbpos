@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -137,7 +136,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                     child: Text(
                                       "Generate Payroll >",
                                       style: TextStyle(
-                                          color: Colors.grey.shade200,
+                                          color: Colors.grey,
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold),
                                     ),
@@ -201,6 +200,9 @@ class _PayslipPageState extends State<PayslipPage> {
           final dataTable = DataTable(
             columns: const [
               DataColumn(
+                label: Text('#', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              DataColumn(
                 label: Text('Date Start',
                     style: TextStyle(fontWeight: FontWeight.bold)),
               ),
@@ -217,7 +219,8 @@ class _PayslipPageState extends State<PayslipPage> {
                     style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
-            rows: documents.map<DataRow>((doc) {
+            rows: List<DataRow>.generate(documents.length, (index) {
+              final doc = documents[index];
               Map<String, dynamic>? data =
                   doc.data() as Map<String, dynamic>?; // Make data nullable
               if (data == null) return DataRow(cells: []); // Skip null data
@@ -225,6 +228,7 @@ class _PayslipPageState extends State<PayslipPage> {
               DateFormat dateFormatter = DateFormat('MM/dd/yyyy');
               return DataRow(
                 cells: [
+                  DataCell(Text('${index + 1}')),
                   DataCell(Text(dateFormatter.format(
                       data['startDate']?.toDate() ??
                           DateTime.now()))), // Provide default value if null
@@ -235,31 +239,38 @@ class _PayslipPageState extends State<PayslipPage> {
                       data['dateGenerated']?.toDate() ??
                           DateTime.now()))), // Provide default value if null
                   DataCell(
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          viewTable = false;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.all(5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    Container(
+                      width: 150,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            viewTable = false;
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.all(5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.visibility,
-                            color: Colors.blue,
-                            size: 15,
-                          ),
-                          Text(
-                            'View',
-                            style: TextStyle(fontSize: 10, color: Colors.blue),
-                          ),
-                        ],
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.visibility,
+                              color: Colors.blue,
+                              size: 18,
+                            ),
+                            SizedBox(
+                              width: 5,
+                            ),
+                            Text(
+                              'View',
+                              style:
+                                  TextStyle(fontSize: 15, color: Colors.blue),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -425,7 +436,7 @@ class _PayslipPageState extends State<PayslipPage> {
                     },
                     child: const Text(
                       'Select Date Range',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                 ],
@@ -512,151 +523,243 @@ class _PayslipPageState extends State<PayslipPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        ElevatedButton(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Container(
+                            width: 150,
+                            child: ElevatedButton(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Icon(Icons.refresh),
+                                  Text('Reset Data'),
+                                ],
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  // Reset the status to default in each document
+                                  for (var payrollDoc in filteredPayrollDocs) {
+                                    payrollDoc.reference
+                                        .update({'status': 'Not Done'});
+                                  }
+                                });
+                              },
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Icon(Icons.refresh),
-                              Text('Reset Data'),
+                              DataTable(
+                                columns: [
+                                  const DataColumn(
+                                      label: Text('#',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold))),
+                                  const DataColumn(
+                                      label: Text('Employee Id',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold))),
+                                  const DataColumn(
+                                      label: Text('Name',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold))),
+                                  DataColumn(
+                                    label: PopupMenuButton<String>(
+                                      child: const Row(
+                                        children: [
+                                          Text(
+                                            'Department',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          Icon(Icons.arrow_drop_down)
+                                        ],
+                                      ),
+                                      onSelected: (String value) {
+                                        setState(() {
+                                          selectedDepartment = value;
+                                        });
+                                      },
+                                      itemBuilder: (BuildContext context) => [
+                                        'All', // Default option
+                                        'IT',
+                                        'HR',
+                                        'ACCOUNTING',
+                                        'SERVICING',
+                                      ].map((String value) {
+                                        return PopupMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                      label: Text('Status',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold))),
+                                  DataColumn(
+                                      label: Text('Action',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold))),
+                                ],
+                                rows: List.generate(filteredPayrollDocs.length,
+                                    (index) {
+                                  DocumentSnapshot payrollDoc =
+                                      filteredPayrollDocs[index];
+                                  Map<String, dynamic> payrollData =
+                                      payrollDoc.data() as Map<String, dynamic>;
+                                  final fullname =
+                                      '${payrollData['fname']} ${payrollData['mname']} ${payrollData['lname']}';
+
+                                  // Checking if the employeeId exists in _generateClickedList to highlight the row
+
+                                  return DataRow(
+                                    cells: [
+                                      DataCell(Text('${index + 1}')),
+                                      DataCell(
+                                        Text(payrollData['employeeId'] ??
+                                            'Not Available Yet'),
+                                      ),
+                                      DataCell(
+                                        Text(fullname ?? 'Not Available Yet'),
+                                      ),
+                                      DataCell(
+                                        Text(payrollData['department'] ??
+                                            'Not Available Yet'),
+                                      ),
+                                      DataCell(
+                                        Text(payrollData['status'] ??
+                                            'Not Done'),
+                                      ),
+                                      DataCell(Row(
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(Icons.visibility,
+                                                color: Colors.blue),
+                                            onPressed: () {
+                                              _showPayslipDialog2(
+                                                  context, payrollData);
+                                            },
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.payment,
+                                                color: Colors.blue),
+                                            onPressed: () {
+                                              _showPayslipDialog(
+                                                  context, payrollData);
+                                            },
+                                          ),
+                                        ],
+                                      )),
+                                    ],
+                                  );
+                                }),
+                              ),
                             ],
                           ),
-                          onPressed: () {
-                            setState(() {
-                              // Reset the status to default in each document
-                              for (var payrollDoc in filteredPayrollDocs) {
-                                payrollDoc.reference
-                                    .update({'status': 'Not Done'});
-                              }
-                            });
-                          },
-                        ),
-                        DataTable(
-                          columns: [
-                            const DataColumn(
-                                label: Text('#',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold))),
-                            const DataColumn(
-                                label: Text('Employee Id',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold))),
-                            const DataColumn(
-                                label: Text('Name',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold))),
-                            DataColumn(
-                              label: PopupMenuButton<String>(
-                                child: const Row(
-                                  children: [
-                                    Text(
-                                      'Department',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    Icon(Icons.arrow_drop_down)
-                                  ],
-                                ),
-                                onSelected: (String value) {
-                                  setState(() {
-                                    selectedDepartment = value;
-                                  });
-                                },
-                                itemBuilder: (BuildContext context) => [
-                                  'All', // Default option
-                                  'IT',
-                                  'HR',
-                                  'ACCOUNTING',
-                                  'SERVICING',
-                                ].map((String value) {
-                                  return PopupMenuItem<String>(
-                                    value: value,
-                                    child: Text(value),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                            DataColumn(
-                                label: Text('Status',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold))),
-                            DataColumn(
-                                label: Text('Action',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold))),
-                          ],
-                          rows: List.generate(filteredPayrollDocs.length,
-                              (index) {
-                            DocumentSnapshot payrollDoc =
-                                filteredPayrollDocs[index];
-                            Map<String, dynamic> payrollData =
-                                payrollDoc.data() as Map<String, dynamic>;
-                            final fullname =
-                                '${payrollData['fname']} ${payrollData['mname']} ${payrollData['lname']}';
-
-                            // Checking if the employeeId exists in _generateClickedList to highlight the row
-
-                            return DataRow(
-                              cells: [
-                                DataCell(Text('${index + 1}')),
-                                DataCell(
-                                  Text(payrollData['employeeId'] ??
-                                      'Not Available Yet'),
-                                ),
-                                DataCell(
-                                  Text(fullname ?? 'Not Available Yet'),
-                                ),
-                                DataCell(
-                                  Text(payrollData['department'] ??
-                                      'Not Available Yet'),
-                                ),
-                                DataCell(
-                                  Text(payrollData['status'] ?? 'Not Done'),
-                                ),
-                                DataCell(Row(
-                                  children: [
-                                    IconButton(
-                                      icon: Icon(Icons.visibility,
-                                          color: Colors.blue),
-                                      onPressed: () {
-                                        _showPayslipDialog2(
-                                            context, payrollData);
-                                      },
-                                    ),
-                                    IconButton(
-                                      icon: Icon(Icons.payment,
-                                          color: Colors.blue),
-                                      onPressed: () {
-                                        _showPayslipDialog(
-                                            context, payrollData);
-                                      },
-                                    ),
-                                  ],
-                                )),
-                              ],
-                            );
-                          }),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      width: 150,
-                      margin: EdgeInsets.only(left: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 10,
-                          ),
-                          Text('OVERALL SUMMARY'),
-                          Text('Gross Pay'),
-                          Text('Deductions'),
-                          Text('NETPAY')
                         ],
                       ),
-                    )
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        margin: EdgeInsets.only(left: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            SizedBox(height: 10),
+                            const Text(
+                              'OVERALL SUMMARY',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            Text(
+                              'Gross Pay',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Container(
+                              height: 50,
+                              padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[200],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.blue.shade200),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '0.00',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Deductions',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Container(
+                              height: 50,
+                              padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
+                              decoration: BoxDecoration(
+                                color: Colors.red[200],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.red.shade200),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '0.00',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'NETPAY',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Container(
+                              height: 50,
+                              padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
+                              decoration: BoxDecoration(
+                                color: Colors.green[200],
+                                borderRadius: BorderRadius.circular(8),
+                                border:
+                                    Border.all(color: Colors.green.shade200),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '0.00',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
