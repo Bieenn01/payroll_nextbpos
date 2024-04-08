@@ -19,6 +19,8 @@ Future<void> addUser(
   String employeeId,
   String mobilenum,
   bool isActive,
+  bool isATM,
+  
 ) async {
   try {
     // Use the current user's UID as the document ID
@@ -44,7 +46,8 @@ Future<void> addUser(
       'tin': tin,
       'taxCode': taxCode,
       'employeeId': employeeId,
-      'isActive': isActive, // Add this field with value true
+      'isActive': isActive,
+      'isATM': isATM,
     });
   } catch (e) {
     print("An error occurred while adding user: $e");

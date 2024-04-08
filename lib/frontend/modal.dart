@@ -277,7 +277,7 @@ Future<bool> passwordVerification(BuildContext context) async {
                     final QuerySnapshot result = await users
                         .where(users.id)
                         .where('role', isEqualTo: 'Superadmin')
-                        .where('pinCode', isEqualTo: enteredPassword)
+                        .where('username', isEqualTo: enteredPassword)
                         .get();
 
                     if (result.docs.isNotEmpty) {
