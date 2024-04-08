@@ -54,7 +54,8 @@ Future<TreeNode> getMenuTree() async {
           TreeNode(key: "Regular"),
           TreeNode(key: "Special"),
         ]),
-      TreeNode(key: "Logs", data: Icons.analytics)
+      TreeNode(key: "Logs", data: Icons.analytics),
+      TreeNode(key: "Payslip", data: Icons.payments),
     ]);
   }
 
