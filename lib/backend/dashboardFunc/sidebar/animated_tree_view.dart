@@ -32,12 +32,12 @@ Future<TreeNode> getMenuTree() async {
       TreeNode(key: "Payroll", data: Icons.payments),
       TreeNode(key: "Archives", data: Icons.archive)
         ..addAll([
-          TreeNode(key: "Holiday "),
           TreeNode(key: "Overtime "),
-          TreeNode(key: "Regular Holiday Overtime"),
           TreeNode(key: "Restday Overtime"),
+          TreeNode(key: "Regular Holiday Overtime"),
+          TreeNode(key: "Special Holiday Overtime"),
+          TreeNode(key: "Holiday "),
           TreeNode(key: "Special Holiday"),
-          TreeNode(key: "Special Holiday Overtime")
         ])
     ]);
   } else {
