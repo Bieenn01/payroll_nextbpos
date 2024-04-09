@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +8,7 @@ import 'package:project_payroll_nextbpo/backend/dashboardFunc/main_calendar.dart
 import 'package:project_payroll_nextbpo/frontend/dashboard/userTimeInToday.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:project_payroll_nextbpo/frontend/mobileHomeScreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DashboardMobile extends StatefulWidget {
   const DashboardMobile({super.key});
@@ -17,12 +20,43 @@ class DashboardMobile extends StatefulWidget {
 class _DashboardMobileState extends State<DashboardMobile> {
   int totalEmployees = 0;
   late String _role = 'Guest';
+  late int _lateCount = 0; // Late count variable
+  late Timer _resetTimer; // Timer for count reset
 
   @override
   void initState() {
     super.initState();
     fetchEmployeeCount();
     _fetchRole();
+    fetchLateCount();//.then((lateCount) {
+    //   setState(() {
+    //     _lateCount = lateCount;
+    //   });
+    // });
+
+    // // Schedule count reset timer
+    // _startResetTimer();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    // Cancel the timer when the widget is disposed
+    _resetTimer.cancel();
+  }
+
+  void _startResetTimer() {
+    // Get the current time
+    DateTime now = DateTime.now();
+
+    // Calculate the duration until midnight
+    DateTime midnight = DateTime(now.year, now.month, now.day + 1);
+    Duration durationUntilMidnight = midnight.difference(now);
+
+    // Schedule a timer to reset the count at midnight
+    _resetTimer = Timer(durationUntilMidnight, () {
+      _resetLateCount();
+    });
   }
 
   Future<void> _fetchRole() async {
@@ -35,18 +69,15 @@ class _DashboardMobileState extends State<DashboardMobile> {
 
       setState(() {
         final role = docSnapshot['role'];
-        _role = role != null
-            ? role
-            : 'Guest'; // Default to 'Guest' if role is not specified
+        _role = role ?? 'Guest'; // Default to 'Guest' if role is not specified
       });
     }
   }
 
   Future<void> fetchEmployeeCount() async {
     try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('User') // Change this to your collection name
-          .get();
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('User').get();
 
       setState(() {
         totalEmployees = querySnapshot.size;
@@ -56,6 +87,43 @@ class _DashboardMobileState extends State<DashboardMobile> {
     }
   }
 
+  Future<int> fetchLateCount() async {
+    DateTime now = DateTime.now();
+    DateTime startOfDay = DateTime(now.year, now.month, now.day);
+    DateTime endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('Records')
+          .where('lateTime', isGreaterThanOrEqualTo: startOfDay)
+          .where('lateTime', isLessThanOrEqualTo: endOfDay)
+          .get();
+
+
+      return querySnapshot.size;
+
+  }
+
+  Future<void> _resetLateCount() async {
+    try {
+      // Update lateCount for all documents in Firestore
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+
+      // Query documents where lateCount is greater than 0 and update to 0
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('Records')
+          .where('lateCount', isGreaterThan: 0)
+          .get();
+
+      querySnapshot.docs.forEach((doc) {
+        batch.update(doc.reference, {'lateCount': 0});
+      });
+
+      // Commit the batch update
+      await batch.commit();
+    } catch (e) {
+      print('Error resetting late count: $e');
+    }
+  }
   Future<int> countDocumentsForToday() async {
     DateTime now = DateTime.now();
     DateTime startOfDay = DateTime(now.year, now.month, now.day);
@@ -231,12 +299,26 @@ class _DashboardMobileState extends State<DashboardMobile> {
                 ),
                 Flexible(
                   flex: 1,
-                  child: Container(
-                    height: 120,
-                    padding: EdgeInsets.all(8),
-                    decoration: container1Decoration(),
-                    child: smallContainerRow(
-                        '62', Icons.more_time_sharp, 'Late Arrival'),
+                  child: FutureBuilder<int>(
+                    future: fetchLateCount(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: Text('Error: ${snapshot.error}'),
+                        );
+                      } else {
+                        return Container(
+                          height: 120,
+                          padding: EdgeInsets.all(8),
+                          decoration: container1Decoration(),
+                          child: smallContainer(
+                            '${snapshot.data ?? 0}', // Display late count retrieved from snapshot, with fallback value of 0
+                            Icons.more_time_sharp,
+                            'Late Arrival',
+                          ),
+                        );
+                      }
+                    },
                   ),
                 ),
                 SizedBox(

@@ -27,6 +27,7 @@ import 'package:project_payroll_nextbpo/frontend/overtime%20bar/specialHolidayOT
 import 'package:project_payroll_nextbpo/backend/dashboardFunc/top_bar.dart';
 import 'package:project_payroll_nextbpo/frontend/dashboard/pov_user_create.dart';
 import 'package:project_payroll_nextbpo/frontend/overtime%20bar/regularOT.dart';
+import 'package:project_payroll_nextbpo/frontend/payslip/payslipEmployee.dart';
 import 'package:project_payroll_nextbpo/frontend/payslip/payslip_page.dart';
 import 'package:lottie/lottie.dart';
 
@@ -272,6 +273,21 @@ class _ScreensViewState extends State<ScreensView> {
               Flexible(
                 flex: 7,
                 child: PayslipPage(),
+              ),
+            ],
+          ),
+        );
+        break;
+      case 'Payslip':
+        page = Container(
+          color: Colors.teal.shade700,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 120, child: TopBar()),
+              Flexible(
+                flex: 7,
+                child: PayslipEmployee(),
               ),
             ],
           ),

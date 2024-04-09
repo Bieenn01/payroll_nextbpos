@@ -33,6 +33,7 @@ class User {
   String mobilenum;
   double salary;
   bool isActive;
+  bool isATM;
   User(
       {required this.department,
       required this.email,
@@ -50,7 +51,8 @@ class User {
       required this.taxCode,
       required this.employeeId,
       required this.mobilenum,
-      required this.isActive});
+      required this.isActive,
+      required this.isATM});
 }
 
 class UsernameGenerator {
@@ -86,6 +88,7 @@ class _UserState extends State<PovUser> {
   DateTime? selectedDateTime;
   bool passwordVisible = false;
   int index = 0;
+
   List<DocumentSnapshot> _allDocs = []; // Store all fetched documents
   List<DocumentSnapshot> _displayedDocs =
       []; // Documents to display on the current page
@@ -113,7 +116,8 @@ class _UserState extends State<PovUser> {
   String selectedRole = 'Select Role';
   String selectedDep = 'Select Department';
   String typeEmployee = 'Type of Employee';
-    late String _role = 'Guest';
+  String genderEmployee = 'Select Gender';
+  late String _role = 'Guest';
 
   @override
   void initState() {
@@ -174,7 +178,7 @@ class _UserState extends State<PovUser> {
     }
   }
 
-    String? getCurrentUserId() {
+  String? getCurrentUserId() {
     final user = FirebaseAuth.instance.currentUser;
     return user?.uid;
   }
@@ -316,7 +320,6 @@ class _UserState extends State<PovUser> {
           return Text('No users found.');
         }
 
-        
         if (snapshot.data != null && snapshot.data!.docs != null) {
           _allDocs = snapshot.data!.docs;
 
@@ -346,27 +349,26 @@ class _UserState extends State<PovUser> {
               return firstNameB.compareTo(firstNameA);
             });
           }
-                    List<DocumentSnapshot> userRecords = _role == 'Employee'
+          List<DocumentSnapshot> userRecords = _role == 'Employee'
               ? snapshot.data!.docs
                   .where((doc) => doc['userId'] == getCurrentUserId())
                   .toList()
               : snapshot.data!.docs;
-              
+
           List<DocumentSnapshot> filteredDocs = userRecords.where((document) {
-              Map<String, dynamic> data =
-                  document.data() as Map<String, dynamic>;
-              String employeeId = data['employeeId'];
-              String fname = data['fname'];
-              String mname = data['mname'];
-              String lname = data['lname'];
-              String query = _searchController.text.toLowerCase();
-              bool matchesSearchQuery =
-                  employeeId.toLowerCase().contains(query) ||
-                      fname.toLowerCase().contains(query) ||
-                      mname.toLowerCase().contains(query) ||
-                      lname.toLowerCase().contains(query);
-              return matchesSearchQuery;
-            }).toList();
+            Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+            String employeeId = data['employeeId'];
+            String fname = data['fname'];
+            String mname = data['mname'];
+            String lname = data['lname'];
+            String query = _searchController.text.toLowerCase();
+            bool matchesSearchQuery =
+                employeeId.toLowerCase().contains(query) ||
+                    fname.toLowerCase().contains(query) ||
+                    mname.toLowerCase().contains(query) ||
+                    lname.toLowerCase().contains(query);
+            return matchesSearchQuery;
+          }).toList();
 
           List<DocumentSnapshot> filteredDocuments = filteredDocs;
           if (selectedDepartment != 'All') {
@@ -389,15 +391,12 @@ class _UserState extends State<PovUser> {
             endIndex = filteredDocs.length;
           }
 
-          
-
           // Ensure startIndex is within the bounds of _allDocs
           if (startIndex >= 0 &&
               endIndex >= 0 &&
               startIndex < filteredDocuments.length &&
               endIndex <= filteredDocuments.length) {
-            _displayedDocs = filteredDocuments
-                .sublist(startIndex, endIndex);
+            _displayedDocs = filteredDocuments.sublist(startIndex, endIndex);
             //     .where((document) {
             //   Map<String, dynamic> data =
             //       document.data() as Map<String, dynamic>;
@@ -637,6 +636,12 @@ class _UserState extends State<PovUser> {
             ),
             const DataColumn(
               label: Flexible(
+                child:
+                    Text('ATM', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const DataColumn(
+              label: Flexible(
                 child: Text('Action',
                     style: TextStyle(fontWeight: FontWeight.bold)),
               ),
@@ -655,6 +660,7 @@ class _UserState extends State<PovUser> {
               String shift = getShiftText(startShift);
               String userId = document.id;
               bool isActive = data['isActive'] ?? false;
+              bool isATM = data['isATM'] ?? false;
 
               // Calculate the real index based on the current page and page size
               int realIndex = index + 1;
@@ -674,6 +680,34 @@ class _UserState extends State<PovUser> {
                   DataCell(Text(data['department'].toString())),
                   DataCell(Text(shift)),
                   DataCell(Text(data['role'].toString())),
+                  DataCell(
+                    SizedBox(
+                      width: 50,
+                      height: 30,
+                      child: FittedBox(
+                        fit: BoxFit.fill,
+                        child: Switch(
+                          value: isATM,
+                          activeColor: Colors.blue,
+                          onChanged: (value) async {
+                            if (!value) {
+                              bool verificationResult =
+                                  await passwordVerification(context);
+                              if (verificationResult) {
+                                updateATM(userId, value);
+                                showToast("User Deactivated");
+                              } else {
+                                // Handle unsuccessful or canceled verification
+                              }
+                            } else {
+                              updateATM(userId, value);
+                              showToast("User Activated");
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
                   DataCell(
                     SizedBox(
                       width: 50,
@@ -1038,6 +1072,23 @@ class _UserState extends State<PovUser> {
     }
   }
 
+  Future<void> updateATM(String userId, bool isATM) async {
+    try {
+      CollectionReference users = FirebaseFirestore.instance.collection('User');
+
+      users.doc(userId).update({'isATM': isATM});
+
+      setState(() {});
+
+      // showSuccess(
+      //     context, 'Status Update', 'Account status updated successfully.');
+
+      print('Account status updated successfully.');
+    } catch (e) {
+      print('Error updating account status: $e');
+    }
+  }
+
   void editUserDetails(String userId, Map<String, dynamic> userData) {
     TextEditingController firstNameController =
         TextEditingController(text: userData['fname'].toString());
@@ -1285,6 +1336,65 @@ class _UserState extends State<PovUser> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              const Text(
+                                'Gender:',
+                              ),
+                              Container(
+                                width: 280,
+                                height: 40,
+                                padding: const EdgeInsets.only(left: 10),
+                                decoration: boxdecoration(),
+                                child: DropdownMenu<String>(
+                                  width: MediaQuery.of(context).size.width > 800
+                                      ? 280
+                                      : 150,
+                                  inputDecorationTheme:
+                                      const InputDecorationTheme(
+                                    contentPadding:
+                                        const EdgeInsets.only(bottom: 5),
+                                    border: InputBorder.none,
+                                  ),
+                                  hintText: 'Select Gender',
+                                  trailingIcon: Icon(Icons.arrow_drop_down),
+                                  initialSelection: typeEmployee,
+                                  onSelected: (String? value) {
+                                    // This is called when the user selects an item.
+                                    setState(() {
+                                      typeEmployee = value!;
+                                    });
+                                  },
+                                  dropdownMenuEntries: ['Male', 'Female']
+                                      .map<DropdownMenuEntry<String>>(
+                                          (String value) {
+                                    return DropdownMenuEntry<String>(
+                                        value: value, label: value);
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+
+                    Text(
+                      'Employment Information :',
+                      style: catergoryStyle(),
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Flexible(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               const Text('Employee ID'),
                               Container(
                                 width: 280,
@@ -1360,21 +1470,7 @@ class _UserState extends State<PovUser> {
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                    SizedBox(height: 10),
-
-                    Text(
-                      'Employment Information :',
-                      style: catergoryStyle(),
-                    ),
-                    SizedBox(height: 10),
-
-                    Row(
-                      children: [
-                        const SizedBox(
-                          width: 10,
-                        ),
+                        SizedBox(width: 10),
                         Flexible(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.start,
@@ -1407,6 +1503,15 @@ class _UserState extends State<PovUser> {
                           ),
                         ),
                         SizedBox(width: 10),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+
+                    Row(
+                      children: [
+                        const SizedBox(
+                          width: 10,
+                        ),
 
                         // Role Dropdown
                         Flexible(
@@ -1768,7 +1873,6 @@ class _UserState extends State<PovUser> {
     );
   }
 
-
   Future<void> updateUserDetails(
       String userId, Map<String, dynamic> updatedUserData) async {
     try {
@@ -1791,7 +1895,7 @@ class _UserState extends State<PovUser> {
   }
 
   bool _passwordVisible = false;
-void _togglePasswordVisibility() {
+  void _togglePasswordVisibility() {
     setState(() {
       _passwordVisible = !_passwordVisible;
     });
@@ -1806,7 +1910,7 @@ void _togglePasswordVisibility() {
         );
 
         final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-        
+
         return Dialog(
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.white,
@@ -2028,80 +2132,41 @@ void _togglePasswordVisibility() {
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Employee ID'),
-                                Container(
-                                  width: 280,
-                                  height: 40,
-                                  padding:
-                                      const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                                  decoration: boxdecoration(),
-                                  child: TextField(
-                                    controller: employeeIdController,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                      LengthLimitingTextInputFormatter(
-                                          6), // Limit to 10 digits
-                                      TextInputFormatter.withFunction(
-                                          (oldValue, newValue) {
-                                        if (newValue.text.isEmpty) {
-                                          return newValue.copyWith(text: '');
-                                        }
-                                        final int textLength =
-                                            newValue.text.length;
-                                        String newText = '';
-                                        for (int i = 0; i < textLength; i++) {
-                                          if (i == 0) {
-                                            newText += '(' + newValue.text[i];
-                                          } else if (i == 2) {
-                                            newText += ') ' + newValue.text[i];
-                                          } else {
-                                            newText += newValue.text[i];
-                                          }
-                                        }
-                                        return newValue.copyWith(
-                                          text: newText,
-                                          selection: TextSelection.collapsed(
-                                              offset: newText.length),
-                                        );
-                                      }),
-                                    ],
-                                    decoration: const InputDecoration(
-                                        hintText: 'Enter Employee ID',
-                                        border: InputBorder.none),
-                                  ),
+                                const Text(
+                                  'Gender:',
+                                  style: textStyle,
                                 ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Flexible(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Salary'),
                                 Container(
                                   width: 280,
                                   height: 40,
-                                  padding:
-                                      const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                  padding: const EdgeInsets.only(left: 10),
                                   decoration: boxdecoration(),
-                                  child: TextField(
-                                    controller: salaryController,
-                                    keyboardType: TextInputType.numberWithOptions(
-                                        decimal:
-                                            true), // Set keyboard type to number
-                                    inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.allow(
-                                          RegExp(r'[0-9.]')),
-// Accept only digits
-                                    ],
-                                    decoration: const InputDecoration(
-                                      hintText: 'Enter Salary',
+                                  child: DropdownMenu<String>(
+                                    width:
+                                        MediaQuery.of(context).size.width > 800
+                                            ? 280
+                                            : 150,
+                                    inputDecorationTheme:
+                                        const InputDecorationTheme(
+                                      contentPadding:
+                                          const EdgeInsets.only(bottom: 5),
                                       border: InputBorder.none,
                                     ),
+                                    hintText: 'Select Gender',
+                                    trailingIcon: Icon(Icons.arrow_drop_down),
+                                    initialSelection: genderEmployee,
+                                    onSelected: (String? value) {
+                                      // This is called when the user selects an item.
+                                      setState(() {
+                                        typeEmployee = value!;
+                                      });
+                                    },
+                                    dropdownMenuEntries: ['Male', 'Female']
+                                        .map<DropdownMenuEntry<String>>(
+                                            (String value) {
+                                      return DropdownMenuEntry<String>(
+                                          value: value, label: value);
+                                    }).toList(),
                                   ),
                                 ),
                               ],
@@ -2118,60 +2183,157 @@ void _togglePasswordVisibility() {
                         height: 10,
                       ),
                       Row(
-                        children: [
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Flexible(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Department:', style: textStyle),
-                                Container(
-                                  width: 280,
-                                  height: 40,
-                                  padding: const EdgeInsets.only(left: 5),
-                                  decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: Colors.grey.shade300),
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12)),
-                                  child: DropdownMenu<String>(
-                                    width: 280,
-                                    inputDecorationTheme:
-                                        const InputDecorationTheme(
-                                            border: InputBorder.none,
-                                            contentPadding:
-                                                EdgeInsets.only(bottom: 5)),
-                                    hintText: 'Select Department',
-                                    trailingIcon:
-                                        const Icon(Icons.arrow_drop_down),
-                                    initialSelection: selectedDep,
-                                    onSelected: (String? value) {
-                                      // This is called when the user selects an item.
-                                      setState(() {
-                                        selectedDep = value!;
-                                      });
-                                    },
-                                    dropdownMenuEntries: [
-                                      'IT',
-                                      'HR',
-                                      'ACCOUNTING',
-                                      'SERVICING'
-                                    ].map<DropdownMenuEntry<String>>(
-                                        (String value) {
-                                      return DropdownMenuEntry<String>(
-                                          value: value, label: value);
-                                    }).toList(),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 10,
-                                ),
-                              ],
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(
+                              width: 10,
                             ),
-                          ),
+                            Flexible(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Employee ID'),
+                                  Container(
+                                    width: 280,
+                                    height: 40,
+                                    padding:
+                                        const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                    decoration: boxdecoration(),
+                                    child: TextField(
+                                      controller: employeeIdController,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                        LengthLimitingTextInputFormatter(
+                                            6), // Limit to 10 digits
+                                        TextInputFormatter.withFunction(
+                                            (oldValue, newValue) {
+                                          if (newValue.text.isEmpty) {
+                                            return newValue.copyWith(text: '');
+                                          }
+                                          final int textLength =
+                                              newValue.text.length;
+                                          String newText = '';
+                                          for (int i = 0; i < textLength; i++) {
+                                            if (i == 0) {
+                                              newText += '(' + newValue.text[i];
+                                            } else if (i == 2) {
+                                              newText +=
+                                                  ') ' + newValue.text[i];
+                                            } else {
+                                              newText += newValue.text[i];
+                                            }
+                                          }
+                                          return newValue.copyWith(
+                                            text: newText,
+                                            selection: TextSelection.collapsed(
+                                                offset: newText.length),
+                                          );
+                                        }),
+                                      ],
+                                      decoration: const InputDecoration(
+                                          hintText: 'Enter Employee ID',
+                                          border: InputBorder.none),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 10,
+                            ),
+                            Flexible(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Salary'),
+                                  Container(
+                                    width: 280,
+                                    height: 40,
+                                    padding:
+                                        const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                    decoration: boxdecoration(),
+                                    child: TextField(
+                                      controller: salaryController,
+                                      keyboardType: TextInputType.numberWithOptions(
+                                          decimal:
+                                              true), // Set keyboard type to number
+                                      inputFormatters: <TextInputFormatter>[
+                                        FilteringTextInputFormatter.allow(
+                                            RegExp(r'[0-9.]')),
+                                        // Accept only digits
+                                      ],
+                                      decoration: const InputDecoration(
+                                        hintText: 'Enter Salary',
+                                        border: InputBorder.none,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 10,
+                            ),
+                            Flexible(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Department:', style: textStyle),
+                                  Container(
+                                    width: 280,
+                                    height: 40,
+                                    padding: const EdgeInsets.only(left: 5),
+                                    decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color: Colors.grey.shade300),
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    child: DropdownMenu<String>(
+                                      width: 280,
+                                      inputDecorationTheme:
+                                          const InputDecorationTheme(
+                                              border: InputBorder.none,
+                                              contentPadding:
+                                                  EdgeInsets.only(bottom: 5)),
+                                      hintText: 'Select Department',
+                                      trailingIcon:
+                                          const Icon(Icons.arrow_drop_down),
+                                      initialSelection: selectedDep,
+                                      onSelected: (String? value) {
+                                        // This is called when the user selects an item.
+                                        setState(() {
+                                          selectedDep = value!;
+                                        });
+                                      },
+                                      dropdownMenuEntries: [
+                                        'IT',
+                                        'HR',
+                                        'ACCOUNTING',
+                                        'SERVICING'
+                                      ].map<DropdownMenuEntry<String>>(
+                                          (String value) {
+                                        return DropdownMenuEntry<String>(
+                                            value: value, label: value);
+                                      }).toList(),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ]),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        children: [
                           const SizedBox(
                             width: 10,
                           ),
@@ -2795,6 +2957,7 @@ void _togglePasswordVisibility() {
         employeeId: employeeIdController.text,
         mobilenum: mobilenumController.text,
         isActive: false,
+        isATM: false,
       );
 
       await addUser(
@@ -2815,6 +2978,7 @@ void _togglePasswordVisibility() {
         newUser.employeeId,
         newUser.mobilenum,
         newUser.isActive,
+        newUser.isATM,
       );
 
       Navigator.pop(context); // Close the dialog or navigate to the next screen
