@@ -979,7 +979,7 @@ class _PayslipPageState extends State<PayslipPage> {
 
       if (userDocSnapshot.docs.isNotEmpty) {
         var userData = userDocSnapshot.docs.first.data();
-        var monthlySalary = userData['salary'] ?? 0;
+        var monthlySalary = userData['monthly_salary'] ?? 0;
         var regularOTDataQuery = await FirebaseFirestore.instance
             .collection('OvertimePay')
             .where('employeeId', isEqualTo: employeeId)
@@ -1935,7 +1935,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                         var userData =
                                             userDocSnapshot.docs.first.data();
                                         var monthlySalary =
-                                            userData['salary'] ?? 0;
+                                            userData['monthly_salary'] ?? 0;
                                         final holidayPay =
                                             holidayPayDataQuery.docs.isNotEmpty
                                                 ? holidayPayDataQuery.docs.first
@@ -2215,7 +2215,7 @@ class _PayslipPageState extends State<PayslipPage> {
           .where('employeeId', isEqualTo: employeeId)
           .get();
       var userData = userDocSnapshot.docs.first.data();
-      var monthlySalary = userData['salary'] ?? 0;
+      var monthlySalary = userData['monthly_salary'] ?? 0;
 
       var paySlipDataQuery = await FirebaseFirestore.instance
           .collection('Payslip')

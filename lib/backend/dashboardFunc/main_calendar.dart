@@ -23,6 +23,7 @@ class _CalendarPageState extends State<CalendarPage> {
     _dataSource = MeetingDataSource();
     _toggleDataSource(true); // Load holidays by default
     _loadUpcomingHoliday();
+    // fetchAndSaveHolidays();
   }
 
   TextEditingController eventNameController = TextEditingController();
@@ -414,9 +415,8 @@ class _CalendarPageState extends State<CalendarPage> {
       }
     });
   }
-}
-
-class HolidayFetcher {
+  
+  //this code has function of saving the holidays api google calendar to firestore
   Future<void> fetchAndSaveHolidays() async {
     final url = Uri.parse(
         'https://www.googleapis.com/calendar/v3/calendars/en.philippines%23holiday%40group.v.calendar.google.com/events?key=AIzaSyBaS9eujBHEvyXw9X25wnzjXvlHGeEcPFU');
@@ -433,8 +433,8 @@ class HolidayFetcher {
           holidayDate.isBefore(DateTime.now());
 
           String eventName = item['summary'];
-          String date =
-              holidayDate.toIso8601String(); // Convert date to ISO 8601 format
+          DateTime date =
+              holidayDate; // Convert date to ISO 8601 format
 
           // Create a map for the holiday data
           return {
@@ -445,7 +445,7 @@ class HolidayFetcher {
 
         // Save holidays to Firestore
         await FirebaseFirestore.instance
-            .collection('HolidaysPH')
+            .collection('HolidaysPHx')
             .doc('holidays')
             .set({'holidays': holidays});
       } else {
@@ -455,6 +455,7 @@ class HolidayFetcher {
       throw Exception('Error fetching holidays: $e');
     }
   }
+
 }
 
 class MeetingDataSource extends CalendarDataSource {

@@ -6,7 +6,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart' as ShimmerPackage;
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class AttendancePage extends StatefulWidget {
   const AttendancePage({Key? key}) : super(key: key);
@@ -269,8 +272,12 @@ class _AttendancePageState extends State<AttendancePage> {
               const DataColumn(
                   label: Text('Total Hours',
                       style: TextStyle(fontWeight: FontWeight.bold))),
+                      const DataColumn(
+                  label: Text('Holiday',
+                      style: TextStyle(fontWeight: FontWeight.bold))),
             ],
             rows: List.generate(filteredDocuments.length, (index) {
+              
               DocumentSnapshot document = filteredDocuments[index];
               Map<String, dynamic> data =
                   document.data() as Map<String, dynamic>;
@@ -279,6 +286,7 @@ class _AttendancePageState extends State<AttendancePage> {
               index++;
 
               // Extract timestamps for timeIn and timeOut
+
               Timestamp? timeInTimestamp = data['timeIn'];
               Timestamp? timeOutTimestamp = data['timeOut'];
 
@@ -293,7 +301,7 @@ class _AttendancePageState extends State<AttendancePage> {
               // Format the duration to display total hours
               String totalHoursAndMinutes =
                   '${totalDuration.inHours} hrs, ${totalDuration.inMinutes.remainder(60)} mins';
-
+              
               return DataRow(
                 color: MaterialStateColor.resolveWith((states) => rowColor!),
                 cells: [
@@ -333,6 +341,51 @@ class _AttendancePageState extends State<AttendancePage> {
                       ),
                     ),
                   ),
+                  DataCell(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: FutureBuilder<String?>(
+                        future: _getHolidayName(timeInTimestamp),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.active) {
+                            return Text(
+                              'Fetching holiday information...',
+                              style: TextStyle(color: Colors.grey),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Text(
+                              'Error: ${snapshot.error}',
+                              style: TextStyle(color: Colors.red),
+                            );
+                          } else {
+                            String? holidayName = snapshot.data;
+                            if (holidayName != null) {
+                              return Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors
+                                      .green, // Background color for holidays
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: Text(
+                                  holidayName,
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              );
+                            } else {
+                              return Text(
+                                'No holiday',
+                                style: TextStyle(color: Colors.black),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+
                 ],
               );
             }),
@@ -761,6 +814,43 @@ class _AttendancePageState extends State<AttendancePage> {
             ],
           )),
     );
+  }
+
+Future<String?> _getHolidayName(Timestamp? date) async {
+    if (date == null) return null;
+
+    DateTime dateOnly =
+        DateTime(date.toDate().year, date.toDate().month, date.toDate().day);
+
+    String formattedDate =
+        '${dateOnly.year}-${dateOnly.month.toString().padLeft(2, '0')}-${dateOnly.day.toString().padLeft(2, '0')}';
+
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? cachedHoliday = prefs.getString(formattedDate);
+    if (cachedHoliday != null) {
+      return cachedHoliday;
+    }
+
+    String url =
+        'https://www.googleapis.com/calendar/v3/calendars/en.philippines%23holiday%40group.v.calendar.google.com/events?key=AIzaSyBaS9eujBHEvyXw9X25wnzjXvlHGeEcPFU';
+
+    http.Response response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> data = json.decode(response.body);
+      for (Map<String, dynamic> event in data['items']) {
+        String eventDate = event['start']['date'];
+        if (eventDate == formattedDate) {
+          String holidayName = event['summary'];
+          prefs.setString(formattedDate, holidayName);
+          return holidayName;
+        }
+      }
+    } else {
+      print('Failed to fetch holidays: ${response.statusCode}');
+    }
+    return null;
   }
 
   Container clearDate(BuildContext context, ButtonStyle styleFrom) {
