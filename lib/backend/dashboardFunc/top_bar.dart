@@ -150,7 +150,9 @@ class _TopBarState extends State<TopBar> {
                     ),
                   ],
                 ),
-                Row(
+                Flexible(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     IconButton(
                       onPressed: () {
@@ -177,14 +179,14 @@ class _TopBarState extends State<TopBar> {
                         });
                       },
                       icon: Icon(Icons.lightbulb_outline),
-                    ),
-
-                    // Display the advice immediately
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text(
-                        _advice,
-                        style: TextStyle(fontSize: 16),
+                      ),
+                      Flexible(
+                        child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text(
+                          _advice,
+                          style: TextStyle(fontSize: 16),
+                        ),
                       ),
                     ),
                     InkWell(
@@ -302,6 +304,7 @@ class _TopBarState extends State<TopBar> {
                     ),
                   ],
                 ),
+            ),
               ],
             ),
           ),
