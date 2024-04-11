@@ -1751,7 +1751,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'NET PAY: ',
+                                      'NET PsdsAY: ',
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18),
@@ -1769,7 +1769,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                 ),
                                 ElevatedButton(
                                   onPressed: () async {
-                                    bool confirmGenerate = await showDialog(
+                                    bool confirmGenerate = await showDialog(  
                                         context: context,
                                         builder: (BuildContext context) {
                                           return AlertDialog(
