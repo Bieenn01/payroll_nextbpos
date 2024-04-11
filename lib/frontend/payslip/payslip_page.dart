@@ -979,7 +979,7 @@ class _PayslipPageState extends State<PayslipPage> {
 
       if (userDocSnapshot.docs.isNotEmpty) {
         var userData = userDocSnapshot.docs.first.data();
-        var monthlySalary = userData['salary'] ?? 0;
+        var monthlySalary = userData['monthly_salary'] ?? 0;
         var regularOTDataQuery = await FirebaseFirestore.instance
             .collection('OvertimePay')
             .where('employeeId', isEqualTo: employeeId)
@@ -1286,22 +1286,25 @@ class _PayslipPageState extends State<PayslipPage> {
                                 DataRow(cells: [
                                   DataCell(Text('Overtime')),
                                   DataCell(Text('')),
-                                  DataCell(Text(overallOTPay.toString())),
+                                  DataCell(
+                                      Text(overallOTPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('RDOT')),
                                   DataCell(Text('')),
-                                  DataCell(Text(restdayOTPay.toString())),
+                                  DataCell(
+                                      Text(restdayOTPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Regular Holiday')),
                                   DataCell(Text('')),
-                                  DataCell(Text(holidayPay.toString())),
+                                  DataCell(Text(holidayPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Special Holiday')),
                                   DataCell(Text('')),
-                                  DataCell(Text(specialHPay.toString())),
+                                  DataCell(
+                                      Text(specialHPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Standy Allowance')),
@@ -1447,7 +1450,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                   )),
                                   DataCell(Text('')),
                                   DataCell(Text(
-                                    grossPay.toString(),
+                                    grossPay.toStringAsFixed(2),
                                     style:
                                         TextStyle(fontWeight: FontWeight.bold),
                                   )),
@@ -1723,7 +1726,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      grossPay.toString(),
+                                      grossPay.toStringAsFixed(2),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     )
@@ -1739,7 +1742,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      totalDeduction.toString(),
+                                      totalDeduction.toStringAsFixed(2),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     )
@@ -1757,7 +1760,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                           fontSize: 18),
                                     ),
                                     Text(
-                                      netPay.toString(),
+                                      netPay.toStringAsFixed(2),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18),
@@ -1932,7 +1935,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                         var userData =
                                             userDocSnapshot.docs.first.data();
                                         var monthlySalary =
-                                            userData['salary'] ?? 0;
+                                            userData['monthly_salary'] ?? 0;
                                         final holidayPay =
                                             holidayPayDataQuery.docs.isNotEmpty
                                                 ? holidayPayDataQuery.docs.first
@@ -2212,7 +2215,7 @@ class _PayslipPageState extends State<PayslipPage> {
           .where('employeeId', isEqualTo: employeeId)
           .get();
       var userData = userDocSnapshot.docs.first.data();
-      var monthlySalary = userData['salary'] ?? 0;
+      var monthlySalary = userData['monthly_salary'] ?? 0;
 
       var paySlipDataQuery = await FirebaseFirestore.instance
           .collection('Payslip')
@@ -2422,22 +2425,25 @@ class _PayslipPageState extends State<PayslipPage> {
                                 DataRow(cells: [
                                   DataCell(Text('Overtime')),
                                   DataCell(Text('')),
-                                  DataCell(Text(overallOTPay.toString())),
+                                  DataCell(
+                                      Text(overallOTPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('RDOT')),
                                   DataCell(Text('')),
-                                  DataCell(Text(restdayOTPay.toString())),
+                                  DataCell(
+                                      Text(restdayOTPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Regular Holiday')),
                                   DataCell(Text('')),
-                                  DataCell(Text(holidayPay.toString())),
+                                  DataCell(Text(holidayPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Special Holiday')),
                                   DataCell(Text('')),
-                                  DataCell(Text(specialHPay.toString())),
+                                  DataCell(
+                                      Text(specialHPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Standy Allowance')),
@@ -2481,7 +2487,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                         TextStyle(fontWeight: FontWeight.bold),
                                   )),
                                   DataCell(Text('')),
-                                  DataCell(Text(grossPay.toString())),
+                                  DataCell(Text(grossPay.toStringAsFixed(2))),
                                 ]),
                               ],
                             ),
@@ -2600,7 +2606,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      grossPay.toString(),
+                                      grossPay.toStringAsFixed(2),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     ),
@@ -2616,7 +2622,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      totalDeduction.toString(),
+                                      totalDeduction.toStringAsFixed(2),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     ),
@@ -2633,7 +2639,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      netPay.toString(),
+                                      netPay.toStringAsFixed(2),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     ),

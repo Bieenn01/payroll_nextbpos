@@ -28,7 +28,7 @@ class _DashboardMobileState extends State<DashboardMobile> {
     super.initState();
     fetchEmployeeCount();
     _fetchRole();
-    fetchLateCount();//.then((lateCount) {
+    fetchLateCount(); //.then((lateCount) {
     //   setState(() {
     //     _lateCount = lateCount;
     //   });
@@ -92,15 +92,13 @@ class _DashboardMobileState extends State<DashboardMobile> {
     DateTime startOfDay = DateTime(now.year, now.month, now.day);
     DateTime endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('Records')
-          .where('lateTime', isGreaterThanOrEqualTo: startOfDay)
-          .where('lateTime', isLessThanOrEqualTo: endOfDay)
-          .get();
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('Records')
+        .where('lateTime', isGreaterThanOrEqualTo: startOfDay)
+        .where('lateTime', isLessThanOrEqualTo: endOfDay)
+        .get();
 
-
-      return querySnapshot.size;
-
+    return querySnapshot.size;
   }
 
   Future<void> _resetLateCount() async {
@@ -124,6 +122,7 @@ class _DashboardMobileState extends State<DashboardMobile> {
       print('Error resetting late count: $e');
     }
   }
+
   Future<int> countDocumentsForToday() async {
     DateTime now = DateTime.now();
     DateTime startOfDay = DateTime(now.year, now.month, now.day);
@@ -261,7 +260,7 @@ class _DashboardMobileState extends State<DashboardMobile> {
                     flex: 1,
                     child: Container(
                       height: 120,
-                      padding: EdgeInsets.all(8),
+                      padding: EdgeInsets.fromLTRB(15, 8, 8, 8),
                       decoration: container1Decoration(),
                       child: smallContainerRow(
                         '$totalEmployees',

@@ -6,7 +6,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart' as ShimmerPackage;
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class AttendancePage extends StatefulWidget {
   const AttendancePage({Key? key}) : super(key: key);
@@ -339,30 +342,50 @@ class _AttendancePageState extends State<AttendancePage> {
                     ),
                   ),
                   DataCell(
-                    FutureBuilder<String?>(
-                      future: _getHolidayName(
-                          timeInTimestamp), // Passing timeIn to get holiday name
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return CircularProgressIndicator(); // Show loading indicator while fetching data
-                        } else if (snapshot.hasError) {
-                          return Text(
-                              'Error: ${snapshot.error}'); // Display error message if any
-                        } else {
-                          String? holidayName = snapshot.data;
-                          if (holidayName != null) {
-                            return Text(holidayName);
-                          } else {
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: FutureBuilder<String?>(
+                        future: _getHolidayName(timeInTimestamp),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.active) {
                             return Text(
-                              'No holiday found for the given date',
+                              'Fetching holiday information...',
                               style: TextStyle(color: Colors.grey),
                             );
+                          } else if (snapshot.hasError) {
+                            return Text(
+                              'Error: ${snapshot.error}',
+                              style: TextStyle(color: Colors.red),
+                            );
+                          } else {
+                            String? holidayName = snapshot.data;
+                            if (holidayName != null) {
+                              return Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors
+                                      .green, // Background color for holidays
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: Text(
+                                  holidayName,
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              );
+                            } else {
+                              return Text(
+                                'No holiday',
+                                style: TextStyle(color: Colors.black),
+                              );
+                            }
                           }
-                        }
-                      },
+                        },
+                      ),
                     ),
                   ),
+
                 ],
               );
             }),
@@ -793,45 +816,41 @@ class _AttendancePageState extends State<AttendancePage> {
     );
   }
 
-Future<bool> _isHoliday(DateTime? date) async {
-    if (date == null) return false;
-
-    // Retrieve list of holidays from Firestore
-    QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
-        .instance
-        .collection('HolidaysPHs')
-        .where('date', isEqualTo: date)
-        .get();
-
-    // Check if any holiday matches the provided date
-    return snapshot.docs.isNotEmpty;
-  }
-
 Future<String?> _getHolidayName(Timestamp? date) async {
     if (date == null) return null;
 
-    // Extract date part from the Timestamp
     DateTime dateOnly =
         DateTime(date.toDate().year, date.toDate().month, date.toDate().day);
 
-    // Format date as a string in Firestore's expected format (YYYY-MM-DD)
     String formattedDate =
         '${dateOnly.year}-${dateOnly.month.toString().padLeft(2, '0')}-${dateOnly.day.toString().padLeft(2, '0')}';
 
-    // Retrieve document from Firestore that matches the provided date
-    DocumentSnapshot<Map<String, dynamic>> docSnapshot = await FirebaseFirestore
-        .instance
-        .collection('HolidaysPHs')
-        .doc(formattedDate) // Assuming the document ID is the formatted date
-        .get();
 
-    // If document exists and contains the holiday name, return it
-    if (docSnapshot.exists && docSnapshot.data() != null) {
-      // Assuming the data structure inside the document is like {'eventName': 'Holiday Name'}
-      return docSnapshot.data()?['eventName'];
-    } else {
-      return null; // Return null if document doesn't exist or no holiday is found
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? cachedHoliday = prefs.getString(formattedDate);
+    if (cachedHoliday != null) {
+      return cachedHoliday;
     }
+
+    String url =
+        'https://www.googleapis.com/calendar/v3/calendars/en.philippines%23holiday%40group.v.calendar.google.com/events?key=AIzaSyBaS9eujBHEvyXw9X25wnzjXvlHGeEcPFU';
+
+    http.Response response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> data = json.decode(response.body);
+      for (Map<String, dynamic> event in data['items']) {
+        String eventDate = event['start']['date'];
+        if (eventDate == formattedDate) {
+          String holidayName = event['summary'];
+          prefs.setString(formattedDate, holidayName);
+          return holidayName;
+        }
+      }
+    } else {
+      print('Failed to fetch holidays: ${response.statusCode}');
+    }
+    return null;
   }
 
   Container clearDate(BuildContext context, ButtonStyle styleFrom) {
