@@ -31,13 +31,15 @@ class User {
   String taxCode;
   String employeeId;
   String mobilenum;
-  double salary;
+  // ignore: non_constant_identifier_names
+  double monthly_salary;
   bool isActive;
   bool isATM;
   User(
       {required this.department,
       required this.email,
-      required this.salary,
+      // ignore: non_constant_identifier_names
+      required this.monthly_salary,
       required this.endShift,
       required this.fname,
       required this.startShift,
@@ -2940,7 +2942,7 @@ class _UserState extends State<PovUser> {
 
       // Create the user object with the entered data
       User newUser = User(
-        salary: double.parse(salaryController.text),
+        monthly_salary: double.parse(salaryController.text),
         department: selectedDep,
         fname: firstNameController.text,
         mname: middleNameController.text,
@@ -2961,7 +2963,7 @@ class _UserState extends State<PovUser> {
       );
 
       await addUser(
-        newUser.salary,
+        newUser.monthly_salary,
         newUser.username,
         newUser.fname,
         newUser.mname,

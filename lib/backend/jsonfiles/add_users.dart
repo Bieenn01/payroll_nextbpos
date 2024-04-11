@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 Future<void> addUser(
-  double salary, 
+  double monthly_salary, 
   String username,
   String fname,
   String mname,
@@ -30,7 +30,7 @@ Future<void> addUser(
 
     // Set user data to Firestore document
     await docUser.set({
-      'salary': salary, // Parse salary as an integer
+      'salary': monthly_salary, // Parse salary as an integer
       'username': username,
       'fname': fname,
       'mname': mname,
