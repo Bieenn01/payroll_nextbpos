@@ -1,15 +1,28 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:js_interop';
+import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:project_payroll_nextbpo/export-Logs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart' as ShimmerPackage;
 import 'package:http/http.dart' as http;
+import 'package:open_file/open_file.dart';
+import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
+import 'package:path_provider/path_provider.dart';
+import 'package:universal_html/html.dart' as html;
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AttendancePage extends StatefulWidget {
   const AttendancePage({Key? key}) : super(key: key);
@@ -19,8 +32,12 @@ class AttendancePage extends StatefulWidget {
 }
 
 class _AttendancePageState extends State<AttendancePage> {
-  late Future<List<DocumentSnapshot>> _userRecordsFuture;
+  List<List<dynamic>> excelData = [];
+
   TextEditingController _searchController = TextEditingController();
+  late String _userName = 'Guest';
+  DateTime _now = DateTime.now();
+
   String _selectedDepartment = '';
   int _itemsPerPage = 5;
   int _currentPage = 1;
@@ -34,6 +51,30 @@ class _AttendancePageState extends State<AttendancePage> {
     super.initState();
     _fetchUserRecords(_itemsPerPage);
     _fetchRole();
+    _fetchName();
+  }
+
+  Future<void> _fetchName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user.uid)
+          .get();
+
+      setState(() {
+        _userName = docSnapshot['fname'] +
+            " " +
+            docSnapshot['mname'] +
+            " " +
+            docSnapshot['lname'];
+      });
+    }
+  }
+
+  String now() {
+    DateTime dateTime = DateTime.now();
+    return DateFormat('MMMM dd, yyyy').format(dateTime);
   }
 
   Future<void> _fetchRole() async {
@@ -223,7 +264,7 @@ class _AttendancePageState extends State<AttendancePage> {
             // Handle invalid index range
             print("Invalid index range");
           }
-
+          excelData = [];
           var dataTable = DataTable(
             headingRowHeight: 50,
             columns: [
@@ -272,12 +313,11 @@ class _AttendancePageState extends State<AttendancePage> {
               const DataColumn(
                   label: Text('Total Hours',
                       style: TextStyle(fontWeight: FontWeight.bold))),
-                      const DataColumn(
+              const DataColumn(
                   label: Text('Holiday',
                       style: TextStyle(fontWeight: FontWeight.bold))),
             ],
             rows: List.generate(filteredDocuments.length, (index) {
-              
               DocumentSnapshot document = filteredDocuments[index];
               Map<String, dynamic> data =
                   document.data() as Map<String, dynamic>;
@@ -301,7 +341,19 @@ class _AttendancePageState extends State<AttendancePage> {
               // Format the duration to display total hours
               String totalHoursAndMinutes =
                   '${totalDuration.inHours} hrs, ${totalDuration.inMinutes.remainder(60)} mins';
-              
+
+              // Add the data to the excelData list
+              excelData.add([
+                (index).toString(),
+                data['userName'] ?? 'Unknown',
+                data['department'] ?? 'Unknown',
+                _formatTimestamp(timeInTimestamp),
+                _formatTimestamp(timeOutTimestamp),
+                totalHoursAndMinutes,
+                _getHolidayName(
+                    timeInTimestamp), // Assuming _getHolidayName returns a Future<String>
+              ]);
+
               return DataRow(
                 color: MaterialStateColor.resolveWith((states) => rowColor!),
                 cells: [
@@ -385,7 +437,6 @@ class _AttendancePageState extends State<AttendancePage> {
                       ),
                     ),
                   ),
-
                 ],
               );
             }),
@@ -630,7 +681,9 @@ class _AttendancePageState extends State<AttendancePage> {
                           backgroundColor: Colors.teal,
                           padding: EdgeInsets.only(left: 5),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          _exportToExcel();
+                        },
                         child: MediaQuery.of(context).size.width > 800
                             ? const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -816,7 +869,7 @@ class _AttendancePageState extends State<AttendancePage> {
     );
   }
 
-Future<String?> _getHolidayName(Timestamp? date) async {
+  Future<String?> _getHolidayName(Timestamp? date) async {
     if (date == null) return null;
 
     DateTime dateOnly =
@@ -824,7 +877,6 @@ Future<String?> _getHolidayName(Timestamp? date) async {
 
     String formattedDate =
         '${dateOnly.year}-${dateOnly.month.toString().padLeft(2, '0')}-${dateOnly.day.toString().padLeft(2, '0')}';
-
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? cachedHoliday = prefs.getString(formattedDate);
@@ -964,5 +1016,86 @@ Future<String?> _getHolidayName(Timestamp? date) async {
         fontWeight: FontWeight.w900,
       ),
     ));
+  }
+
+  Future<void> _exportToExcel() async {
+    final xlsio.Workbook workbook = xlsio.Workbook();
+    final xlsio.Worksheet sheet = workbook.worksheets[0];
+
+    // Adding a picture
+    final List<int> bytespic = await rootBundle
+        .load('assets/images/nextbpologo-removebg.png')
+        .then((data) => data.buffer.asUint8List());
+    final xlsio.Picture picture = sheet.pictures.addStream(1, 1, bytespic);
+    picture.height = 100;
+    picture.width = 300;
+
+    // Rest of your code for Excel formatting and data
+    sheet.getRangeByName('A2:F2').merge();
+    sheet.getRangeByName('A1:F1').rowHeight = 100;
+    sheet.getRangeByName('A5').columnWidth = 4.82;
+    sheet.getRangeByName('B5').columnWidth = 30;
+    sheet.getRangeByName('C5').columnWidth = 20;
+    sheet.getRangeByName('D5').columnWidth = 20;
+    sheet.getRangeByName('E5').columnWidth = 20;
+    sheet.getRangeByName('F5').columnWidth = 20;
+    sheet.getRangeByName('G5').columnWidth = 15;
+    sheet.getRangeByName('A5:F5').cellStyle.backColor = '#A5D6A7';
+
+    sheet.getRangeByName('A2:F2').setText('Daily Time Record Report');
+    sheet.getRangeByName('A2:F2').cellStyle.bold = true;
+    sheet.getRangeByName('A2:F2').cellStyle.hAlign = xlsio.HAlignType.center;
+
+    sheet.getRangeByIndex(3, 5).setText('Generated by :');
+    sheet.getRangeByIndex(3, 6).setText(_userName);
+    sheet.getRangeByIndex(4, 5).setText('Date Generated :');
+    sheet.getRangeByIndex(4, 6).setText(now());
+
+    sheet.getRangeByIndex(5, 1).setText('#');
+    sheet.getRangeByIndex(5, 2).setText('User Name');
+    sheet.getRangeByIndex(5, 3).setText('Department');
+    sheet.getRangeByIndex(5, 4).setText('Time In');
+    sheet.getRangeByIndex(5, 5).setText('Time Out');
+    sheet.getRangeByIndex(5, 6).setText('Total Hours');
+
+    sheet.getRangeByName('A5:F5').cellStyle.bold = true;
+    sheet.getRangeByName('A5:F5').cellStyle.fontSize = 12;
+
+    int rowIndex = 6; // Start from the second row for data
+    int count = 1; // Initialize counter
+    for (final userData in excelData) {
+      sheet.getRangeByIndex(rowIndex, 1).setText(count.toString());
+      sheet.getRangeByIndex(rowIndex, 2).setText(userData[1].toString() ?? '');
+      sheet.getRangeByIndex(rowIndex, 3).setText(userData[2].toString() ?? '');
+      sheet.getRangeByIndex(rowIndex, 4).setText(userData[3].toString() ?? '');
+      sheet.getRangeByIndex(rowIndex, 5).setText(userData[4].toString() ?? '');
+      sheet.getRangeByIndex(rowIndex, 6).setText(userData[5].toString());
+
+      rowIndex++;
+      count++;
+    }
+
+    final List<int> bytes = workbook.saveAsStream();
+
+    if (kIsWeb) {
+      final html.Blob blob = html.Blob([Uint8List.fromList(bytes)]);
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      html.AnchorElement(href: url)
+        ..setAttribute("download", "DTR_Report.xlsx")
+        ..click();
+      html.Url.revokeObjectUrl(url);
+    } else {
+      final String directoryPath =
+          (await getExternalStorageDirectory())?.path ?? '';
+      final String filePath = '$directoryPath/DTR_Report.xlsx';
+      final File file = File(filePath);
+      await file.writeAsBytes(bytes);
+      OpenFile.open(filePath);
+    }
+
+    workbook.dispose();
+    setState(() {
+      excelData = [];
+    });
   }
 }

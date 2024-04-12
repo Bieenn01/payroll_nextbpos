@@ -4,27 +4,22 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:project_payroll_nextbpo/frontend/contribution.dart';
+import 'package:project_payroll_nextbpo/frontend/modal.dart';
+import 'package:project_payroll_nextbpo/frontend/payslip/contribution.dart';
 import 'package:shimmer/shimmer.dart' as ShimmerPackage;
 import 'package:intl/intl.dart';
 
-import 'package:project_payroll_nextbpo/frontend/payslip._form.dart';
+import 'package:project_payroll_nextbpo/frontend/payslip/payslip._form.dart';
 
 class PayslipData {
   final DateTime startDate;
   final DateTime endDate;
   final DateTime dateGenerated;
-  final double grossPay;
-  final double deductions;
-  final double netPay;
 
   PayslipData({
     required this.startDate,
     required this.endDate,
     required this.dateGenerated,
-    required this.grossPay,
-    required this.deductions,
-    required this.netPay,
   });
 
   Map<String, dynamic> toMap() {
@@ -34,9 +29,6 @@ class PayslipData {
       'endDate': Timestamp.fromDate(endDate), // Convert DateTime to Timestamp
       'dateGenerated':
           Timestamp.fromDate(dateGenerated), // Convert DateTime to Timestamp
-      'grossPay': grossPay,
-      'deductions': deductions,
-      'netPay': netPay,
     };
   }
 }
@@ -65,6 +57,12 @@ class _PayslipPageState extends State<PayslipPage> {
   late Future<void> _fetchTotalFuture;
   late Future<void> _fetchTotalFuture2;
   late Future<void> _fetchTotalFuture3;
+  bool filter = false;
+  DateTime? _startDate;
+  DateTime? _endDate;
+
+  bool endPicked = false;
+  bool startPicked = false;
 
   @override
   void initState() {
@@ -77,6 +75,14 @@ class _PayslipPageState extends State<PayslipPage> {
 
   @override
   Widget build(BuildContext context) {
+    var styleFrom = ElevatedButton.styleFrom(
+      backgroundColor: Colors.white,
+      padding: EdgeInsets.all(5),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+
     return Scaffold(
       body: Container(
         color: Colors.teal.shade700,
@@ -89,14 +95,15 @@ class _PayslipPageState extends State<PayslipPage> {
                   margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12)),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       viewTable
                           ? Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.all(10.0),
@@ -109,33 +116,92 @@ class _PayslipPageState extends State<PayslipPage> {
                                     child: Text(
                                       "Generate Payroll",
                                       style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold),
+                                        color: Colors.black,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    showGeneratePayrollDialog(context);
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        Color.fromARGB(255, 68, 166, 100),
-                                    padding: const EdgeInsets.all(18.0),
-                                    minimumSize: const Size(200, 50),
-                                    maximumSize: const Size(200, 50),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        showGeneratePayrollDialog(context);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            Color.fromARGB(255, 68, 166, 100),
+                                        padding: const EdgeInsets.all(8.0),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      child: const Flexible(
+                                        child: Text(
+                                          "+ Add new",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  child: const Text(
-                                    "+ Add new",
-                                    style: TextStyle(
-                                      color: Colors
-                                          .white, // Change the text color to white
+                                    Container(
+                                      width: 130,
+                                      height: 30,
+                                      padding: EdgeInsets.all(0),
+                                      margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                      decoration: BoxDecoration(
+                                        color: Colors.teal,
+                                        border: Border.all(
+                                          color: Colors.teal.shade900
+                                              .withOpacity(0.5),
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.teal,
+                                          padding: EdgeInsets.only(left: 5),
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            filter = !filter;
+                                          });
+                                          filtermodal(context, styleFrom);
+                                        },
+                                        child: MediaQuery.of(context)
+                                                    .size
+                                                    .width >
+                                                800
+                                            ? const Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(
+                                                    Icons.filter_alt_outlined,
+                                                    color: Colors.white,
+                                                  ),
+                                                  Text(
+                                                    'Filter Date',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                      letterSpacing: 1,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            : Icon(
+                                                Icons.filter_alt_outlined,
+                                                color: Colors.white,
+                                              ),
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
                               ],
                             )
@@ -153,9 +219,10 @@ class _PayslipPageState extends State<PayslipPage> {
                                     child: Text(
                                       "Generate Payroll >",
                                       style: TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold),
+                                        color: Colors.grey,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -168,9 +235,10 @@ class _PayslipPageState extends State<PayslipPage> {
                                   child: const Text(
                                     "Payroll",
                                     style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold),
+                                      color: Colors.black,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -243,6 +311,7 @@ class _PayslipPageState extends State<PayslipPage> {
               if (data == null) return DataRow(cells: []); // Skip null data
 
               DateFormat dateFormatter = DateFormat('MM/dd/yyyy');
+              bool isDone = data['status'] == 'Done';
               return DataRow(
                 cells: [
                   DataCell(Text('${index + 1}')),
@@ -256,40 +325,28 @@ class _PayslipPageState extends State<PayslipPage> {
                       data['dateGenerated']?.toDate() ??
                           DateTime.now()))), // Provide default value if null
                   DataCell(
-                    Container(
-                      width: 150,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            viewTable = false;
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.all(5),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                    isDone
+                        ? Icon(Icons.check, color: Colors.green)
+                        : ElevatedButton(
+                            onPressed: () async {
+                              bool verificationSuccess =
+                                  await commitPayslip(context);
+                              if (verificationSuccess) {
+                                setState(() {
+                                  markAsDone(doc.id); // Mark task as done
+                                  viewTable =
+                                      false; // Set viewTable to true after verification
+                                });
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.all(5),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text('Commit'),
                           ),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.visibility,
-                              color: Colors.blue,
-                              size: 18,
-                            ),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            Text(
-                              'View',
-                              style:
-                                  TextStyle(fontSize: 15, color: Colors.blue),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                   ),
                 ],
               );
@@ -322,31 +379,214 @@ class _PayslipPageState extends State<PayslipPage> {
     );
   }
 
-  Future<void> generatePayroll() async {
-    // Initialize an empty list to store generated payroll data
-    List<PayslipData> generatedData = [];
+  Future<void> markAsDone(String documentId) async {
+    bool proceed = await commitPayslip(context);
+    if (proceed) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('PayslipDepartment')
+            .doc(documentId)
+            .update({'status': 'Done'});
+      } catch (e) {
+        print('Error updating document: $e');
+      }
+    }
+  }
 
-    // Simulate generating payroll data for each employee
-    // Assuming you have access to fromDate and toDate
-    // Generate payroll for each day within the date range
+  Future<dynamic> filtermodal(BuildContext context, ButtonStyle styleFrom) {
+    return showDialog(
+        context: context,
+        builder: (_) => Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 130,
+                    ),
+                    AlertDialog(
+                      surfaceTintColor: Colors.white,
+                      content: Container(
+                        height: 200,
+                        width: 200,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'Filter Date',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                IconButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    icon: const Icon(Icons.close)),
+                              ],
+                            ),
+                            Text('From :'),
+                            _fromDate(context, styleFrom),
+                            SizedBox(
+                              width: 5,
+                            ),
+                            Text('To :'),
+                            _toDate(context, styleFrom),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            clearDate(context, styleFrom),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ));
+  }
+
+  Container clearDate(BuildContext context, ButtonStyle styleFrom) {
+    return Container(
+      height: 30,
+      padding: EdgeInsets.all(0),
+      margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Colors.red.withOpacity(0.5)),
+          borderRadius: BorderRadius.circular(12)),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white, padding: EdgeInsets.all(3)),
+        onPressed: () {
+          setState(() {
+            _startDate = null;
+            _endDate = null;
+            filter = false;
+          });
+          Navigator.of(context).pop();
+        },
+        child: const Text(
+          'Reset Date',
+          style: TextStyle(
+              fontWeight: FontWeight.w400, letterSpacing: 1, color: Colors.red),
+        ),
+      ),
+    );
+  }
+
+  Container _toDate(BuildContext context, ButtonStyle styleFrom) {
+    return Container(
+      margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+      width: 150, // or use MediaQuery.of(context).size.width > 600 ? 150 : 80
+      padding: EdgeInsets.all(2),
+      child: ElevatedButton(
+          onPressed: () async {
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: _endDate ?? DateTime.now(),
+              firstDate: DateTime(2015, 8),
+              lastDate: DateTime(2101),
+            );
+            if (picked != null && picked != _endDate) {
+              setState(() {
+                _endDate = picked;
+                endPicked = true;
+              });
+              Navigator.of(context).pop();
+            }
+          },
+          style: styleFrom,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    _endDate != null
+                        ? DateFormat('yyyy-MM-dd').format(_endDate!)
+                        : 'Select Date',
+                    style: TextStyle(
+                        color: endPicked == !true
+                            ? Colors.black
+                            : Colors.teal.shade800),
+                  )
+                ],
+              ),
+              const SizedBox(width: 3),
+              const Icon(
+                Icons.calendar_month,
+                color: Colors.black,
+                size: 20,
+              ),
+            ],
+          )),
+    );
+  }
+
+  Container _fromDate(BuildContext context, ButtonStyle styleFrom) {
+    return Container(
+      margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+      width: 150, // or use MediaQuery.of(context).size.width > 600 ? 150 : 80
+      padding: EdgeInsets.all(2),
+      child: ElevatedButton(
+          onPressed: () async {
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: _startDate ?? DateTime.now(),
+              firstDate: DateTime(2015, 8),
+              lastDate: DateTime(2101),
+            );
+            if (picked != null && picked != _startDate) {
+              setState(() {
+                _startDate = picked;
+                startPicked = true;
+              });
+            }
+          },
+          style: styleFrom,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    _startDate != null
+                        ? DateFormat('yyyy-MM-dd').format(_startDate!)
+                        : 'Select Date',
+                    style: TextStyle(
+                        color: startPicked == !true
+                            ? Colors.black
+                            : Colors.teal.shade800),
+                  )
+                ],
+              ),
+              const SizedBox(width: 3),
+              const Icon(
+                Icons.calendar_month,
+                color: Colors.black,
+                size: 20,
+              ),
+            ],
+          )),
+    );
+  }
+
+  Future<void> generatePayroll() async {
+    List<PayslipData> generatedData = [];
     {
       // Generate a PayslipData instance for each day
       PayslipData payslip = PayslipData(
-        // Assuming employeeID and name are constants for all payslips or you have another way to determine them
-
         startDate: fromDate!,
         endDate: toDate!,
         dateGenerated: DateTime.now(),
-        grossPay: 2000 + 100, // Example gross pay calculation
-        deductions: 0, // Example deductions
-        netPay: 2000 + 100, // Example net pay calculation
       );
-
-      // Add the payslip to the generated data list
       generatedData.add(payslip);
     }
-
-    // Save generated data to Firestore collection
     await saveToFirestore(generatedData);
   }
 
@@ -431,17 +671,33 @@ class _PayslipPageState extends State<PayslipPage> {
                   Text('Select Date Range:'),
                   ElevatedButton(
                     onPressed: () async {
-                      final DateTimeRange? picked = await showDateRangePicker(
+                      DateTime? initialStartDate = fromDateLocal;
+                      DateTime? initialEndDate = toDateLocal;
+
+                      DateTimeRange? picked = await showDateRangePicker(
                         context: context,
-                        firstDate: DateTime(DateTime.now().year - 1),
-                        lastDate: DateTime(DateTime.now().year + 1),
-                        initialDateRange:
-                            fromDateLocal != null && toDateLocal != null
-                                ? DateTimeRange(
-                                    start: fromDateLocal!,
-                                    end: toDateLocal!,
-                                  )
-                                : null,
+                        firstDate: DateTime(DateTime.now().year - 5),
+                        lastDate: DateTime(DateTime.now().year + 5),
+                        initialDateRange: DateTimeRange(
+                          end: initialEndDate ??
+                              DateTime(
+                                  DateTime.now().year,
+                                  DateTime.now().month,
+                                  DateTime.now().day + 13),
+                          start: initialStartDate ?? DateTime.now(),
+                        ),
+                        builder: (context, child) {
+                          return Column(
+                            children: [
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: 400.0,
+                                ),
+                                child: child!,
+                              )
+                            ],
+                          );
+                        },
                       );
 
                       if (picked != null) {
@@ -451,9 +707,11 @@ class _PayslipPageState extends State<PayslipPage> {
                         });
                       }
                     },
-                    child: const Text(
-                      'Select Date Range',
-                      style: TextStyle(color: Colors.black),
+                    child: Center(
+                      child: Text(
+                        '${fromDateLocal != null ? DateFormat('MM/dd/yyyy').format(fromDateLocal!) : 'Start'} - ${toDateLocal != null ? DateFormat('MM/dd/yyyy').format(toDateLocal!) : 'End'}',
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                 ],
@@ -545,33 +803,113 @@ class _PayslipPageState extends State<PayslipPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Container(
-                            width: 150,
-                            child: ElevatedButton(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Icon(Icons.refresh),
-                                  Text('Reset Data'),
-                                ],
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Flexible(
+                                child: Container(
+                                  width: MediaQuery.of(context).size.width > 600
+                                      ? 400
+                                      : 100,
+                                  height: 30,
+                                  margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                  padding:
+                                      const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                        color: Colors.black.withOpacity(0.5)),
+                                  ),
+                                  child: TextField(
+                                    controller: _searchController,
+                                    textAlign: TextAlign.start,
+                                    decoration: const InputDecoration(
+                                      contentPadding:
+                                          EdgeInsets.only(bottom: 15),
+                                      prefixIcon: Icon(Icons.search),
+                                      border: InputBorder.none,
+                                      hintText: 'Search',
+                                    ),
+                                    onChanged: (value) {
+                                      setState(() {});
+                                    },
+                                  ),
+                                ),
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  // Reset the status to default in each document
-                                  for (var payrollDoc in filteredPayrollDocs) {
-                                    payrollDoc.reference
-                                        .update({'status': 'Not Done'});
-                                  }
-                                });
-                              },
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              calculatePayslipTotals();
-                            },
-                            child: Text('Calculate Totals'),
+                              Container(
+                                width: 130,
+                                height: 30,
+                                padding: const EdgeInsets.all(0),
+                                margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                decoration: BoxDecoration(
+                                    color: Colors.teal,
+                                    border: Border.all(
+                                        color: Colors.teal.shade900
+                                            .withOpacity(0.5)),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal,
+                                    padding: const EdgeInsets.only(left: 5),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Icon(
+                                        Icons.refresh,
+                                        color: Colors.white,
+                                      ),
+                                      Text(
+                                        'Reset Data',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w400,
+                                            letterSpacing: 1,
+                                            color: Colors.white),
+                                      ),
+                                    ],
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      // Reset the status to default in each document
+                                      for (var payrollDoc
+                                          in filteredPayrollDocs) {
+                                        payrollDoc.reference
+                                            .update({'status': 'Not Done'});
+                                      }
+                                    });
+                                  },
+                                ),
+                              ),
+                              Container(
+                                width: 130,
+                                height: 30,
+                                padding: const EdgeInsets.all(0),
+                                margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                decoration: BoxDecoration(
+                                    color: Colors.teal,
+                                    border: Border.all(
+                                        color: Colors.teal.shade900
+                                            .withOpacity(0.5)),
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal,
+                                    padding: const EdgeInsets.only(left: 5),
+                                  ),
+                                  onPressed: () {
+                                    calculatePayslipTotals();
+                                  },
+                                  child: Text(
+                                    'Calculate Totals',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        letterSpacing: 1,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -712,9 +1050,10 @@ class _PayslipPageState extends State<PayslipPage> {
                               height: 50,
                               padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
                               decoration: BoxDecoration(
-                                color: Colors.blue[200],
+                                color: Colors.green[200],
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.blue.shade200),
+                                border:
+                                    Border.all(color: Colors.green.shade200),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
@@ -734,8 +1073,12 @@ class _PayslipPageState extends State<PayslipPage> {
                                       } else {
                                         // Data has been successfully fetched, display it
                                         return Text(
-                                          totalGrossPay
-                                              .toString(), // Assuming totalGrossPay is accessible in this scope
+                                          NumberFormat.currency(
+                                                  locale: 'en_PH',
+                                                  symbol: '₱ ',
+                                                  decimalDigits: 2)
+                                              .format(totalGrossPay ??
+                                                  0.0), // Assuming totalGrossPay is accessible in this scope
                                           style: TextStyle(
                                             fontSize: 20,
                                           ),
@@ -777,8 +1120,12 @@ class _PayslipPageState extends State<PayslipPage> {
                                       } else {
                                         // Data has been successfully fetched, display it
                                         return Text(
-                                          totalDeductions
-                                              .toString(), // Assuming totalGrossPay is accessible in this scope
+                                          NumberFormat.currency(
+                                                  locale: 'en_PH',
+                                                  symbol: '₱ ',
+                                                  decimalDigits: 2)
+                                              .format(totalDeductions ??
+                                                  0.0), // Assuming totalGrossPay is accessible in this scope
                                           style: TextStyle(
                                             fontSize: 20,
                                           ),
@@ -798,10 +1145,9 @@ class _PayslipPageState extends State<PayslipPage> {
                               height: 50,
                               padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
                               decoration: BoxDecoration(
-                                color: Colors.green[200],
+                                color: Colors.blue[200],
                                 borderRadius: BorderRadius.circular(8),
-                                border:
-                                    Border.all(color: Colors.green.shade200),
+                                border: Border.all(color: Colors.blue.shade200),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
@@ -821,8 +1167,12 @@ class _PayslipPageState extends State<PayslipPage> {
                                       } else {
                                         // Data has been successfully fetched, display it
                                         return Text(
-                                          totalNetPay
-                                              .toString(), // Assuming totalGrossPay is accessible in this scope
+                                          NumberFormat.currency(
+                                                  locale: 'en_PH',
+                                                  symbol: '₱ ',
+                                                  decimalDigits: 2)
+                                              .format(totalNetPay ??
+                                                  0.0), // Assuming totalGrossPay is accessible in this scope
                                           style: TextStyle(
                                             fontSize: 20,
                                           ),
@@ -2459,67 +2809,78 @@ class _PayslipPageState extends State<PayslipPage> {
                                 DataRow(cells: [
                                   DataCell(Text('Basic Salary')),
                                   DataCell(Text('')),
-                                  DataCell(Text(monthlySalary.toString())),
+                                  DataCell(
+                                      Text(monthlySalary.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Night Differential')),
                                   DataCell(Text('')),
-                                  DataCell(Text(nightDifferential.toString())),
+                                  DataCell(Text(
+                                      nightDifferential.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Overtime')),
                                   DataCell(Text('')),
-                                  DataCell(Text(overallOTPay.toString())),
+                                  DataCell(
+                                      Text(overallOTPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('RDOT')),
                                   DataCell(Text('')),
-                                  DataCell(Text(restdayOTPay.toString())),
+                                  DataCell(
+                                      Text(restdayOTPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Regular Holiday')),
                                   DataCell(Text('')),
-                                  DataCell(Text(holidayPay.toString())),
+                                  DataCell(Text(holidayPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Special Holiday')),
                                   DataCell(Text('')),
-                                  DataCell(Text(specialHPay.toString())),
+                                  DataCell(
+                                      Text(specialHPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Standy Allowance')),
                                   DataCell(Text('')),
-                                  DataCell(Text(standyAllowance.toString())),
+                                  DataCell(
+                                      Text(standyAllowance.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Other Premium Pay')),
                                   DataCell(Text('')),
-                                  DataCell(Text(otherPremiumPay.toString())),
+                                  DataCell(
+                                      Text(otherPremiumPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Allowance  ')),
                                   DataCell(Text('')),
-                                  DataCell(Text(allowance.toString())),
+                                  DataCell(Text(allowance.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Salary Adjustment  ')),
                                   DataCell(Text('')),
-                                  DataCell(Text(salaryAdjustment.toString())),
+                                  DataCell(Text(
+                                      salaryAdjustment.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('OT Adjustment')),
                                   DataCell(Text('')),
-                                  DataCell(Text(otAdjustment.toString())),
+                                  DataCell(
+                                      Text(otAdjustment.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Referral Bonus')),
                                   DataCell(Text('')),
-                                  DataCell(Text(referralBonus.toString())),
+                                  DataCell(
+                                      Text(referralBonus.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Signing Bonus')),
                                   DataCell(Text('')),
-                                  DataCell(Text(signingBonus.toString())),
+                                  DataCell(
+                                      Text(signingBonus.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text(
@@ -2528,7 +2889,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                         TextStyle(fontWeight: FontWeight.bold),
                                   )),
                                   DataCell(Text('')),
-                                  DataCell(Text(grossPay.toString())),
+                                  DataCell(Text(grossPay.toStringAsFixed(2))),
                                 ]),
                               ],
                             ),
@@ -2561,7 +2922,8 @@ class _PayslipPageState extends State<PayslipPage> {
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('SSS Contribution')),
-                                DataCell(Text(sssContribution.toString())),
+                                DataCell(
+                                    Text(sssContribution.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Pag-ibig Contribution')),
@@ -2569,39 +2931,45 @@ class _PayslipPageState extends State<PayslipPage> {
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('PHIC Contribution')),
-                                DataCell(Text(phicContribution.toString())),
+                                DataCell(
+                                    Text(phicContribution.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Witholding Tax')),
-                                DataCell(Text(withHoldingTax.toString())),
+                                DataCell(
+                                    Text(withHoldingTax.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('SSS Loan')),
-                                DataCell(Text(sssLoan.toString())),
+                                DataCell(Text(sssLoan.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Pag-ibig Loan')),
-                                DataCell(Text(pagibigLoan.toString())),
+                                DataCell(Text(pagibigLoan.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Advances: Eye Crafter')),
-                                DataCell(Text(advancesEyeCrafter.toString())),
+                                DataCell(Text(
+                                    advancesEyeCrafter.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Advances: Amesco')),
-                                DataCell(Text(advancesAmesco.toString())),
+                                DataCell(
+                                    Text(advancesAmesco.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Advances: Insular')),
-                                DataCell(Text(advancesInsular.toString())),
+                                DataCell(
+                                    Text(advancesInsular.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Vitalab / BMCDC')),
-                                DataCell(Text(vitalabBMCDC.toString())),
+                                DataCell(Text(vitalabBMCDC.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Other Advances')),
-                                DataCell(Text(otherAdvances.toString())),
+                                DataCell(
+                                    Text(otherAdvances.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('')),
@@ -2611,7 +2979,8 @@ class _PayslipPageState extends State<PayslipPage> {
                                 DataCell(Text('TOTAL DEDUCTIONS',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold))),
-                                DataCell(Text(totalDeduction.toString())),
+                                DataCell(
+                                    Text(totalDeduction.toStringAsFixed(2))),
                               ]),
                             ]),
                           ),
@@ -2647,7 +3016,11 @@ class _PayslipPageState extends State<PayslipPage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      grossPay.toString(),
+                                      NumberFormat.currency(
+                                              locale: 'en_PH',
+                                              symbol: '₱ ',
+                                              decimalDigits: 2)
+                                          .format(grossPay ?? 0.0),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     ),
@@ -2663,7 +3036,11 @@ class _PayslipPageState extends State<PayslipPage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      totalDeduction.toString(),
+                                      NumberFormat.currency(
+                                              locale: 'en_PH',
+                                              symbol: '₱ ',
+                                              decimalDigits: 2)
+                                          .format(totalDeduction ?? 0.0),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     ),
@@ -2680,7 +3057,11 @@ class _PayslipPageState extends State<PayslipPage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      netPay.toString(),
+                                      NumberFormat.currency(
+                                              locale: 'en_PH',
+                                              symbol: '₱ ',
+                                              decimalDigits: 2)
+                                          .format(netPay ?? 0.0),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     ),

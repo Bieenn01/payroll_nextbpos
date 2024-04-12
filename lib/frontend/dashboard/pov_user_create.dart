@@ -1,4 +1,7 @@
 import 'dart:math';
+import 'dart:async';
+import 'dart:io';
+import 'dart:js_interop';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,12 +11,21 @@ import 'package:date_field/date_field.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:project_payroll_nextbpo/backend/dashboardFunc/view_userDetails.dart';
+import 'package:intl/intl.dart';
 import 'package:project_payroll_nextbpo/backend/jsonfiles/add_users.dart';
-import 'package:project_payroll_nextbpo/backend/widgets/shimmer.dart';
 import 'package:project_payroll_nextbpo/backend/widgets/toast_widget.dart';
 import 'package:project_payroll_nextbpo/frontend/modal.dart';
 import 'package:shimmer/shimmer.dart' as ShimmerPackage;
+import 'package:http/http.dart' as http;
+import 'package:open_file/open_file.dart';
+import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
+import 'package:path_provider/path_provider.dart';
+import 'package:universal_html/html.dart' as html;
+import 'package:flutter/foundation.dart';
+import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class User {
   String department;
@@ -85,6 +97,8 @@ class _UserState extends State<PovUser> {
   int _pageSize = 5; // Default page size
 
   late Future<void> Function(int, DocumentSnapshot?) _fetchUsersWithPagination;
+  List<List<dynamic>> excelData = [];
+
   DateTime? selectedDate;
   DateTime? selectedTime;
   DateTime? selectedDateTime;
@@ -120,6 +134,8 @@ class _UserState extends State<PovUser> {
   String typeEmployee = 'Type of Employee';
   String genderEmployee = 'Select Gender';
   late String _role = 'Guest';
+  late String _userName = 'Guest';
+  DateTime _now = DateTime.now();
 
   @override
   void initState() {
@@ -127,6 +143,30 @@ class _UserState extends State<PovUser> {
     _fetchRole();
     _fetchUsersWithPagination = _fetchUsers;
     _fetchUsersWithPagination(_pageSize, null);
+    _fetchName();
+  }
+
+  Future<void> _fetchName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user.uid)
+          .get();
+
+      setState(() {
+        _userName = docSnapshot['fname'] +
+            " " +
+            docSnapshot['mname'] +
+            " " +
+            docSnapshot['lname'];
+      });
+    }
+  }
+
+  String now() {
+    DateTime dateTime = DateTime.now();
+    return DateFormat('MMMM dd, yyyy').format(dateTime);
   }
 
   Future<QuerySnapshot> _fetchUsers(
@@ -399,21 +439,6 @@ class _UserState extends State<PovUser> {
               startIndex < filteredDocuments.length &&
               endIndex <= filteredDocuments.length) {
             _displayedDocs = filteredDocuments.sublist(startIndex, endIndex);
-            //     .where((document) {
-            //   Map<String, dynamic> data =
-            //       document.data() as Map<String, dynamic>;
-            //   String employeeId = data['employeeId'];
-            //   String fname = data['fname'];
-            //   String mname = data['mname'];
-            //   String lname = data['lname'];
-            //   String query = _searchController.text.toLowerCase();
-            //   bool matchesSearchQuery =
-            //       employeeId.toLowerCase().contains(query) ||
-            //           fname.toLowerCase().contains(query) ||
-            //           mname.toLowerCase().contains(query) ||
-            //           lname.toLowerCase().contains(query);
-            //   return matchesSearchQuery;
-            // }).toList();
           } else {
             // Handle invalid index range
             print("Invalid index range");
@@ -422,6 +447,9 @@ class _UserState extends State<PovUser> {
           // Handle null data or null docs
           print("Snapshot data or docs is null");
         }
+
+        excelData = [];
+
         var dataTable = DataTable(
           columns: [
             const DataColumn(
@@ -669,6 +697,22 @@ class _UserState extends State<PovUser> {
 
               Color? rowColor =
                   realIndex % 2 == 0 ? Colors.white : Colors.grey[200];
+
+              excelData.add([
+                (index).toString(),
+                data['employeeID'] ?? 'Unknown',
+                data['fname'] ?? 'Unknown',
+                data['mname'] ?? 'Unknown',
+                data['lname'] ?? 'Unknown',
+                data['username'] ?? 'Unknown',
+                data['email'] ?? 'Unknown',
+                data['typeEmployee'] ?? 'Unknown',
+                data['department'] ?? 'Unknown',
+                shift,
+                data['role'] ?? 'Unknown',
+                data['isActive'] ?? 'Unknown',
+                data['isATM'] ?? 'Unknown',
+              ]);
 
               return DataRow(
                 color: MaterialStateColor.resolveWith((states) => rowColor!),
@@ -959,7 +1003,9 @@ class _UserState extends State<PovUser> {
                             color: Colors.teal.shade900.withOpacity(0.5)),
                         borderRadius: BorderRadius.circular(8)),
                     child: ElevatedButton(
-                        onPressed: (() {}),
+                        onPressed: (() {
+                          _exportToExcel();
+                        }),
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.teal,
                             padding: EdgeInsets.all(3)),
@@ -3027,5 +3073,91 @@ class _UserState extends State<PovUser> {
       print('Error sending password reset email: $e');
       showToast('Error sending password reset email: $e');
     }
+  }
+
+  Future<void> _exportToExcel() async {
+    final xlsio.Workbook workbook = xlsio.Workbook();
+    final xlsio.Worksheet sheet = workbook.worksheets[0];
+
+    // Adding a picture
+    final List<int> bytespic = await rootBundle
+        .load('assets/images/nextbpologo-removebg.png')
+        .then((data) => data.buffer.asUint8List());
+    final xlsio.Picture picture = sheet.pictures.addStream(1, 1, bytespic);
+    picture.height = 100;
+    picture.width = 300;
+
+    // Rest of your code for Excel formatting and data
+    sheet.getRangeByName('A2:H2').merge();
+    sheet.getRangeByName('A1:F1').rowHeight = 100;
+    sheet.getRangeByName('A5').columnWidth = 4.82;
+    sheet.getRangeByName('B5').columnWidth = 30;
+    sheet.getRangeByName('C5').columnWidth = 20;
+    sheet.getRangeByName('D5').columnWidth = 20;
+    sheet.getRangeByName('E5').columnWidth = 20;
+    sheet.getRangeByName('F5').columnWidth = 20;
+    sheet.getRangeByName('G5').columnWidth = 15;
+    sheet.getRangeByName('A5:H5').cellStyle.backColor = '#A5D6A7';
+
+    sheet.getRangeByName('A2:H2').setText('Account List Report');
+    sheet.getRangeByName('A2:H2').cellStyle.bold = true;
+    sheet.getRangeByName('A2:H2').cellStyle.hAlign = xlsio.HAlignType.center;
+
+    sheet.getRangeByIndex(3, 7).setText('Generated by :');
+    sheet.getRangeByIndex(3, 8).setText(_userName);
+    sheet.getRangeByIndex(4, 7).setText('Date Generated :');
+    sheet.getRangeByIndex(4, 8).setText(now());
+
+    sheet.getRangeByIndex(5, 1).setText('#');
+    sheet.getRangeByIndex(5, 2).setText('Full Name');
+    sheet.getRangeByIndex(5, 3).setText('Username');
+    sheet.getRangeByIndex(5, 4).setText('Email');
+    sheet.getRangeByIndex(5, 5).setText('Type');
+    sheet.getRangeByIndex(5, 6).setText('Department');
+    sheet.getRangeByIndex(5, 7).setText('Shift');
+    sheet.getRangeByIndex(5, 8).setText('Role');
+
+    sheet.getRangeByName('A5:H5').cellStyle.bold = true;
+    sheet.getRangeByName('A5:H5').cellStyle.fontSize = 12;
+
+    int rowIndex = 6; // Start from the second row for data
+    int count = 1; // Initialize counter
+    for (final userData in excelData) {
+      sheet.getRangeByIndex(rowIndex, 1).setText(count.toString());
+      sheet.getRangeByIndex(rowIndex, 2).setText(
+          "${userData[2].toString()} ${userData[3].toString()} ${userData[4].toString()}");
+      sheet.getRangeByIndex(rowIndex, 3).setText(userData[5].toString() ?? '');
+      sheet.getRangeByIndex(rowIndex, 4).setText(userData[6].toString() ?? '');
+      sheet.getRangeByIndex(rowIndex, 5).setText(userData[7].toString() ?? '');
+      sheet.getRangeByIndex(rowIndex, 6).setText(userData[8].toString());
+      sheet.getRangeByIndex(rowIndex, 7).setText(userData[9].toString());
+      sheet.getRangeByIndex(rowIndex, 8).setText(userData[10].toString());
+
+      rowIndex++;
+      count++;
+    }
+
+    final List<int> bytes = workbook.saveAsStream();
+
+    if (kIsWeb) {
+      final html.Blob blob = html.Blob([Uint8List.fromList(bytes)]);
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      html.AnchorElement(href: url)
+        ..setAttribute("download", "DTR_Report.xlsx")
+        ..click();
+      html.Url.revokeObjectUrl(url);
+    } else {
+      final String directoryPath =
+          (await getExternalStorageDirectory())?.path ?? '';
+      final String filePath = '$directoryPath/DTR_Report.xlsx';
+      final File file = File(filePath);
+      await file.writeAsBytes(bytes);
+      OpenFile.open(filePath);
+    }
+
+    workbook.dispose();
+    setState(() {
+      excelData = [];
+    });
   }
 }

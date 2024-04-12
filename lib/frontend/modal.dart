@@ -313,3 +313,161 @@ Future<bool> passwordVerification(BuildContext context) async {
   );
   return verificationSuccess;
 }
+
+Future<bool> commitPayslip(BuildContext context) async {
+  String enteredUsername = '';
+  bool verificationSuccess = false;
+
+  dynamic result = await showDialog(
+    context: context,
+    barrierLabel: '',
+    builder: (_) => AlertDialog(
+      backgroundColor: Colors.white,
+      title: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 250),
+              child: IconButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false); // Navigate back with false
+                },
+                icon: Icon(Icons.close),
+              ),
+            ),
+            Container(
+              decoration:
+                  BoxDecoration(borderRadius: BorderRadius.circular(50)),
+              child: const Icon(
+                Icons.info_rounded,
+                color: Colors.blue,
+                size: 80,
+              ),
+            ),
+            const SizedBox(
+              height: 15,
+            ),
+            const Text(
+              'Verification',
+              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Please enter the username to',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            Text(
+              ' proceed with payslip',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+      ),
+      content: Container(
+        height: 180,
+        width: 280,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Username',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(
+              height: 15,
+            ),
+            Container(
+              height: 50,
+              width: 300,
+              padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: Colors.black.withOpacity(0.5)),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: TextField(
+                onChanged: (value) {
+                  enteredUsername = value;
+                },
+                obscureText: true,
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Enter Username',
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 15,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: (() {
+                    Navigator.of(context)
+                        .pop(false); // Navigate back with false
+                  }),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey,
+                    padding: const EdgeInsets.all(18.0),
+                    minimumSize: const Size(150, 50),
+                    maximumSize: const Size(150, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(fontSize: 18, color: Colors.black),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: (() async {
+                    // Access Firebase to verify username
+                    final CollectionReference users =
+                        FirebaseFirestore.instance.collection('User');
+                    final QuerySnapshot result = await users
+                        .where('role', isEqualTo: 'Superadmin')
+                        .where('username', isEqualTo: enteredUsername)
+                        .get();
+
+                    if (result.docs.isNotEmpty) {
+                      // Username matched
+                      verificationSuccess = true;
+                      Navigator.of(context).pop(true); // Proceed with true
+                    } else {
+                      showToast("Incorrect username.");
+                    }
+                  }),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.all(18.0),
+                    minimumSize: const Size(150, 50),
+                    maximumSize: const Size(150, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Proceed',
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+  return verificationSuccess;
+}
