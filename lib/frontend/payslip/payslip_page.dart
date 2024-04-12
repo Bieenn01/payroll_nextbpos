@@ -1,13 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:project_payroll_nextbpo/frontend/payslip/contribution.dart';
 import 'package:shimmer/shimmer.dart' as ShimmerPackage;
 import 'package:intl/intl.dart';
-
+import 'dart:typed_data';
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:universal_html/html.dart' as html;
 import 'package:project_payroll_nextbpo/frontend/payslip/payslip._form.dart';
 
 class PayslipData {
@@ -1772,7 +1780,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                 ),
                                 ElevatedButton(
                                   onPressed: () async {
-                                    bool confirmGenerate = await showDialog(  
+                                    bool confirmGenerate = await showDialog(
                                         context: context,
                                         builder: (BuildContext context) {
                                           return AlertDialog(
@@ -2645,6 +2653,14 @@ class _PayslipPageState extends State<PayslipPage> {
                                     ),
                                   ],
                                 ),
+                             ElevatedButton(
+                onPressed: () {
+                  // Call function to export PDF
+                  _exportPdf(context, data);
+                },
+                child: Text('Export PDF'),
+              ),
+
                                 SizedBox(height: 580),
                               ],
                             ),
@@ -2659,6 +2675,245 @@ class _PayslipPageState extends State<PayslipPage> {
           });
     } catch (e) {}
   }
+Future<void> _exportPdf(BuildContext context, Map<String, dynamic> data) async {
+
+    try {
+      var employeeId = data['employeeId'];
+      var userDocSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .where('employeeId', isEqualTo: employeeId)
+          .get();
+      var userData = userDocSnapshot.docs.first.data();
+      var monthlySalary = userData['monthly_salary'] ?? 0;
+
+      var paySlipDataQuery = await FirebaseFirestore.instance
+          .collection('Payslip')
+          .where('employeeId', isEqualTo: employeeId)
+          .get();
+
+      var nightDifferential = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['night_differential'] ?? 0
+          : 0;
+
+      var overallOTPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['overAllOTPay'] ?? 0
+          : 0;
+
+      var restdayOTPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['restdayOTPay'] ?? 0
+          : 0;
+
+      var holidayPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['holidayPay'] ?? 0
+          : 0;
+
+      var specialHPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['specialHPay'] ?? 0
+          : 0;
+
+      var standyAllowance = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['standy_allowance'] ?? 0
+          : 0;
+
+      var otherPremiumPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['other_prem_pay'] ?? 0
+          : 0;
+
+      var allowance = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['allowance'] ?? 0
+          : 0;
+      var salaryAdjustment = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['salary_adjustment'] ?? 0
+          : 0;
+
+      var otAdjustment = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['ot_adjustment'] ?? 0
+          : 0;
+
+      var referralBonus = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['referral_bonus'] ?? 0
+          : 0;
+
+      var signingBonus = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['signing_bonus'] ?? 0
+          : 0;
+
+      var grossPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['grossPay'] ?? 0
+          : 0;
+
+      var sssContribution = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['sss_contribution'] ?? 0
+          : 0;
+
+      var pagibigContribution = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['pagibig_contribution'] ?? 0
+          : 0;
+      var phicContribution = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['phic_contribution'] ?? 0
+          : 0;
+      var withHoldingTax = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['witholding_tax'] ?? 0
+          : 0;
+
+      var sssLoan = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['sss_loan'] ?? 0
+          : 0;
+
+      var pagibigLoan = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['pagibig_loan'] ?? 0
+          : 0;
+
+      var advancesEyeCrafter = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['advances_eyecrafter'] ?? 0
+          : 0;
+
+      var advancesAmesco = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['advances_amesco'] ?? 0
+          : 0;
+
+      var advancesInsular = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['advances_insular'] ?? 0
+          : 0;
+      var vitalabBMCDC = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['vitalab_bmcdc'] ?? 0
+          : 0;
+
+      var otherAdvances = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['other_advances'] ?? 0
+          : 0;
+
+      var totalDeduction = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['total_deduction'] ?? 0
+          : 0;
+
+      var netPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['netPay'] ?? 0
+          : 0;
+
+
+    final pdf = pw.Document();
+
+pdf.addPage(
+  pw.Page(
+    build: (pw.Context context) {
+      return pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text('Payslip Details',
+              style: pw.TextStyle(
+                  fontSize: 20, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 10),
+          pw.Text('Employee ID: ${data['employeeId']}'),
+          pw.Text(
+              'Name: ${data['fname']} ${data['mname']} ${data['lname']}'),
+          pw.Text('Department: ${data['department']}'),
+          
+          pw.SizedBox(height: 20),
+          pw.Row(
+            children: [
+              pw.Expanded(
+                flex: 1,
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('EARNINGS',
+                        style: pw.TextStyle(
+                            fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                    pw.SizedBox(height: 10),
+                    pw.Text('Basic Salary: $monthlySalary'),
+                    pw.Text('Night Differential: $nightDifferential'),
+                    pw.Text('Overall OT Pay: $overallOTPay'),
+                    pw.Text('Restday OT Pay: $restdayOTPay'),
+                    pw.Text('Holiday Pay: $holidayPay'),
+                    pw.Text('Special Holiday Pay: $specialHPay'),
+                    pw.Text('Standy Allowance: $standyAllowance'),
+                    pw.Text('Other Premium Pay: $otherPremiumPay'),
+                    pw.Text('Allowance: $allowance'),
+                    pw.Text('Salary Adjustment: $salaryAdjustment'),
+                    pw.Text('OT Adjustment: $otAdjustment'),
+                    pw.Text('Referral Bonus: $referralBonus'),
+                    pw.Text('Signing Bonus: $signingBonus'),
+                    pw.Divider(), 
+                    pw.Text('Gross Pay: $grossPay'),
+                  ],
+                ),
+              ),
+              pw.Expanded(
+                flex: 1,
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('DEDUCTIONS',
+                        style: pw.TextStyle(
+                            fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                    pw.SizedBox(height: 10),
+                    pw.Text('SSS Contribution: $sssContribution'),
+                    pw.Text('Pag-ibig Contribution: $pagibigContribution'),
+                    pw.Text('PHIC Contribution: $phicContribution'),
+                    pw.Text('Withholding Tax: $withHoldingTax'),
+                    pw.Text('SSS Loan: $sssLoan'),
+                    pw.Text('Pag-ibig Loan: $pagibigLoan'),
+                    pw.Text('Advances Eye Crafter: $advancesEyeCrafter'),
+                    pw.Text('Advances Amesco: $advancesAmesco'),
+                    pw.Text('Advances Insular: $advancesInsular'),
+                    pw.Text('Vitalab / BMCDC: $vitalabBMCDC'),
+                    pw.Text('Other Advances: $otherAdvances'),
+                 pw.Text(
+  'S',
+  style: pw.TextStyle(color: PdfColors.white),
+),
+pw.Text(
+  'S',
+  style: pw.TextStyle(color: PdfColors.white),
+),
+
+                    pw.Divider(), 
+                    pw.Text('Total Deductions: $totalDeduction'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 20),
+          pw.Text('SUMMARY',
+              style: pw.TextStyle(
+                  fontSize: 18, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 10),
+      pw.Text('Gross Pay: $grossPay'),
+pw.Text('Total Deductions: $totalDeduction'),
+pw.Divider(), 
+pw.Text('Net Pay: $netPay'),
+
+        ],
+      );
+    },
+  ),
+);
+
+
+    final pdfBytes = await pdf.save();
+
+    if (kIsWeb) {
+      final pdfBlob = html.Blob([Uint8List.fromList(pdfBytes)]);
+      final pdfUrl = html.Url.createObjectUrlFromBlob(pdfBlob);
+      html.AnchorElement(href: pdfUrl)
+        ..setAttribute("download", "Payslip_Report.pdf")
+        ..click();
+      html.Url.revokeObjectUrl(pdfUrl);
+    } else {
+      final String directoryPath =
+          (await getExternalStorageDirectory())?.path ?? '';
+      final String filePath = '$directoryPath/Payslip_Report.pdf';
+      final File file = File(filePath);
+      await file.writeAsBytes(pdfBytes);
+      OpenFile.open(filePath);
+    }
+  } catch (e) {
+    print("Error: $e");
+    // Handle error appropriately
+  }
+}
 
   Future<void> fetchTotal() async {
     DocumentSnapshot totalPayslipSnapshot = await FirebaseFirestore.instance
