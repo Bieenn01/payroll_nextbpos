@@ -1,15 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:project_payroll_nextbpo/frontend/modal.dart';
+import 'package:project_payroll_nextbpo/frontend/payslip/modal.dart';
 import 'package:project_payroll_nextbpo/frontend/payslip/contribution.dart';
 import 'package:shimmer/shimmer.dart' as ShimmerPackage;
 import 'package:intl/intl.dart';
-
-import 'package:project_payroll_nextbpo/frontend/payslip/payslip._form.dart';
+import 'dart:typed_data';
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:universal_html/html.dart' as html;
+import 'package:project_payroll_nextbpo/frontend/payslip/payslip/payslip._form.dart';
 
 class PayslipData {
   final DateTime startDate;
@@ -51,7 +59,7 @@ class _PayslipPageState extends State<PayslipPage> {
   double totalGrossPay = 0.0;
   double totalNetPay = 0.0;
   double totalDeductions = 0.0;
-  final _firestore = FirebaseFirestore.instance;
+
   // Variable to store generated payroll data
   // Declare a variable to hold the future result of fetchTotal()
   late Future<void> _fetchTotalFuture;
@@ -806,34 +814,30 @@ class _PayslipPageState extends State<PayslipPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Flexible(
-                                child: Container(
-                                  width: MediaQuery.of(context).size.width > 600
-                                      ? 400
-                                      : 100,
-                                  height: 30,
-                                  margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                                  padding:
-                                      const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                        color: Colors.black.withOpacity(0.5)),
+                              Container(
+                                width: MediaQuery.of(context).size.width > 600
+                                    ? 400
+                                    : 100,
+                                height: 30,
+                                margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color: Colors.black.withOpacity(0.5)),
+                                ),
+                                child: TextField(
+                                  controller: _searchController,
+                                  textAlign: TextAlign.start,
+                                  decoration: const InputDecoration(
+                                    contentPadding: EdgeInsets.only(bottom: 15),
+                                    prefixIcon: Icon(Icons.search),
+                                    border: InputBorder.none,
+                                    hintText: 'Search',
                                   ),
-                                  child: TextField(
-                                    controller: _searchController,
-                                    textAlign: TextAlign.start,
-                                    decoration: const InputDecoration(
-                                      contentPadding:
-                                          EdgeInsets.only(bottom: 15),
-                                      prefixIcon: Icon(Icons.search),
-                                      border: InputBorder.none,
-                                      hintText: 'Search',
-                                    ),
-                                    onChanged: (value) {
-                                      setState(() {});
-                                    },
-                                  ),
+                                  onChanged: (value) {
+                                    setState(() {});
+                                  },
                                 ),
                               ),
                               Container(
@@ -1174,8 +1178,8 @@ class _PayslipPageState extends State<PayslipPage> {
                                               .format(totalNetPay ??
                                                   0.0), // Assuming totalGrossPay is accessible in this scope
                                           style: TextStyle(
-                                            fontSize: 20,
-                                          ),
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
                                         );
                                       }
                                     },
@@ -1233,7 +1237,6 @@ class _PayslipPageState extends State<PayslipPage> {
           .collection('Holiday')
           .where('employeeId', isEqualTo: employeeId)
           .get();
-
       // Query the User collection to get the user's document
       var userDocSnapshot = await FirebaseFirestore.instance
           .collection('User')
@@ -1549,22 +1552,25 @@ class _PayslipPageState extends State<PayslipPage> {
                                 DataRow(cells: [
                                   DataCell(Text('Overtime')),
                                   DataCell(Text('')),
-                                  DataCell(Text(overallOTPay.toString())),
+                                  DataCell(
+                                      Text(overallOTPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('RDOT')),
                                   DataCell(Text('')),
-                                  DataCell(Text(restdayOTPay.toString())),
+                                  DataCell(
+                                      Text(restdayOTPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Regular Holiday')),
                                   DataCell(Text('')),
-                                  DataCell(Text(holidayPay.toString())),
+                                  DataCell(Text(holidayPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Special Holiday')),
                                   DataCell(Text('')),
-                                  DataCell(Text(specialHPay.toString())),
+                                  DataCell(
+                                      Text(specialHPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Standy Allowance')),
@@ -1710,7 +1716,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                   )),
                                   DataCell(Text('')),
                                   DataCell(Text(
-                                    grossPay.toString(),
+                                    grossPay.toStringAsFixed(2),
                                     style:
                                         TextStyle(fontWeight: FontWeight.bold),
                                   )),
@@ -1986,7 +1992,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      grossPay.toString(),
+                                      grossPay.toStringAsFixed(2),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     )
@@ -2002,7 +2008,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      totalDeduction.toString(),
+                                      totalDeduction.toStringAsFixed(2),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     )
@@ -2014,13 +2020,13 @@ class _PayslipPageState extends State<PayslipPage> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'NET PAY: ',
+                                      'NET PsdsAY: ',
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18),
                                     ),
                                     Text(
-                                      netPay.toString(),
+                                      netPay.toStringAsFixed(2),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18),
@@ -2220,17 +2226,9 @@ class _PayslipPageState extends State<PayslipPage> {
                                         // Assuming employeeId is accessible from the user object
                                         final String employeeId = userData[
                                             'employeeId']; // Adjust this line according to your actual user object structure
-                                        final String fullName =
-                                            '${userData['fname']} ${userData['mname']} ${userData['lname']}';
-                                        final String department =
-                                            userData['department'];
-                                        final double monthly_salary =
-                                            userData['monthly_salary'];
+
                                         // User is authenticated, proceed with adding payslip
                                         await addPayslip(
-                                          monthly_salary: monthly_salary,
-                                          department: department,
-                                          fullName: fullName,
                                           advances_amesco: advanceAmesco,
                                           employeeId: employeeId,
                                           night_differential: nightDifferential,
@@ -2277,122 +2275,6 @@ class _PayslipPageState extends State<PayslipPage> {
 
                                         // Add employeeId to _generateClickedList
                                         _generateClickedList.add(employeeId);
-                                        double makeitzero = 0;
-                                        final lastRecordSnapshot =
-                                            await _firestore
-                                                .collection('OvertimePay')
-                                                .where('employeeId',
-                                                    isEqualTo: employeeId)
-                                                .get();
-
-                                        final lastRecordSnapshot2 =
-                                            await _firestore
-                                                .collection('HolidayPay')
-                                                .where('employeeId',
-                                                    isEqualTo: employeeId)
-                                                .get();
-
-                                        final lastRecordSnapshot3 =
-                                            await _firestore
-                                                .collection('RestdayOTPay')
-                                                .where('employeeId',
-                                                    isEqualTo: employeeId)
-                                                .get();
-
-                                        final lastRecordSnapshot4 =
-                                            await _firestore
-                                                .collection('SpecialHolidayPay')
-                                                .where('employeeId',
-                                                    isEqualTo: employeeId)
-                                                .get();
-
-                                        final lastRecordSnapshot5 =
-                                            await _firestore
-                                                .collection(
-                                                    'RegularHolidayOTPay')
-                                                .where('employeeId',
-                                                    isEqualTo: employeeId)
-                                                .get();
-
-                                        final lastRecordSnapshot6 =
-                                            await _firestore
-                                                .collection(
-                                                    'SpecialHolidayOTPay')
-                                                .where('employeeId',
-                                                    isEqualTo: employeeId)
-                                                .get();
-                                        if (lastRecordSnapshot
-                                            .docs.isNotEmpty) {
-                                          final recordId =
-                                              lastRecordSnapshot.docs.first.id;
-                                          await _firestore
-                                              .collection('OvertimePay')
-                                              .doc(recordId)
-                                              .update({
-                                            'total_overtimePay': makeitzero,
-                                          });
-                                        }
-
-                                        if (lastRecordSnapshot2
-                                            .docs.isNotEmpty) {
-                                          final recordId =
-                                              lastRecordSnapshot2.docs.first.id;
-                                          await _firestore
-                                              .collection('HolidayPay')
-                                              .doc(recordId)
-                                              .update({
-                                            'total_holidayPay': makeitzero,
-                                          });
-                                        }
-
-                                        if (lastRecordSnapshot3
-                                            .docs.isNotEmpty) {
-                                          final recordId =
-                                              lastRecordSnapshot3.docs.first.id;
-                                          await _firestore
-                                              .collection('RestdayOTPay')
-                                              .doc(recordId)
-                                              .update({
-                                            'total_restDayOTPay': makeitzero,
-                                          });
-                                        }
-
-                                        if (lastRecordSnapshot4
-                                            .docs.isNotEmpty) {
-                                          final recordId =
-                                              lastRecordSnapshot4.docs.first.id;
-                                          await _firestore
-                                              .collection('SpecialHolidayPay')
-                                              .doc(recordId)
-                                              .update({
-                                            'total_specialHolidayPay':
-                                                makeitzero,
-                                          });
-                                        }
-
-                                        if (lastRecordSnapshot5
-                                            .docs.isNotEmpty) {
-                                          final recordId =
-                                              lastRecordSnapshot5.docs.first.id;
-                                          await _firestore
-                                              .collection('RegularHolidayOTPay')
-                                              .doc(recordId)
-                                              .update({
-                                            'total_regularHOTPay': makeitzero,
-                                          });
-                                        }
-
-                                        if (lastRecordSnapshot6
-                                            .docs.isNotEmpty) {
-                                          final recordId =
-                                              lastRecordSnapshot6.docs.first.id;
-                                          await _firestore
-                                              .collection('SpecialHolidayOTPay')
-                                              .doc(recordId)
-                                              .update({
-                                            'total_specialOTPay': makeitzero,
-                                          });
-                                        }
 
                                         Navigator.of(context).pop();
                                       } catch (e) {
@@ -2480,9 +2362,6 @@ class _PayslipPageState extends State<PayslipPage> {
 
 // Placeholder function, replace this with actual implementation
   Future<void> addPayslip({
-    required double monthly_salary,
-    required String department,
-    required String fullName,
     required double advances_amesco,
     required String employeeId,
     required double night_differential,
@@ -2517,9 +2396,6 @@ class _PayslipPageState extends State<PayslipPage> {
   }) async {
     try {
       final json = {
-        'monthly_salary': monthly_salary,
-        'department': department,
-        'fullname': fullName,
         'employeeId': employeeId,
         'advances_amesco': advances_amesco,
         'advances_eyecrafter': advances_eyecrafter,
@@ -2559,10 +2435,6 @@ class _PayslipPageState extends State<PayslipPage> {
       await FirebaseFirestore.instance
           .collection('Payslip')
           .doc(employeeId)
-          .set(json);
-      await FirebaseFirestore.instance
-          .collection('ArchivesPayslip')
-          .doc()
           .set(json);
 
       print('Payslip added successfully for employee $employeeId');
@@ -2823,10 +2695,14 @@ class _PayslipPageState extends State<PayslipPage> {
                                   DataCell(Text('')),
                                   DataCell(
                                       Text(overallOTPay.toStringAsFixed(2))),
+                                  DataCell(
+                                      Text(overallOTPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('RDOT')),
                                   DataCell(Text('')),
+                                  DataCell(
+                                      Text(restdayOTPay.toStringAsFixed(2))),
                                   DataCell(
                                       Text(restdayOTPay.toStringAsFixed(2))),
                                 ]),
@@ -2834,10 +2710,13 @@ class _PayslipPageState extends State<PayslipPage> {
                                   DataCell(Text('Regular Holiday')),
                                   DataCell(Text('')),
                                   DataCell(Text(holidayPay.toStringAsFixed(2))),
+                                  DataCell(Text(holidayPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Special Holiday')),
                                   DataCell(Text('')),
+                                  DataCell(
+                                      Text(specialHPay.toStringAsFixed(2))),
                                   DataCell(
                                       Text(specialHPay.toStringAsFixed(2))),
                                 ]),
@@ -3067,6 +2946,13 @@ class _PayslipPageState extends State<PayslipPage> {
                                     ),
                                   ],
                                 ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    // Call function to export PDF
+                                    _exportPdf(context, data);
+                                  },
+                                  child: Text('Export PDF'),
+                                ),
                                 SizedBox(height: 580),
                               ],
                             ),
@@ -3080,6 +2966,244 @@ class _PayslipPageState extends State<PayslipPage> {
             });
           });
     } catch (e) {}
+  }
+
+  Future<void> _exportPdf(
+      BuildContext context, Map<String, dynamic> data) async {
+    try {
+      var employeeId = data['employeeId'];
+      var userDocSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .where('employeeId', isEqualTo: employeeId)
+          .get();
+      var userData = userDocSnapshot.docs.first.data();
+      var monthlySalary = userData['monthly_salary'] ?? 0;
+
+      var paySlipDataQuery = await FirebaseFirestore.instance
+          .collection('Payslip')
+          .where('employeeId', isEqualTo: employeeId)
+          .get();
+
+      var nightDifferential = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['night_differential'] ?? 0
+          : 0;
+
+      var overallOTPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['overAllOTPay'] ?? 0
+          : 0;
+
+      var restdayOTPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['restdayOTPay'] ?? 0
+          : 0;
+
+      var holidayPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['holidayPay'] ?? 0
+          : 0;
+
+      var specialHPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['specialHPay'] ?? 0
+          : 0;
+
+      var standyAllowance = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['standy_allowance'] ?? 0
+          : 0;
+
+      var otherPremiumPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['other_prem_pay'] ?? 0
+          : 0;
+
+      var allowance = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['allowance'] ?? 0
+          : 0;
+      var salaryAdjustment = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['salary_adjustment'] ?? 0
+          : 0;
+
+      var otAdjustment = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['ot_adjustment'] ?? 0
+          : 0;
+
+      var referralBonus = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['referral_bonus'] ?? 0
+          : 0;
+
+      var signingBonus = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['signing_bonus'] ?? 0
+          : 0;
+
+      var grossPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['grossPay'] ?? 0
+          : 0;
+
+      var sssContribution = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['sss_contribution'] ?? 0
+          : 0;
+
+      var pagibigContribution = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['pagibig_contribution'] ?? 0
+          : 0;
+      var phicContribution = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['phic_contribution'] ?? 0
+          : 0;
+      var withHoldingTax = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['witholding_tax'] ?? 0
+          : 0;
+
+      var sssLoan = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['sss_loan'] ?? 0
+          : 0;
+
+      var pagibigLoan = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['pagibig_loan'] ?? 0
+          : 0;
+
+      var advancesEyeCrafter = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['advances_eyecrafter'] ?? 0
+          : 0;
+
+      var advancesAmesco = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['advances_amesco'] ?? 0
+          : 0;
+
+      var advancesInsular = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['advances_insular'] ?? 0
+          : 0;
+      var vitalabBMCDC = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['vitalab_bmcdc'] ?? 0
+          : 0;
+
+      var otherAdvances = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['other_advances'] ?? 0
+          : 0;
+
+      var totalDeduction = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['total_deduction'] ?? 0
+          : 0;
+
+      var netPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['netPay'] ?? 0
+          : 0;
+
+      final pdf = pw.Document();
+
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('Payslip Details',
+                    style: pw.TextStyle(
+                        fontSize: 20, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 10),
+                pw.Text('Employee ID: ${data['employeeId']}'),
+                pw.Text(
+                    'Name: ${data['fname']} ${data['mname']} ${data['lname']}'),
+                pw.Text('Department: ${data['department']}'),
+                pw.SizedBox(height: 20),
+                pw.Row(
+                  children: [
+                    pw.Expanded(
+                      flex: 1,
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('EARNINGS',
+                              style: pw.TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: pw.FontWeight.bold)),
+                          pw.SizedBox(height: 10),
+                          pw.Text('Basic Salary: $monthlySalary'),
+                          pw.Text('Night Differential: $nightDifferential'),
+                          pw.Text('Overall OT Pay: $overallOTPay'),
+                          pw.Text('Restday OT Pay: $restdayOTPay'),
+                          pw.Text('Holiday Pay: $holidayPay'),
+                          pw.Text('Special Holiday Pay: $specialHPay'),
+                          pw.Text('Standy Allowance: $standyAllowance'),
+                          pw.Text('Other Premium Pay: $otherPremiumPay'),
+                          pw.Text('Allowance: $allowance'),
+                          pw.Text('Salary Adjustment: $salaryAdjustment'),
+                          pw.Text('OT Adjustment: $otAdjustment'),
+                          pw.Text('Referral Bonus: $referralBonus'),
+                          pw.Text('Signing Bonus: $signingBonus'),
+                          pw.Divider(),
+                          pw.Text('Gross Pay: $grossPay'),
+                        ],
+                      ),
+                    ),
+                    pw.Expanded(
+                      flex: 1,
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('DEDUCTIONS',
+                              style: pw.TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: pw.FontWeight.bold)),
+                          pw.SizedBox(height: 10),
+                          pw.Text('SSS Contribution: $sssContribution'),
+                          pw.Text(
+                              'Pag-ibig Contribution: $pagibigContribution'),
+                          pw.Text('PHIC Contribution: $phicContribution'),
+                          pw.Text('Withholding Tax: $withHoldingTax'),
+                          pw.Text('SSS Loan: $sssLoan'),
+                          pw.Text('Pag-ibig Loan: $pagibigLoan'),
+                          pw.Text('Advances Eye Crafter: $advancesEyeCrafter'),
+                          pw.Text('Advances Amesco: $advancesAmesco'),
+                          pw.Text('Advances Insular: $advancesInsular'),
+                          pw.Text('Vitalab / BMCDC: $vitalabBMCDC'),
+                          pw.Text('Other Advances: $otherAdvances'),
+                          pw.Text(
+                            'S',
+                            style: pw.TextStyle(color: PdfColors.white),
+                          ),
+                          pw.Text(
+                            'S',
+                            style: pw.TextStyle(color: PdfColors.white),
+                          ),
+                          pw.Divider(),
+                          pw.Text('Total Deductions: $totalDeduction'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 20),
+                pw.Text('SUMMARY',
+                    style: pw.TextStyle(
+                        fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 10),
+                pw.Text('Gross Pay: $grossPay'),
+                pw.Text('Total Deductions: $totalDeduction'),
+                pw.Divider(),
+                pw.Text('Net Pay: $netPay'),
+              ],
+            );
+          },
+        ),
+      );
+
+      final pdfBytes = await pdf.save();
+
+      if (kIsWeb) {
+        final pdfBlob = html.Blob([Uint8List.fromList(pdfBytes)]);
+        final pdfUrl = html.Url.createObjectUrlFromBlob(pdfBlob);
+        html.AnchorElement(href: pdfUrl)
+          ..setAttribute("download", "Payslip_Report.pdf")
+          ..click();
+        html.Url.revokeObjectUrl(pdfUrl);
+      } else {
+        final String directoryPath =
+            (await getExternalStorageDirectory())?.path ?? '';
+        final String filePath = '$directoryPath/Payslip_Report.pdf';
+        final File file = File(filePath);
+        await file.writeAsBytes(pdfBytes);
+        OpenFile.open(filePath);
+      }
+    } catch (e) {
+      print("Error: $e");
+      // Handle error appropriately
+    }
   }
 
   Future<void> fetchTotal() async {
@@ -3238,35 +3362,6 @@ Future<void> moveToRegularH(DocumentSnapshot overtimeDoc) async {
       if (data != null) {
         await FirebaseFirestore.instance
             .collection('ArchivesRegularH')
-            .add(data); // Adding document data to ArchivesOvertime collection
-      }
-      await doc.reference
-          .delete(); // Delete the document from the original collection
-    }
-  } catch (e) {
-    print('Error moving record to ArchivesOvertime collection: $e');
-  }
-}
-
-Future<void> moveToPayslip(DocumentSnapshot overtimeDoc) async {
-  try {
-    Map<String, dynamic> overtimeData =
-        Map<String, dynamic>.from(overtimeDoc.data() as Map<String, dynamic>);
-
-    String employeeId = overtimeData['employeeId'];
-    QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
-        .collection('Payslip')
-        .where('employeeId', isEqualTo: employeeId)
-        .get();
-
-    List<DocumentSnapshot> userOvertimeDocs = overtimeSnapshot.docs;
-
-    // Loop through documents and move each one to ArchivesOvertime collection
-    for (DocumentSnapshot doc in userOvertimeDocs) {
-      Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
-      if (data != null) {
-        await FirebaseFirestore.instance
-            .collection('ArchivesPayslip')
             .add(data); // Adding document data to ArchivesOvertime collection
       }
       await doc.reference
