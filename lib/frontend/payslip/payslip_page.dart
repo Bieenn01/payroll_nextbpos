@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -71,6 +70,7 @@ class _PayslipPageState extends State<PayslipPage> {
   late Future<void> _fetchTotalFuture;
   late Future<void> _fetchTotalFuture2;
   late Future<void> _fetchTotalFuture3;
+  bool _isLoading = false;
   bool filter = false;
   DateTime? _startDate;
   DateTime? _endDate;
@@ -288,10 +288,6 @@ class _PayslipPageState extends State<PayslipPage> {
             .collectionGroup('PayslipDepartment')
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          }
-
           if (snapshot.connectionState == ConnectionState.waiting) {
             return _buildShimmerLoading();
           }
@@ -1057,8 +1053,36 @@ class _PayslipPageState extends State<PayslipPage> {
                                             icon: Icon(Icons.payment,
                                                 color: Colors.blue),
                                             onPressed: () {
-                                              _showPayslipDialog(
-                                                  context, payrollData);
+                                              // Show circular progress indicator
+                                              showDialog(
+                                                context: context,
+                                                barrierDismissible:
+                                                    false, // Prevent dialog dismissal
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return Center(
+                                                    child:
+                                                        CircularProgressIndicator(),
+                                                  );
+                                                },
+                                              );
+
+                                              // Simulate data fetching delay
+                                              Future.delayed(
+                                                  Duration(seconds: 3), () {
+                                                // Once data is fetched, close the circular progress indicator
+                                                Navigator.of(context,
+                                                        rootNavigator: true)
+                                                    .pop();
+
+                                                // Delay before showing the payslip dialog
+                                                Future.delayed(
+                                                    Duration(seconds: -1), () {
+                                                  // Show payslip dialog
+                                                  _showPayslipDialog(
+                                                      context, payrollData);
+                                                });
+                                              });
                                             },
                                           ),
                                         ],
@@ -1103,33 +1127,43 @@ class _PayslipPageState extends State<PayslipPage> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  FutureBuilder<void>(
-                                    future:
-                                        _fetchTotalFuture, // Use the future variable
+                                  StreamBuilder<DocumentSnapshot>(
+                                    stream: FirebaseFirestore.instance
+                                        .collection('TotalPayslip')
+                                        .doc('totals')
+                                        .snapshots(),
                                     builder: (BuildContext context,
-                                        AsyncSnapshot<void> snapshot) {
+                                        AsyncSnapshot<DocumentSnapshot>
+                                            snapshot) {
                                       if (snapshot.connectionState ==
                                           ConnectionState.waiting) {
                                         // Show a loading indicator or placeholder while fetching data
-                                        return CircularProgressIndicator(); // Example loading indicator
-                                      } else if (snapshot.hasError) {
-                                        // Handle error
-                                        return Text('Error: ${snapshot.error}');
+                                        return CircularProgressIndicator();
                                       } else {
                                         // Data has been successfully fetched, display it
-                                        return Text(
-                                          NumberFormat.currency(
-                                                  locale: 'en_PH',
-                                                  symbol: '₱ ',
-                                                  decimalDigits: 2)
-                                              .format(totalGrossPay ?? 0.0),
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold),
+                                        final data = snapshot.data!.data()
+                                            as Map<String, dynamic>;
+
+                                        final totalGrossPay =
+                                            data['totalGrossPay'] ?? 0.0;
+
+                                        return Column(
+                                          children: [
+                                            Text(
+                                              NumberFormat.currency(
+                                                      locale: 'en_PH',
+                                                      symbol: '₱ ',
+                                                      decimalDigits: 2)
+                                                  .format(totalGrossPay ?? 0.0),
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold),
+                                            )
+                                          ],
                                         );
                                       }
                                     },
-                                  ),
+                                  )
                                 ],
                               ),
                             ),
@@ -1149,33 +1183,44 @@ class _PayslipPageState extends State<PayslipPage> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  FutureBuilder<void>(
-                                    future:
-                                        _fetchTotalFuture2, // Use the future variable
+                                  StreamBuilder<DocumentSnapshot>(
+                                    stream: FirebaseFirestore.instance
+                                        .collection('TotalPayslip')
+                                        .doc('totals')
+                                        .snapshots(),
                                     builder: (BuildContext context,
-                                        AsyncSnapshot<void> snapshot) {
+                                        AsyncSnapshot<DocumentSnapshot>
+                                            snapshot) {
                                       if (snapshot.connectionState ==
                                           ConnectionState.waiting) {
                                         // Show a loading indicator or placeholder while fetching data
-                                        return CircularProgressIndicator(); // Example loading indicator
-                                      } else if (snapshot.hasError) {
-                                        // Handle error
-                                        return Text('Error: ${snapshot.error}');
+                                        return CircularProgressIndicator();
                                       } else {
                                         // Data has been successfully fetched, display it
-                                        return Text(
-                                          NumberFormat.currency(
-                                                  locale: 'en_PH',
-                                                  symbol: '₱ ',
-                                                  decimalDigits: 2)
-                                              .format(totalDeductions ?? 0.0),
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold),
+                                        final data = snapshot.data!.data()
+                                            as Map<String, dynamic>;
+
+                                        final totalDeductions =
+                                            data['totalDeductions'] ?? 0.0;
+
+                                        return Column(
+                                          children: [
+                                            Text(
+                                              NumberFormat.currency(
+                                                      locale: 'en_PH',
+                                                      symbol: '₱ ',
+                                                      decimalDigits: 2)
+                                                  .format(
+                                                      totalDeductions ?? 0.0),
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold),
+                                            )
+                                          ],
                                         );
                                       }
                                     },
-                                  ),
+                                  )
                                 ],
                               ),
                             ),
@@ -1208,9 +1253,6 @@ class _PayslipPageState extends State<PayslipPage> {
                                           ConnectionState.waiting) {
                                         // Show a loading indicator or placeholder while fetching data
                                         return CircularProgressIndicator();
-                                      } else if (snapshot.hasError) {
-                                        // Handle error
-                                        return Text('Error: ${snapshot.error}');
                                       } else {
                                         // Data has been successfully fetched, display it
                                         final data = snapshot.data!.data()
@@ -3266,32 +3308,6 @@ class _PayslipPageState extends State<PayslipPage> {
       pdf.addPage(
         pw.Page(
           build: (pw.Context context) {
-            var currencyFormatter = NumberFormat.currency(
-              locale: 'en_PH',
-              symbol: 'PHP ',
-              decimalDigits: 2,
-            );
-            pw.Row createRow(String description, String amount) {
-              return pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text(description),
-                  pw.Text(amount),
-                ],
-              );
-            }
-
-            pw.Row createRowSum(String description, String amount) {
-              return pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text(description),
-                  pw.Text(amount,
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                ],
-              );
-            }
-
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
@@ -3299,17 +3315,16 @@ class _PayslipPageState extends State<PayslipPage> {
                     style: pw.TextStyle(
                         fontSize: 20, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 10),
-                createRow('Employee ID: ', '${data['employeeId']}'),
-                createRow('Name:',
-                    ' ${data['fname']} ${data['mname']} ${data['lname']}'),
-                createRow('Department: ', '${data['department']}'),
+                pw.Text('Employee ID: ${data['employeeId']}'),
+                pw.Text(
+                    'Name: ${data['fname']} ${data['mname']} ${data['lname']}'),
+                pw.Text('Department: ${data['department']}'),
                 pw.SizedBox(height: 20),
                 pw.Row(
                   children: [
                     pw.Expanded(
                       flex: 1,
                       child: pw.Column(
-                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Text('EARNINGS',
@@ -3317,28 +3332,24 @@ class _PayslipPageState extends State<PayslipPage> {
                                   fontSize: 18,
                                   fontWeight: pw.FontWeight.bold)),
                           pw.SizedBox(height: 10),
-                          createRow('Basic Salary:', ' $monthlySalary'),
-                          createRow(
-                              'Night Differential:', ' $nightDifferential'),
-                          createRow('Overall OT Pay:', ' $overallOTPay'),
-                          createRow('Restday OT Pay: ', '$restdayOTPay'),
-                          createRow('Holiday Pay: ', '$holidayPay'),
-                          createRow('Special Holiday Pay: ', '$specialHPay'),
-                          createRow('Standy Allowance: ', '$standyAllowance'),
-                          createRow('Other Premium Pay:', ' $otherPremiumPay'),
-                          createRow('Allowance:', ' $allowance'),
-                          createRow('Salary Adjustment:', ' $salaryAdjustment'),
-                          createRow('OT Adjustment: ', '$otAdjustment'),
-                          createRow('Referral Bonus: ', '$referralBonus'),
-                          createRow('Signing Bonus: ', '$signingBonus'),
+                          pw.Text('Basic Salary: $monthlySalary'),
+                          pw.Text('Night Differential: $nightDifferential'),
+                          pw.Text('Overall OT Pay: $overallOTPay'),
+                          pw.Text('Restday OT Pay: $restdayOTPay'),
+                          pw.Text('Holiday Pay: $holidayPay'),
+                          pw.Text('Special Holiday Pay: $specialHPay'),
+                          pw.Text('Standy Allowance: $standyAllowance'),
+                          pw.Text('Other Premium Pay: $otherPremiumPay'),
+                          pw.Text('Allowance: $allowance'),
+                          pw.Text('Salary Adjustment: $salaryAdjustment'),
+                          pw.Text('OT Adjustment: $otAdjustment'),
+                          pw.Text('Referral Bonus: $referralBonus'),
+                          pw.Text('Signing Bonus: $signingBonus'),
                           pw.Divider(),
-                          createRow('Gross Pay: ', '$grossPay'),
+                          pw.Text('Gross Pay: $grossPay'),
                         ],
                       ),
                     ),
-                    pw.SizedBox(width: 10),
-                    // pw.Container(height: 280, width: 1, color: PdfColors.black),
-                    pw.SizedBox(width: 10),
                     pw.Expanded(
                       flex: 1,
                       child: pw.Column(
@@ -3349,19 +3360,18 @@ class _PayslipPageState extends State<PayslipPage> {
                                   fontSize: 18,
                                   fontWeight: pw.FontWeight.bold)),
                           pw.SizedBox(height: 10),
-                          createRow('SSS Contribution:', ' $sssContribution'),
-                          createRow('Pag-ibig Contribution: ',
-                              '$pagibigContribution'),
-                          createRow('PHIC Contribution: ', '$phicContribution'),
-                          createRow('Withholding Tax:', ' $withHoldingTax'),
-                          createRow('SSS Loan: ', ' $sssLoan'),
-                          createRow('Pag-ibig Loan:', ' $pagibigLoan'),
-                          createRow(
-                              'Advances Eye Crafter:', ' $advancesEyeCrafter'),
-                          createRow('Advances Amesco: ', '$advancesAmesco'),
-                          createRow('Advances Insular:', ' $advancesInsular'),
-                          createRow('Vitalab / BMCDC:', ' $vitalabBMCDC'),
-                          createRow('Other Advances: ', '$otherAdvances'),
+                          pw.Text('SSS Contribution: $sssContribution'),
+                          pw.Text(
+                              'Pag-ibig Contribution: $pagibigContribution'),
+                          pw.Text('PHIC Contribution: $phicContribution'),
+                          pw.Text('Withholding Tax: $withHoldingTax'),
+                          pw.Text('SSS Loan: $sssLoan'),
+                          pw.Text('Pag-ibig Loan: $pagibigLoan'),
+                          pw.Text('Advances Eye Crafter: $advancesEyeCrafter'),
+                          pw.Text('Advances Amesco: $advancesAmesco'),
+                          pw.Text('Advances Insular: $advancesInsular'),
+                          pw.Text('Vitalab / BMCDC: $vitalabBMCDC'),
+                          pw.Text('Other Advances: $otherAdvances'),
                           pw.Text(
                             'S',
                             style: pw.TextStyle(color: PdfColors.white),
@@ -3371,7 +3381,7 @@ class _PayslipPageState extends State<PayslipPage> {
                             style: pw.TextStyle(color: PdfColors.white),
                           ),
                           pw.Divider(),
-                          createRow('Total Deductions:', ' $totalDeduction'),
+                          pw.Text('Total Deductions: $totalDeduction'),
                         ],
                       ),
                     ),
@@ -3382,13 +3392,10 @@ class _PayslipPageState extends State<PayslipPage> {
                     style: pw.TextStyle(
                         fontSize: 18, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 10),
-                createRowSum('Gross Pay:',
-                    ' ${currencyFormatter.format(grossPay ?? 0.0)}'),
-                createRowSum('Total Deductions: ',
-                    '${currencyFormatter.format(totalDeduction ?? 0.0)}'),
+                pw.Text('Gross Pay: $grossPay'),
+                pw.Text('Total Deductions: $totalDeduction'),
                 pw.Divider(),
-                createRowSum(
-                    'Net Pay:', ' ${currencyFormatter.format(netPay ?? 0.0)}'),
+                pw.Text('Net Pay: $netPay'),
               ],
             );
           },
@@ -3494,12 +3501,6 @@ class _PayslipPageState extends State<PayslipPage> {
     double totalDeductions = 0.0;
     double totalNetPay = 0.0;
 
-    var currencyFormatter = NumberFormat.currency(
-      locale: 'en_PH',
-      symbol: 'Php',
-      decimalDigits: 2,
-    );
-
     QuerySnapshot payslipSnapshot =
         await FirebaseFirestore.instance.collection('Payslip').get();
 
@@ -3526,11 +3527,9 @@ class _PayslipPageState extends State<PayslipPage> {
       'timestamp': FieldValue.serverTimestamp(), // Optional: Add a timestamp
     });
     // Optionally, you can print the totals
-    print(
-        'Total Gross Pay:  ${currencyFormatter.format(totalGrossPay ?? 0.0)}');
-    print(
-        'Total Deductions: ${currencyFormatter.format(totalDeductions ?? 0.0)}');
-    print('Total Net Pay: ${currencyFormatter.format(totalNetPay ?? 0.0)}');
+    print('Total Gross Pay: $totalGrossPay');
+    print('Total Deductions: $totalDeductions');
+    print('Total Net Pay: $totalNetPay');
   }
 }
 
