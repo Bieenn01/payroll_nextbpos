@@ -14,6 +14,7 @@ Future<void> addUser(
   String role,
   String department,
   String typeEmployee,
+  String genderEmployee,
   String sss,
   String tin,
   String taxCode,
@@ -32,7 +33,7 @@ Future<void> addUser(
     // Set user data to Firestore document
     await docUser.set({
       'userId': docUser.id,
-      'salary': monthly_salary, // Parse salary as an integer
+      'monthly_salary': monthly_salary, // Parse salary as an integer
       'username': username,
       'fname': fname,
       'mname': mname,
@@ -44,6 +45,7 @@ Future<void> addUser(
       'role': role,
       'department': department,
       'typeEmployee': typeEmployee,
+      'genderEmployee': genderEmployee,
       'sss': sss,
       'tin': tin,
       'taxCode': taxCode,
