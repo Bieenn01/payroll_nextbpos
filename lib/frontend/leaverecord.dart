@@ -196,13 +196,15 @@ class _UserListScreenState extends State<UserListScreen> {
                                                           data['employeeId'],
                                                       role: data['role'],
                                                       maxLeaveDays: const {
-                                                        'Leave with Pay': 15,
-                                                        'Leave Without Pay': 30,
-                                                        'Sick Leave': 10,
-                                                        'Vacation Leave': 6,
+                                                        'Bereavement': 0,
+                                                        'Emergency': 0,
                                                         'Maternity Leave': 90,
                                                         'OBL - Official Business Leave':
-                                                            40
+                                                            0,
+                                                        'Paternity Leave': 7,
+                                                        'Sick Leave': 7,
+                                                        'Solo Parent': 7,
+                                                        'Vacation Leave': 8,
                                                       },
                                                     );
                                                   },
@@ -409,7 +411,7 @@ class _UserLeaveRequestsState extends State<UserLeaveRequests> {
       ),
       content: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             StreamBuilder(
               stream: FirebaseFirestore.instance
@@ -560,7 +562,7 @@ class _UserLeaveRequestsState extends State<UserLeaveRequests> {
                     }).toList(),
                   );
                   return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       const Divider(),
@@ -573,7 +575,7 @@ class _UserLeaveRequestsState extends State<UserLeaveRequests> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: widget.maxLeaveDays.entries
-                                .take(3)
+                                .take(4)
                                 .map((entry) => Expanded(
                                       flex: 1,
                                       child: _buildLeaveTypeCountCard(entry,
@@ -585,8 +587,8 @@ class _UserLeaveRequestsState extends State<UserLeaveRequests> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: widget.maxLeaveDays.entries
-                                .skip(3)
-                                .take(3)
+                                .skip(4)
+                                .take(4)
                                 .map((entry) => Expanded(
                                       flex: 1,
                                       child: _buildLeaveTypeCountCard(entry,
