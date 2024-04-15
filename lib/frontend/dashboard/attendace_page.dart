@@ -400,13 +400,8 @@ class _AttendancePageState extends State<AttendancePage> {
                         future: _getHolidayName(timeInTimestamp),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
-                              ConnectionState.active) {
-                            return Text(
-                              'Error: ${snapshot.error}',
-                              style: TextStyle(color: Colors.red),
-                            );
-                          } else {
-                            String? holidayName = snapshot.data;
+                              ConnectionState.done) {
+                            String? holidayName = snapshot.data as String?;
                             if (holidayName != null) {
                               return Container(
                                 padding: EdgeInsets.symmetric(
@@ -427,6 +422,11 @@ class _AttendancePageState extends State<AttendancePage> {
                                 style: TextStyle(color: Colors.black),
                               );
                             }
+                          } else {
+                            return Text(
+                              'No holiday',
+                              style: TextStyle(color: Colors.black),
+                            );
                           }
                         },
                       ),
