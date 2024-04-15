@@ -36,6 +36,7 @@ class User {
   String role;
   String mname;
   String lname;
+  String genderEmployee;
   String username;
   String typeEmployee;
   String sss;
@@ -58,6 +59,7 @@ class User {
       required this.role,
       required this.mname,
       required this.lname,
+      required this.genderEmployee,
       required this.username,
       required this.typeEmployee,
       required this.sss,
@@ -1158,14 +1160,8 @@ class _UserState extends State<PovUser> {
         TextEditingController(text: userData['sss'].toString());
     TextEditingController taxCodeController =
         TextEditingController(text: userData['taxCode'].toString());
-    TextEditingController roleController =
-        TextEditingController(text: userData['role'].toString());
     TextEditingController salaryController =
         TextEditingController(text: userData['salary'].toString());
-    TextEditingController typeEmployeeController =
-        TextEditingController(text: userData['typeEmployee'].toString());
-    TextEditingController departmentController =
-        TextEditingController(text: userData['department'].toString());
     DateTime? startShift = userData['startShift'] != null
         ? (userData['startShift'] as Timestamp).toDate()
         : null;
@@ -1408,7 +1404,7 @@ class _UserState extends State<PovUser> {
                                   onSelected: (String? value) {
                                     // This is called when the user selects an item.
                                     setState(() {
-                                      typeEmployee = value!;
+                                      genderEmployee = value!;
                                     });
                                   },
                                   dropdownMenuEntries: ['Male', 'Female']
@@ -1860,7 +1856,7 @@ class _UserState extends State<PovUser> {
                   'fname': firstNameController.text,
                   'mname': middleNameController.text,
                   'lname': lastNameController.text,
-                  'salary': salaryController.text,
+                  'monthly_salary': salaryController.text,
                   'username': usernameController.text,
                   'email': emailController.text,
                   'mobilenum': mobilenumController.text,
@@ -2206,7 +2202,7 @@ class _UserState extends State<PovUser> {
                                     onSelected: (String? value) {
                                       // This is called when the user selects an item.
                                       setState(() {
-                                        typeEmployee = value!;
+                                        genderEmployee = value!;
                                       });
                                     },
                                     dropdownMenuEntries: ['Male', 'Female']
@@ -2972,6 +2968,7 @@ class _UserState extends State<PovUser> {
         selectedDep.isEmpty ||
         selectedRole.isEmpty ||
         typeEmployee.isEmpty ||
+        genderEmployee.isEmpty ||
         sssController.text.isEmpty ||
         tinController.text.isEmpty ||
         taxCodeController.text.isEmpty ||
@@ -2999,12 +2996,13 @@ class _UserState extends State<PovUser> {
         role: selectedRole,
         username: usernameController.text,
         typeEmployee: typeEmployee,
+        genderEmployee: genderEmployee,
         sss: sssController.text,
         tin: tinController.text,
         taxCode: taxCodeController.text,
         employeeId: employeeIdController.text,
         mobilenum: mobilenumController.text,
-        isActive: false,
+        isActive: true,
         isATM: false,
       );
 
@@ -3020,6 +3018,7 @@ class _UserState extends State<PovUser> {
         newUser.role,
         newUser.department,
         newUser.typeEmployee,
+        newUser.genderEmployee,
         newUser.sss,
         newUser.tin,
         newUser.taxCode,
@@ -3042,6 +3041,7 @@ class _UserState extends State<PovUser> {
       selectedDep = '';
       selectedRole = '';
       typeEmployee = '';
+
       sssController.text = '';
       tinController.text = '';
       taxCodeController.text = '';

@@ -525,6 +525,11 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
         } else {
           List<DocumentSnapshot> overtimeDocs = snapshot.data!.docs;
           _totalPages = (overtimeDocs.length / _itemsPerPage).ceil();
+          final startIndex = ((_currentPage - 1) * _itemsPerPage)
+              .clamp(0, overtimeDocs.length);
+          final endIndex =
+              (startIndex + _itemsPerPage).clamp(0, overtimeDocs.length);
+          overtimeDocs = overtimeDocs.sublist(startIndex, endIndex);
 
           overtimeDocs = overtimeDocs.where((doc) {
             DateTime timeIn = doc['timeIn'].toDate();
