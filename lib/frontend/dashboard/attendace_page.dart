@@ -350,11 +350,6 @@ class _AttendancePageState extends State<AttendancePage> {
                           if (snapshot.connectionState ==
                               ConnectionState.active) {
                             return Text(
-                              'Fetching holiday information...',
-                              style: TextStyle(color: Colors.grey),
-                            );
-                          } else if (snapshot.hasError) {
-                            return Text(
                               'Error: ${snapshot.error}',
                               style: TextStyle(color: Colors.red),
                             );
@@ -385,7 +380,6 @@ class _AttendancePageState extends State<AttendancePage> {
                       ),
                     ),
                   ),
-
                 ],
               );
             }),

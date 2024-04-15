@@ -31,6 +31,7 @@ Future<void> addUser(
 
     // Set user data to Firestore document
     await docUser.set({
+      'userId': docUser.id,
       'salary': monthly_salary, // Parse salary as an integer
       'username': username,
       'fname': fname,
