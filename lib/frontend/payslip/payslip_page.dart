@@ -61,6 +61,10 @@ class _PayslipPageState extends State<PayslipPage> {
   double totalNetPay = 0.0;
   double totalDeductions = 0.0;
   final _firestore = FirebaseFirestore.instance;
+  bool showButtons = true;
+
+  late Stream<QuerySnapshot> _userRecordsStream;
+  // Variable to store generated payroll data
   // Variable to store generated payroll data
   // Declare a variable to hold the future result of fetchTotal()
   late Future<void> _fetchTotalFuture;
@@ -77,9 +81,15 @@ class _PayslipPageState extends State<PayslipPage> {
   void initState() {
     super.initState();
     // Call fetchTotal only once during initialization
+    _fetchUserRecords();
     _fetchTotalFuture = fetchTotal();
     _fetchTotalFuture2 = fetchTotal();
     _fetchTotalFuture3 = fetchTotal();
+  }
+
+  void _fetchUserRecords() {
+    _userRecordsStream =
+        FirebaseFirestore.instance.collection('User').snapshots();
   }
 
   @override
@@ -321,6 +331,7 @@ class _PayslipPageState extends State<PayslipPage> {
 
               DateFormat dateFormatter = DateFormat('MM/dd/yyyy');
               bool isDone = data['status'] == 'Done';
+              String documentId = doc.id;
               return DataRow(
                 cells: [
                   DataCell(Text('${index + 1}')),
@@ -335,26 +346,54 @@ class _PayslipPageState extends State<PayslipPage> {
                           DateTime.now()))), // Provide default value if null
                   DataCell(
                     isDone
-                        ? Icon(Icons.check, color: Colors.green)
-                        : ElevatedButton(
-                            onPressed: () async {
-                              bool verificationSuccess =
-                                  await commitPayslip(context);
-                              if (verificationSuccess) {
-                                setState(() {
-                  
-                                                    viewTable =
-                                      false; // Set viewTable to true after verification
-                                });
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.all(5),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                        ? Icon(
+                            Icons.check,
+                            color: Colors.green,
+                          )
+                        : Row(
+                            children: [
+                              ElevatedButton(
+                                onPressed: () async {
+                                  bool verificationSuccess =
+                                      await commitPayslip(context);
+                                  if (verificationSuccess) {
+                                    setState(() {
+                                      viewTable =
+                                          false; // Set viewTable to true after verification
+                                    });
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.all(5),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text('Commit'),
                               ),
-                            ),
-                            child: const Text('Commit'),
+                              SizedBox(width: 10),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  bool? confirmed =
+                                      await showMarkAsDoneConfirmation(context);
+                                  if (confirmed ?? false) {
+                                    setState(() {
+                                      markAsDone(documentId);
+                                      setState(() {
+                                        showButtons = false;
+                                      });
+                                    });
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.all(5),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text('Mark as Done'),
+                              ),
+                            ],
                           ),
                   ),
                 ],
@@ -389,16 +428,13 @@ class _PayslipPageState extends State<PayslipPage> {
   }
 
   Future<void> markAsDone(String documentId) async {
-    bool proceed = await commitPayslip(context);
-    if (proceed) {
-      try {
-        await FirebaseFirestore.instance
-            .collection('PayslipDepartment')
-            .doc(documentId)
-            .update({'status': 'Done'});
-      } catch (e) {
-        print('Error updating document: $e');
-      }
+    try {
+      await FirebaseFirestore.instance
+          .collection('PayslipDepartment')
+          .doc(documentId)
+          .update({'status': 'Done'});
+    } catch (e) {
+      print('Error updating document: $e');
     }
   }
 
@@ -757,7 +793,7 @@ class _PayslipPageState extends State<PayslipPage> {
 
   Widget _buildDataTable() {
     return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection('User').snapshots(),
+      stream: _userRecordsStream,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
@@ -1059,10 +1095,9 @@ class _PayslipPageState extends State<PayslipPage> {
                               height: 50,
                               padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
                               decoration: BoxDecoration(
-                                color: Colors.green[200],
+                                color: Colors.blue[200],
                                 borderRadius: BorderRadius.circular(8),
-                                border:
-                                    Border.all(color: Colors.green.shade200),
+                                border: Border.all(color: Colors.blue.shade200),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
@@ -1086,11 +1121,10 @@ class _PayslipPageState extends State<PayslipPage> {
                                                   locale: 'en_PH',
                                                   symbol: '₱ ',
                                                   decimalDigits: 2)
-                                              .format(totalGrossPay ??
-                                                  0.0), // Assuming totalGrossPay is accessible in this scope
+                                              .format(totalGrossPay ?? 0.0),
                                           style: TextStyle(
-                                            fontSize: 20,
-                                          ),
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
                                         );
                                       }
                                     },
@@ -1133,11 +1167,10 @@ class _PayslipPageState extends State<PayslipPage> {
                                                   locale: 'en_PH',
                                                   symbol: '₱ ',
                                                   decimalDigits: 2)
-                                              .format(totalDeductions ??
-                                                  0.0), // Assuming totalGrossPay is accessible in this scope
+                                              .format(totalDeductions ?? 0.0),
                                           style: TextStyle(
-                                            fontSize: 20,
-                                          ),
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
                                         );
                                       }
                                     },
@@ -1154,41 +1187,54 @@ class _PayslipPageState extends State<PayslipPage> {
                               height: 50,
                               padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
                               decoration: BoxDecoration(
-                                color: Colors.blue[200],
+                                color: Colors.green[200],
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.blue.shade200),
+                                border:
+                                    Border.all(color: Colors.green.shade200),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  FutureBuilder<void>(
-                                    future:
-                                        _fetchTotalFuture3, // Use the future variable
+                                  StreamBuilder<DocumentSnapshot>(
+                                    stream: FirebaseFirestore.instance
+                                        .collection('TotalPayslip')
+                                        .doc('totals')
+                                        .snapshots(),
                                     builder: (BuildContext context,
-                                        AsyncSnapshot<void> snapshot) {
+                                        AsyncSnapshot<DocumentSnapshot>
+                                            snapshot) {
                                       if (snapshot.connectionState ==
                                           ConnectionState.waiting) {
                                         // Show a loading indicator or placeholder while fetching data
-                                        return CircularProgressIndicator(); // Example loading indicator
+                                        return CircularProgressIndicator();
                                       } else if (snapshot.hasError) {
                                         // Handle error
                                         return Text('Error: ${snapshot.error}');
                                       } else {
                                         // Data has been successfully fetched, display it
-                                        return Text(
-                                          NumberFormat.currency(
-                                                  locale: 'en_PH',
-                                                  symbol: '₱ ',
-                                                  decimalDigits: 2)
-                                              .format(totalNetPay ??
-                                                  0.0), // Assuming totalGrossPay is accessible in this scope
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                          ),
+                                        final data = snapshot.data!.data()
+                                            as Map<String, dynamic>;
+
+                                        final totalNetPay =
+                                            data['totalNetPay'] ?? 0.0;
+
+                                        return Column(
+                                          children: [
+                                            Text(
+                                              NumberFormat.currency(
+                                                      locale: 'en_PH',
+                                                      symbol: '₱ ',
+                                                      decimalDigits: 2)
+                                                  .format(totalNetPay ?? 0.0),
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold),
+                                            )
+                                          ],
                                         );
                                       }
                                     },
-                                  ),
+                                  )
                                 ],
                               ),
                             ),

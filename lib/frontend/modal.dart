@@ -471,3 +471,49 @@ Future<bool> commitPayslip(BuildContext context) async {
   );
   return verificationSuccess;
 }
+
+Future<bool?> showMarkAsDoneConfirmation(BuildContext context) async {
+  return await showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Row(
+          children: [
+            Icon(
+              Icons.warning,
+              color: Colors.orange,
+            ),
+            SizedBox(width: 10),
+            Text(
+              "Confirmation",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Text("Are you sure you want to mark this payday as done?"),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(false); // Return false on cancel
+            },
+            child: Text(
+              "Cancel",
+              style: TextStyle(color: Colors.black),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(true); // Return true on confirmation
+            },
+            child: Text(
+              "Yes",
+              style:
+                  TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
