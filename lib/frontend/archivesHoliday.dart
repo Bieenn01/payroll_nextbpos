@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
+import 'package:universal_html/html.dart' as html;
+import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 
 class ArchivesHoliday extends StatefulWidget {
   const ArchivesHoliday({Key? key}) : super(key: key);
@@ -17,7 +20,7 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
   int _currentPage = 0;
   int indexRow = 0;
   int _totalPages = 1;
-  
+
   bool _sortAscending = false;
 
   bool sortPay = false;
@@ -29,14 +32,15 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
   bool endPicked = false;
   bool startPicked = false;
   late String _role = 'Guest';
+  List<Map<String, dynamic>> _userData = [];
 
   @override
   void initState() {
     super.initState();
     _selectedOvertimeTypes = [];
-     _itemsPerPage = 5;
+    _itemsPerPage = 5;
   }
-  
+
   @override
   Widget build(BuildContext context) {
     var styleFrom = ElevatedButton.styleFrom(
@@ -55,39 +59,39 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-              child: Container(
-                  margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Text(
-                              "Archives  Holiday",
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
+                child: Container(
+                    margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Text(
+                                "Archives  Holiday",
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      dateFilterSearchRow(context, styleFrom),
-                      Divider(),
-                      _buildTable(),
-                      SizedBox(height: 10),
-                      Divider(),
-                      SizedBox(height: 5),
-                      pagination(),
-                      SizedBox(height: 20),
-                    ],
-                  )),
-            ),
+                          ],
+                        ),
+                        dateFilterSearchRow(context, styleFrom),
+                        Divider(),
+                        _buildTable(),
+                        SizedBox(height: 10),
+                        Divider(),
+                        SizedBox(height: 5),
+                        pagination(),
+                        SizedBox(height: 20),
+                      ],
+                    )),
+              ),
             )
           ],
         ),
@@ -95,7 +99,7 @@ class _ArchivesHoliday extends State<ArchivesHoliday> {
     ));
   }
 
-Row pagination() {
+  Row pagination() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -571,7 +575,6 @@ Row pagination() {
                 ],
                 rows: List.generate(overtimeDocs.length.clamp(0, _itemsPerPage),
                     (index) {
-                      
                   DocumentSnapshot overtimeDoc = overtimeDocs[index];
                   Map<String, dynamic> overtimeData =
                       overtimeDoc.data() as Map<String, dynamic>;

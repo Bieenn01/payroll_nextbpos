@@ -1,30 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+
 import 'package:project_payroll_nextbpo/frontend/payslip/contribution.dart';
 import 'package:shimmer/shimmer.dart' as ShimmerPackage;
 import 'package:intl/intl.dart';
+import 'dart:typed_data';
+import 'dart:io';
 
-import 'package:project_payroll_nextbpo/frontend/payslip/payslip._form.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:universal_html/html.dart' as html;
+
+import 'package:project_payroll_nextbpo/frontend/modal.dart';
 
 class PayslipData {
   final DateTime startDate;
   final DateTime endDate;
   final DateTime dateGenerated;
-  final double grossPay;
-  final double deductions;
-  final double netPay;
 
   PayslipData({
     required this.startDate,
     required this.endDate,
     required this.dateGenerated,
-    required this.grossPay,
-    required this.deductions,
-    required this.netPay,
   });
 
   Map<String, dynamic> toMap() {
@@ -34,9 +38,6 @@ class PayslipData {
       'endDate': Timestamp.fromDate(endDate), // Convert DateTime to Timestamp
       'dateGenerated':
           Timestamp.fromDate(dateGenerated), // Convert DateTime to Timestamp
-      'grossPay': grossPay,
-      'deductions': deductions,
-      'netPay': netPay,
     };
   }
 }
@@ -59,24 +60,48 @@ class _PayslipPageState extends State<PayslipPage> {
   double totalGrossPay = 0.0;
   double totalNetPay = 0.0;
   double totalDeductions = 0.0;
+  final _firestore = FirebaseFirestore.instance;
+  bool showButtons = true;
 
+  late Stream<QuerySnapshot> _userRecordsStream;
+  // Variable to store generated payroll data
   // Variable to store generated payroll data
   // Declare a variable to hold the future result of fetchTotal()
   late Future<void> _fetchTotalFuture;
   late Future<void> _fetchTotalFuture2;
   late Future<void> _fetchTotalFuture3;
+  bool filter = false;
+  DateTime? _startDate;
+  DateTime? _endDate;
+
+  bool endPicked = false;
+  bool startPicked = false;
 
   @override
   void initState() {
     super.initState();
     // Call fetchTotal only once during initialization
+    _fetchUserRecords();
     _fetchTotalFuture = fetchTotal();
     _fetchTotalFuture2 = fetchTotal();
     _fetchTotalFuture3 = fetchTotal();
   }
 
+  void _fetchUserRecords() {
+    _userRecordsStream =
+        FirebaseFirestore.instance.collection('User').snapshots();
+  }
+
   @override
   Widget build(BuildContext context) {
+    var styleFrom = ElevatedButton.styleFrom(
+      backgroundColor: Colors.white,
+      padding: EdgeInsets.all(5),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+
     return Scaffold(
       body: Container(
         color: Colors.teal.shade700,
@@ -89,14 +114,15 @@ class _PayslipPageState extends State<PayslipPage> {
                   margin: EdgeInsets.fromLTRB(15, 5, 15, 15),
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12)),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       viewTable
                           ? Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.all(10.0),
@@ -109,33 +135,92 @@ class _PayslipPageState extends State<PayslipPage> {
                                     child: Text(
                                       "Generate Payroll",
                                       style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold),
+                                        color: Colors.black,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    showGeneratePayrollDialog(context);
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        Color.fromARGB(255, 68, 166, 100),
-                                    padding: const EdgeInsets.all(18.0),
-                                    minimumSize: const Size(200, 50),
-                                    maximumSize: const Size(200, 50),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        showGeneratePayrollDialog(context);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            Color.fromARGB(255, 68, 166, 100),
+                                        padding: const EdgeInsets.all(8.0),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      child: const Flexible(
+                                        child: Text(
+                                          "+ Add new",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  child: const Text(
-                                    "+ Add new",
-                                    style: TextStyle(
-                                      color: Colors
-                                          .white, // Change the text color to white
+                                    Container(
+                                      width: 130,
+                                      height: 30,
+                                      padding: EdgeInsets.all(0),
+                                      margin: EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                      decoration: BoxDecoration(
+                                        color: Colors.teal,
+                                        border: Border.all(
+                                          color: Colors.teal.shade900
+                                              .withOpacity(0.5),
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.teal,
+                                          padding: EdgeInsets.only(left: 5),
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            filter = !filter;
+                                          });
+                                          filtermodal(context, styleFrom);
+                                        },
+                                        child: MediaQuery.of(context)
+                                                    .size
+                                                    .width >
+                                                800
+                                            ? const Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(
+                                                    Icons.filter_alt_outlined,
+                                                    color: Colors.white,
+                                                  ),
+                                                  Text(
+                                                    'Filter Date',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                      letterSpacing: 1,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            : Icon(
+                                                Icons.filter_alt_outlined,
+                                                color: Colors.white,
+                                              ),
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
                               ],
                             )
@@ -153,9 +238,10 @@ class _PayslipPageState extends State<PayslipPage> {
                                     child: Text(
                                       "Generate Payroll >",
                                       style: TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold),
+                                        color: Colors.grey,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -168,9 +254,10 @@ class _PayslipPageState extends State<PayslipPage> {
                                   child: const Text(
                                     "Payroll",
                                     style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold),
+                                      color: Colors.black,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -243,6 +330,8 @@ class _PayslipPageState extends State<PayslipPage> {
               if (data == null) return DataRow(cells: []); // Skip null data
 
               DateFormat dateFormatter = DateFormat('MM/dd/yyyy');
+              bool isDone = data['status'] == 'Done';
+              String documentId = doc.id;
               return DataRow(
                 cells: [
                   DataCell(Text('${index + 1}')),
@@ -256,40 +345,56 @@ class _PayslipPageState extends State<PayslipPage> {
                       data['dateGenerated']?.toDate() ??
                           DateTime.now()))), // Provide default value if null
                   DataCell(
-                    Container(
-                      width: 150,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            viewTable = false;
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.all(5),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                    isDone
+                        ? Icon(
+                            Icons.check,
+                            color: Colors.green,
+                          )
+                        : Row(
+                            children: [
+                              ElevatedButton(
+                                onPressed: () async {
+                                  bool verificationSuccess =
+                                      await commitPayslip(context);
+                                  if (verificationSuccess) {
+                                    setState(() {
+                                      viewTable =
+                                          false; // Set viewTable to true after verification
+                                    });
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.all(5),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text('Commit'),
+                              ),
+                              SizedBox(width: 10),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  bool? confirmed =
+                                      await showMarkAsDoneConfirmation(context);
+                                  if (confirmed ?? false) {
+                                    setState(() {
+                                      markAsDone(documentId);
+                                      setState(() {
+                                        showButtons = false;
+                                      });
+                                    });
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.all(5),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text('Mark as Done'),
+                              ),
+                            ],
                           ),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.visibility,
-                              color: Colors.blue,
-                              size: 18,
-                            ),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            Text(
-                              'View',
-                              style:
-                                  TextStyle(fontSize: 15, color: Colors.blue),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                   ),
                 ],
               );
@@ -322,31 +427,211 @@ class _PayslipPageState extends State<PayslipPage> {
     );
   }
 
-  Future<void> generatePayroll() async {
-    // Initialize an empty list to store generated payroll data
-    List<PayslipData> generatedData = [];
+  Future<void> markAsDone(String documentId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('PayslipDepartment')
+          .doc(documentId)
+          .update({'status': 'Done'});
+    } catch (e) {
+      print('Error updating document: $e');
+    }
+  }
 
-    // Simulate generating payroll data for each employee
-    // Assuming you have access to fromDate and toDate
-    // Generate payroll for each day within the date range
+  Future<dynamic> filtermodal(BuildContext context, ButtonStyle styleFrom) {
+    return showDialog(
+        context: context,
+        builder: (_) => Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 130,
+                    ),
+                    AlertDialog(
+                      surfaceTintColor: Colors.white,
+                      content: Container(
+                        height: 200,
+                        width: 200,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'Filter Date',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                IconButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    icon: const Icon(Icons.close)),
+                              ],
+                            ),
+                            Text('From :'),
+                            _fromDate(context, styleFrom),
+                            SizedBox(
+                              width: 5,
+                            ),
+                            Text('To :'),
+                            _toDate(context, styleFrom),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            clearDate(context, styleFrom),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ));
+  }
+
+  Container clearDate(BuildContext context, ButtonStyle styleFrom) {
+    return Container(
+      height: 30,
+      padding: EdgeInsets.all(0),
+      margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Colors.red.withOpacity(0.5)),
+          borderRadius: BorderRadius.circular(12)),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white, padding: EdgeInsets.all(3)),
+        onPressed: () {
+          setState(() {
+            _startDate = null;
+            _endDate = null;
+            filter = false;
+          });
+          Navigator.of(context).pop();
+        },
+        child: const Text(
+          'Reset Date',
+          style: TextStyle(
+              fontWeight: FontWeight.w400, letterSpacing: 1, color: Colors.red),
+        ),
+      ),
+    );
+  }
+
+  Container _toDate(BuildContext context, ButtonStyle styleFrom) {
+    return Container(
+      margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+      width: 150, // or use MediaQuery.of(context).size.width > 600 ? 150 : 80
+      padding: EdgeInsets.all(2),
+      child: ElevatedButton(
+          onPressed: () async {
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: _endDate ?? DateTime.now(),
+              firstDate: DateTime(2015, 8),
+              lastDate: DateTime(2101),
+            );
+            if (picked != null && picked != _endDate) {
+              setState(() {
+                _endDate = picked;
+                endPicked = true;
+              });
+              Navigator.of(context).pop();
+            }
+          },
+          style: styleFrom,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    _endDate != null
+                        ? DateFormat('yyyy-MM-dd').format(_endDate!)
+                        : 'Select Date',
+                    style: TextStyle(
+                        color: endPicked == !true
+                            ? Colors.black
+                            : Colors.teal.shade800),
+                  )
+                ],
+              ),
+              const SizedBox(width: 3),
+              const Icon(
+                Icons.calendar_month,
+                color: Colors.black,
+                size: 20,
+              ),
+            ],
+          )),
+    );
+  }
+
+  Container _fromDate(BuildContext context, ButtonStyle styleFrom) {
+    return Container(
+      margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+      width: 150, // or use MediaQuery.of(context).size.width > 600 ? 150 : 80
+      padding: EdgeInsets.all(2),
+      child: ElevatedButton(
+          onPressed: () async {
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: _startDate ?? DateTime.now(),
+              firstDate: DateTime(2015, 8),
+              lastDate: DateTime(2101),
+            );
+            if (picked != null && picked != _startDate) {
+              setState(() {
+                _startDate = picked;
+                startPicked = true;
+              });
+            }
+          },
+          style: styleFrom,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    _startDate != null
+                        ? DateFormat('yyyy-MM-dd').format(_startDate!)
+                        : 'Select Date',
+                    style: TextStyle(
+                        color: startPicked == !true
+                            ? Colors.black
+                            : Colors.teal.shade800),
+                  )
+                ],
+              ),
+              const SizedBox(width: 3),
+              const Icon(
+                Icons.calendar_month,
+                color: Colors.black,
+                size: 20,
+              ),
+            ],
+          )),
+    );
+  }
+
+  Future<void> generatePayroll() async {
+    List<PayslipData> generatedData = [];
     {
       // Generate a PayslipData instance for each day
       PayslipData payslip = PayslipData(
-        // Assuming employeeID and name are constants for all payslips or you have another way to determine them
-
         startDate: fromDate!,
         endDate: toDate!,
         dateGenerated: DateTime.now(),
-        grossPay: 2000 + 100, // Example gross pay calculation
-        deductions: 0, // Example deductions
-        netPay: 2000 + 100, // Example net pay calculation
       );
-
-      // Add the payslip to the generated data list
       generatedData.add(payslip);
     }
-
-    // Save generated data to Firestore collection
     await saveToFirestore(generatedData);
   }
 
@@ -431,17 +716,33 @@ class _PayslipPageState extends State<PayslipPage> {
                   Text('Select Date Range:'),
                   ElevatedButton(
                     onPressed: () async {
-                      final DateTimeRange? picked = await showDateRangePicker(
+                      DateTime? initialStartDate = fromDateLocal;
+                      DateTime? initialEndDate = toDateLocal;
+
+                      DateTimeRange? picked = await showDateRangePicker(
                         context: context,
-                        firstDate: DateTime(DateTime.now().year - 1),
-                        lastDate: DateTime(DateTime.now().year + 1),
-                        initialDateRange:
-                            fromDateLocal != null && toDateLocal != null
-                                ? DateTimeRange(
-                                    start: fromDateLocal!,
-                                    end: toDateLocal!,
-                                  )
-                                : null,
+                        firstDate: DateTime(DateTime.now().year - 5),
+                        lastDate: DateTime(DateTime.now().year + 5),
+                        initialDateRange: DateTimeRange(
+                          end: initialEndDate ??
+                              DateTime(
+                                  DateTime.now().year,
+                                  DateTime.now().month,
+                                  DateTime.now().day + 13),
+                          start: initialStartDate ?? DateTime.now(),
+                        ),
+                        builder: (context, child) {
+                          return Column(
+                            children: [
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: 400.0,
+                                ),
+                                child: child!,
+                              )
+                            ],
+                          );
+                        },
                       );
 
                       if (picked != null) {
@@ -451,9 +752,11 @@ class _PayslipPageState extends State<PayslipPage> {
                         });
                       }
                     },
-                    child: const Text(
-                      'Select Date Range',
-                      style: TextStyle(color: Colors.black),
+                    child: Center(
+                      child: Text(
+                        '${fromDateLocal != null ? DateFormat('MM/dd/yyyy').format(fromDateLocal!) : 'Start'} - ${toDateLocal != null ? DateFormat('MM/dd/yyyy').format(toDateLocal!) : 'End'}',
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                 ],
@@ -490,7 +793,7 @@ class _PayslipPageState extends State<PayslipPage> {
 
   Widget _buildDataTable() {
     return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection('User').snapshots(),
+      stream: _userRecordsStream,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
@@ -548,30 +851,34 @@ class _PayslipPageState extends State<PayslipPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Container(
-                                width: MediaQuery.of(context).size.width > 600
-                                    ? 400
-                                    : 100,
-                                height: 30,
-                                margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                                padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                      color: Colors.black.withOpacity(0.5)),
-                                ),
-                                child: TextField(
-                                  controller: _searchController,
-                                  textAlign: TextAlign.start,
-                                  decoration: const InputDecoration(
-                                    contentPadding: EdgeInsets.only(bottom: 15),
-                                    prefixIcon: Icon(Icons.search),
-                                    border: InputBorder.none,
-                                    hintText: 'Search',
+                              Flexible(
+                                child: Container(
+                                  width: MediaQuery.of(context).size.width > 600
+                                      ? 400
+                                      : 100,
+                                  height: 30,
+                                  margin: const EdgeInsets.fromLTRB(5, 0, 0, 0),
+                                  padding:
+                                      const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                        color: Colors.black.withOpacity(0.5)),
                                   ),
-                                  onChanged: (value) {
-                                    setState(() {});
-                                  },
+                                  child: TextField(
+                                    controller: _searchController,
+                                    textAlign: TextAlign.start,
+                                    decoration: const InputDecoration(
+                                      contentPadding:
+                                          EdgeInsets.only(bottom: 15),
+                                      prefixIcon: Icon(Icons.search),
+                                      border: InputBorder.none,
+                                      hintText: 'Search',
+                                    ),
+                                    onChanged: (value) {
+                                      setState(() {});
+                                    },
+                                  ),
                                 ),
                               ),
                               Container(
@@ -788,10 +1095,9 @@ class _PayslipPageState extends State<PayslipPage> {
                               height: 50,
                               padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
                               decoration: BoxDecoration(
-                                color: Colors.green[200],
+                                color: Colors.blue[200],
                                 borderRadius: BorderRadius.circular(8),
-                                border:
-                                    Border.all(color: Colors.green.shade200),
+                                border: Border.all(color: Colors.blue.shade200),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
@@ -816,10 +1122,9 @@ class _PayslipPageState extends State<PayslipPage> {
                                                   symbol: '₱ ',
                                                   decimalDigits: 2)
                                               .format(totalGrossPay ?? 0.0),
-                                          // Assuming totalGrossPay is accessible in this scope
                                           style: TextStyle(
-                                            fontSize: 20,
-                                          ),
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
                                         );
                                       }
                                     },
@@ -863,10 +1168,9 @@ class _PayslipPageState extends State<PayslipPage> {
                                                   symbol: '₱ ',
                                                   decimalDigits: 2)
                                               .format(totalDeductions ?? 0.0),
-                                          // Assuming totalGrossPay is accessible in this scope
                                           style: TextStyle(
-                                            fontSize: 20,
-                                          ),
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
                                         );
                                       }
                                     },
@@ -883,41 +1187,54 @@ class _PayslipPageState extends State<PayslipPage> {
                               height: 50,
                               padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
                               decoration: BoxDecoration(
-                                color: Colors.blue[200],
+                                color: Colors.green[200],
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.blue.shade200),
+                                border:
+                                    Border.all(color: Colors.green.shade200),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  FutureBuilder<void>(
-                                    future:
-                                        _fetchTotalFuture3, // Use the future variable
+                                  StreamBuilder<DocumentSnapshot>(
+                                    stream: FirebaseFirestore.instance
+                                        .collection('TotalPayslip')
+                                        .doc('totals')
+                                        .snapshots(),
                                     builder: (BuildContext context,
-                                        AsyncSnapshot<void> snapshot) {
+                                        AsyncSnapshot<DocumentSnapshot>
+                                            snapshot) {
                                       if (snapshot.connectionState ==
                                           ConnectionState.waiting) {
                                         // Show a loading indicator or placeholder while fetching data
-                                        return CircularProgressIndicator(); // Example loading indicator
+                                        return CircularProgressIndicator();
                                       } else if (snapshot.hasError) {
                                         // Handle error
                                         return Text('Error: ${snapshot.error}');
                                       } else {
                                         // Data has been successfully fetched, display it
-                                        return Text(
-                                          NumberFormat.currency(
-                                                  locale: 'en_PH',
-                                                  symbol: '₱ ',
-                                                  decimalDigits: 2)
-                                              .format(totalNetPay ?? 0.0),
-                                          // Assuming totalGrossPay is accessible in this scope
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold),
+                                        final data = snapshot.data!.data()
+                                            as Map<String, dynamic>;
+
+                                        final totalNetPay =
+                                            data['totalNetPay'] ?? 0.0;
+
+                                        return Column(
+                                          children: [
+                                            Text(
+                                              NumberFormat.currency(
+                                                      locale: 'en_PH',
+                                                      symbol: '₱ ',
+                                                      decimalDigits: 2)
+                                                  .format(totalNetPay ?? 0.0),
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold),
+                                            )
+                                          ],
                                         );
                                       }
                                     },
-                                  ),
+                                  )
                                 ],
                               ),
                             ),
@@ -971,6 +1288,7 @@ class _PayslipPageState extends State<PayslipPage> {
           .collection('Holiday')
           .where('employeeId', isEqualTo: employeeId)
           .get();
+
       // Query the User collection to get the user's document
       var userDocSnapshot = await FirebaseFirestore.instance
           .collection('User')
@@ -1957,9 +2275,17 @@ class _PayslipPageState extends State<PayslipPage> {
                                         // Assuming employeeId is accessible from the user object
                                         final String employeeId = userData[
                                             'employeeId']; // Adjust this line according to your actual user object structure
-
+                                        final String fullName =
+                                            '${userData['fname']} ${userData['mname']} ${userData['lname']}';
+                                        final String department =
+                                            userData['department'];
+                                        final double monthly_salary =
+                                            userData['monthly_salary'];
                                         // User is authenticated, proceed with adding payslip
                                         await addPayslip(
+                                          monthly_salary: monthly_salary,
+                                          department: department,
+                                          fullName: fullName,
                                           advances_amesco: advanceAmesco,
                                           employeeId: employeeId,
                                           night_differential: nightDifferential,
@@ -2006,6 +2332,122 @@ class _PayslipPageState extends State<PayslipPage> {
 
                                         // Add employeeId to _generateClickedList
                                         _generateClickedList.add(employeeId);
+                                        double makeitzero = 0;
+                                        final lastRecordSnapshot =
+                                            await _firestore
+                                                .collection('OvertimePay')
+                                                .where('employeeId',
+                                                    isEqualTo: employeeId)
+                                                .get();
+
+                                        final lastRecordSnapshot2 =
+                                            await _firestore
+                                                .collection('HolidayPay')
+                                                .where('employeeId',
+                                                    isEqualTo: employeeId)
+                                                .get();
+
+                                        final lastRecordSnapshot3 =
+                                            await _firestore
+                                                .collection('RestdayOTPay')
+                                                .where('employeeId',
+                                                    isEqualTo: employeeId)
+                                                .get();
+
+                                        final lastRecordSnapshot4 =
+                                            await _firestore
+                                                .collection('SpecialHolidayPay')
+                                                .where('employeeId',
+                                                    isEqualTo: employeeId)
+                                                .get();
+
+                                        final lastRecordSnapshot5 =
+                                            await _firestore
+                                                .collection(
+                                                    'RegularHolidayOTPay')
+                                                .where('employeeId',
+                                                    isEqualTo: employeeId)
+                                                .get();
+
+                                        final lastRecordSnapshot6 =
+                                            await _firestore
+                                                .collection(
+                                                    'SpecialHolidayOTPay')
+                                                .where('employeeId',
+                                                    isEqualTo: employeeId)
+                                                .get();
+                                        if (lastRecordSnapshot
+                                            .docs.isNotEmpty) {
+                                          final recordId =
+                                              lastRecordSnapshot.docs.first.id;
+                                          await _firestore
+                                              .collection('OvertimePay')
+                                              .doc(recordId)
+                                              .update({
+                                            'total_overtimePay': makeitzero,
+                                          });
+                                        }
+
+                                        if (lastRecordSnapshot2
+                                            .docs.isNotEmpty) {
+                                          final recordId =
+                                              lastRecordSnapshot2.docs.first.id;
+                                          await _firestore
+                                              .collection('HolidayPay')
+                                              .doc(recordId)
+                                              .update({
+                                            'total_holidayPay': makeitzero,
+                                          });
+                                        }
+
+                                        if (lastRecordSnapshot3
+                                            .docs.isNotEmpty) {
+                                          final recordId =
+                                              lastRecordSnapshot3.docs.first.id;
+                                          await _firestore
+                                              .collection('RestdayOTPay')
+                                              .doc(recordId)
+                                              .update({
+                                            'total_restDayOTPay': makeitzero,
+                                          });
+                                        }
+
+                                        if (lastRecordSnapshot4
+                                            .docs.isNotEmpty) {
+                                          final recordId =
+                                              lastRecordSnapshot4.docs.first.id;
+                                          await _firestore
+                                              .collection('SpecialHolidayPay')
+                                              .doc(recordId)
+                                              .update({
+                                            'total_specialHolidayPay':
+                                                makeitzero,
+                                          });
+                                        }
+
+                                        if (lastRecordSnapshot5
+                                            .docs.isNotEmpty) {
+                                          final recordId =
+                                              lastRecordSnapshot5.docs.first.id;
+                                          await _firestore
+                                              .collection('RegularHolidayOTPay')
+                                              .doc(recordId)
+                                              .update({
+                                            'total_regularHOTPay': makeitzero,
+                                          });
+                                        }
+
+                                        if (lastRecordSnapshot6
+                                            .docs.isNotEmpty) {
+                                          final recordId =
+                                              lastRecordSnapshot6.docs.first.id;
+                                          await _firestore
+                                              .collection('SpecialHolidayOTPay')
+                                              .doc(recordId)
+                                              .update({
+                                            'total_specialOTPay': makeitzero,
+                                          });
+                                        }
 
                                         Navigator.of(context).pop();
                                       } catch (e) {
@@ -2093,6 +2535,9 @@ class _PayslipPageState extends State<PayslipPage> {
 
 // Placeholder function, replace this with actual implementation
   Future<void> addPayslip({
+    required double monthly_salary,
+    required String department,
+    required String fullName,
     required double advances_amesco,
     required String employeeId,
     required double night_differential,
@@ -2127,6 +2572,9 @@ class _PayslipPageState extends State<PayslipPage> {
   }) async {
     try {
       final json = {
+        'monthly_salary': monthly_salary,
+        'department': department,
+        'fullname': fullName,
         'employeeId': employeeId,
         'advances_amesco': advances_amesco,
         'advances_eyecrafter': advances_eyecrafter,
@@ -2166,6 +2614,10 @@ class _PayslipPageState extends State<PayslipPage> {
       await FirebaseFirestore.instance
           .collection('Payslip')
           .doc(employeeId)
+          .set(json);
+      await FirebaseFirestore.instance
+          .collection('ArchivesPayslip')
+          .doc()
           .set(json);
 
       print('Payslip added successfully for employee $employeeId');
@@ -2412,67 +2864,78 @@ class _PayslipPageState extends State<PayslipPage> {
                                 DataRow(cells: [
                                   DataCell(Text('Basic Salary')),
                                   DataCell(Text('')),
-                                  DataCell(Text(monthlySalary.toString())),
+                                  DataCell(
+                                      Text(monthlySalary.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Night Differential')),
                                   DataCell(Text('')),
-                                  DataCell(Text(nightDifferential.toString())),
+                                  DataCell(Text(
+                                      nightDifferential.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Overtime')),
                                   DataCell(Text('')),
-                                  DataCell(Text(overallOTPay.toString())),
+                                  DataCell(
+                                      Text(overallOTPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('RDOT')),
                                   DataCell(Text('')),
-                                  DataCell(Text(restdayOTPay.toString())),
+                                  DataCell(
+                                      Text(restdayOTPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Regular Holiday')),
                                   DataCell(Text('')),
-                                  DataCell(Text(holidayPay.toString())),
+                                  DataCell(Text(holidayPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Special Holiday')),
                                   DataCell(Text('')),
-                                  DataCell(Text(specialHPay.toString())),
+                                  DataCell(
+                                      Text(specialHPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Standy Allowance')),
                                   DataCell(Text('')),
-                                  DataCell(Text(standyAllowance.toString())),
+                                  DataCell(
+                                      Text(standyAllowance.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Other Premium Pay')),
                                   DataCell(Text('')),
-                                  DataCell(Text(otherPremiumPay.toString())),
+                                  DataCell(
+                                      Text(otherPremiumPay.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Allowance  ')),
                                   DataCell(Text('')),
-                                  DataCell(Text(allowance.toString())),
+                                  DataCell(Text(allowance.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Salary Adjustment  ')),
                                   DataCell(Text('')),
-                                  DataCell(Text(salaryAdjustment.toString())),
+                                  DataCell(Text(
+                                      salaryAdjustment.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('OT Adjustment')),
                                   DataCell(Text('')),
-                                  DataCell(Text(otAdjustment.toString())),
+                                  DataCell(
+                                      Text(otAdjustment.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Referral Bonus')),
                                   DataCell(Text('')),
-                                  DataCell(Text(referralBonus.toString())),
+                                  DataCell(
+                                      Text(referralBonus.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Signing Bonus')),
                                   DataCell(Text('')),
-                                  DataCell(Text(signingBonus.toString())),
+                                  DataCell(
+                                      Text(signingBonus.toStringAsFixed(2))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text(
@@ -2481,7 +2944,7 @@ class _PayslipPageState extends State<PayslipPage> {
                                         TextStyle(fontWeight: FontWeight.bold),
                                   )),
                                   DataCell(Text('')),
-                                  DataCell(Text(grossPay.toString())),
+                                  DataCell(Text(grossPay.toStringAsFixed(2))),
                                 ]),
                               ],
                             ),
@@ -2514,7 +2977,8 @@ class _PayslipPageState extends State<PayslipPage> {
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('SSS Contribution')),
-                                DataCell(Text(sssContribution.toString())),
+                                DataCell(
+                                    Text(sssContribution.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Pag-ibig Contribution')),
@@ -2522,39 +2986,45 @@ class _PayslipPageState extends State<PayslipPage> {
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('PHIC Contribution')),
-                                DataCell(Text(phicContribution.toString())),
+                                DataCell(
+                                    Text(phicContribution.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Witholding Tax')),
-                                DataCell(Text(withHoldingTax.toString())),
+                                DataCell(
+                                    Text(withHoldingTax.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('SSS Loan')),
-                                DataCell(Text(sssLoan.toString())),
+                                DataCell(Text(sssLoan.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Pag-ibig Loan')),
-                                DataCell(Text(pagibigLoan.toString())),
+                                DataCell(Text(pagibigLoan.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Advances: Eye Crafter')),
-                                DataCell(Text(advancesEyeCrafter.toString())),
+                                DataCell(Text(
+                                    advancesEyeCrafter.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Advances: Amesco')),
-                                DataCell(Text(advancesAmesco.toString())),
+                                DataCell(
+                                    Text(advancesAmesco.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Advances: Insular')),
-                                DataCell(Text(advancesInsular.toString())),
+                                DataCell(
+                                    Text(advancesInsular.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Vitalab / BMCDC')),
-                                DataCell(Text(vitalabBMCDC.toString())),
+                                DataCell(Text(vitalabBMCDC.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('Other Advances')),
-                                DataCell(Text(otherAdvances.toString())),
+                                DataCell(
+                                    Text(otherAdvances.toStringAsFixed(2))),
                               ]),
                               DataRow(cells: [
                                 DataCell(Text('')),
@@ -2564,7 +3034,8 @@ class _PayslipPageState extends State<PayslipPage> {
                                 DataCell(Text('TOTAL DEDUCTIONS',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold))),
-                                DataCell(Text(totalDeduction.toString())),
+                                DataCell(
+                                    Text(totalDeduction.toStringAsFixed(2))),
                               ]),
                             ]),
                           ),
@@ -2600,7 +3071,11 @@ class _PayslipPageState extends State<PayslipPage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      grossPay.toString(),
+                                      NumberFormat.currency(
+                                              locale: 'en_PH',
+                                              symbol: '₱ ',
+                                              decimalDigits: 2)
+                                          .format(grossPay ?? 0.0),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     ),
@@ -2616,7 +3091,11 @@ class _PayslipPageState extends State<PayslipPage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      totalDeduction.toString(),
+                                      NumberFormat.currency(
+                                              locale: 'en_PH',
+                                              symbol: '₱ ',
+                                              decimalDigits: 2)
+                                          .format(totalDeduction ?? 0.0),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     ),
@@ -2633,11 +3112,22 @@ class _PayslipPageState extends State<PayslipPage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      netPay.toString(),
+                                      NumberFormat.currency(
+                                              locale: 'en_PH',
+                                              symbol: '₱ ',
+                                              decimalDigits: 2)
+                                          .format(netPay ?? 0.0),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold),
                                     ),
                                   ],
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    // Call function to export PDF
+                                    _exportPdf(context, data);
+                                  },
+                                  child: Text('Export PDF'),
                                 ),
                                 SizedBox(height: 580),
                               ],
@@ -2652,6 +3142,244 @@ class _PayslipPageState extends State<PayslipPage> {
             });
           });
     } catch (e) {}
+  }
+
+  Future<void> _exportPdf(
+      BuildContext context, Map<String, dynamic> data) async {
+    try {
+      var employeeId = data['employeeId'];
+      var userDocSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .where('employeeId', isEqualTo: employeeId)
+          .get();
+      var userData = userDocSnapshot.docs.first.data();
+      var monthlySalary = userData['monthly_salary'] ?? 0;
+
+      var paySlipDataQuery = await FirebaseFirestore.instance
+          .collection('Payslip')
+          .where('employeeId', isEqualTo: employeeId)
+          .get();
+
+      var nightDifferential = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['night_differential'] ?? 0
+          : 0;
+
+      var overallOTPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['overAllOTPay'] ?? 0
+          : 0;
+
+      var restdayOTPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['restdayOTPay'] ?? 0
+          : 0;
+
+      var holidayPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['holidayPay'] ?? 0
+          : 0;
+
+      var specialHPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['specialHPay'] ?? 0
+          : 0;
+
+      var standyAllowance = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['standy_allowance'] ?? 0
+          : 0;
+
+      var otherPremiumPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['other_prem_pay'] ?? 0
+          : 0;
+
+      var allowance = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['allowance'] ?? 0
+          : 0;
+      var salaryAdjustment = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['salary_adjustment'] ?? 0
+          : 0;
+
+      var otAdjustment = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['ot_adjustment'] ?? 0
+          : 0;
+
+      var referralBonus = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['referral_bonus'] ?? 0
+          : 0;
+
+      var signingBonus = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['signing_bonus'] ?? 0
+          : 0;
+
+      var grossPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['grossPay'] ?? 0
+          : 0;
+
+      var sssContribution = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['sss_contribution'] ?? 0
+          : 0;
+
+      var pagibigContribution = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['pagibig_contribution'] ?? 0
+          : 0;
+      var phicContribution = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['phic_contribution'] ?? 0
+          : 0;
+      var withHoldingTax = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['witholding_tax'] ?? 0
+          : 0;
+
+      var sssLoan = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['sss_loan'] ?? 0
+          : 0;
+
+      var pagibigLoan = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['pagibig_loan'] ?? 0
+          : 0;
+
+      var advancesEyeCrafter = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['advances_eyecrafter'] ?? 0
+          : 0;
+
+      var advancesAmesco = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['advances_amesco'] ?? 0
+          : 0;
+
+      var advancesInsular = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['advances_insular'] ?? 0
+          : 0;
+      var vitalabBMCDC = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['vitalab_bmcdc'] ?? 0
+          : 0;
+
+      var otherAdvances = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['other_advances'] ?? 0
+          : 0;
+
+      var totalDeduction = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['total_deduction'] ?? 0
+          : 0;
+
+      var netPay = paySlipDataQuery.docs.isNotEmpty
+          ? paySlipDataQuery.docs.first.data()['netPay'] ?? 0
+          : 0;
+
+      final pdf = pw.Document();
+
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('Payslip Details',
+                    style: pw.TextStyle(
+                        fontSize: 20, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 10),
+                pw.Text('Employee ID: ${data['employeeId']}'),
+                pw.Text(
+                    'Name: ${data['fname']} ${data['mname']} ${data['lname']}'),
+                pw.Text('Department: ${data['department']}'),
+                pw.SizedBox(height: 20),
+                pw.Row(
+                  children: [
+                    pw.Expanded(
+                      flex: 1,
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('EARNINGS',
+                              style: pw.TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: pw.FontWeight.bold)),
+                          pw.SizedBox(height: 10),
+                          pw.Text('Basic Salary: $monthlySalary'),
+                          pw.Text('Night Differential: $nightDifferential'),
+                          pw.Text('Overall OT Pay: $overallOTPay'),
+                          pw.Text('Restday OT Pay: $restdayOTPay'),
+                          pw.Text('Holiday Pay: $holidayPay'),
+                          pw.Text('Special Holiday Pay: $specialHPay'),
+                          pw.Text('Standy Allowance: $standyAllowance'),
+                          pw.Text('Other Premium Pay: $otherPremiumPay'),
+                          pw.Text('Allowance: $allowance'),
+                          pw.Text('Salary Adjustment: $salaryAdjustment'),
+                          pw.Text('OT Adjustment: $otAdjustment'),
+                          pw.Text('Referral Bonus: $referralBonus'),
+                          pw.Text('Signing Bonus: $signingBonus'),
+                          pw.Divider(),
+                          pw.Text('Gross Pay: $grossPay'),
+                        ],
+                      ),
+                    ),
+                    pw.Expanded(
+                      flex: 1,
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('DEDUCTIONS',
+                              style: pw.TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: pw.FontWeight.bold)),
+                          pw.SizedBox(height: 10),
+                          pw.Text('SSS Contribution: $sssContribution'),
+                          pw.Text(
+                              'Pag-ibig Contribution: $pagibigContribution'),
+                          pw.Text('PHIC Contribution: $phicContribution'),
+                          pw.Text('Withholding Tax: $withHoldingTax'),
+                          pw.Text('SSS Loan: $sssLoan'),
+                          pw.Text('Pag-ibig Loan: $pagibigLoan'),
+                          pw.Text('Advances Eye Crafter: $advancesEyeCrafter'),
+                          pw.Text('Advances Amesco: $advancesAmesco'),
+                          pw.Text('Advances Insular: $advancesInsular'),
+                          pw.Text('Vitalab / BMCDC: $vitalabBMCDC'),
+                          pw.Text('Other Advances: $otherAdvances'),
+                          pw.Text(
+                            'S',
+                            style: pw.TextStyle(color: PdfColors.white),
+                          ),
+                          pw.Text(
+                            'S',
+                            style: pw.TextStyle(color: PdfColors.white),
+                          ),
+                          pw.Divider(),
+                          pw.Text('Total Deductions: $totalDeduction'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 20),
+                pw.Text('SUMMARY',
+                    style: pw.TextStyle(
+                        fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 10),
+                pw.Text('Gross Pay: $grossPay'),
+                pw.Text('Total Deductions: $totalDeduction'),
+                pw.Divider(),
+                pw.Text('Net Pay: $netPay'),
+              ],
+            );
+          },
+        ),
+      );
+
+      final pdfBytes = await pdf.save();
+
+      if (kIsWeb) {
+        final pdfBlob = html.Blob([Uint8List.fromList(pdfBytes)]);
+        final pdfUrl = html.Url.createObjectUrlFromBlob(pdfBlob);
+        html.AnchorElement(href: pdfUrl)
+          ..setAttribute("download", "Payslip_Report.pdf")
+          ..click();
+        html.Url.revokeObjectUrl(pdfUrl);
+      } else {
+        final String directoryPath =
+            (await getExternalStorageDirectory())?.path ?? '';
+        final String filePath = '$directoryPath/Payslip_Report.pdf';
+        final File file = File(filePath);
+        await file.writeAsBytes(pdfBytes);
+        OpenFile.open(filePath);
+      }
+    } catch (e) {
+      print("Error: $e");
+      // Handle error appropriately
+    }
   }
 
   Future<void> fetchTotal() async {
@@ -2810,6 +3538,35 @@ Future<void> moveToRegularH(DocumentSnapshot overtimeDoc) async {
       if (data != null) {
         await FirebaseFirestore.instance
             .collection('ArchivesRegularH')
+            .add(data); // Adding document data to ArchivesOvertime collection
+      }
+      await doc.reference
+          .delete(); // Delete the document from the original collection
+    }
+  } catch (e) {
+    print('Error moving record to ArchivesOvertime collection: $e');
+  }
+}
+
+Future<void> moveToPayslip(DocumentSnapshot overtimeDoc) async {
+  try {
+    Map<String, dynamic> overtimeData =
+        Map<String, dynamic>.from(overtimeDoc.data() as Map<String, dynamic>);
+
+    String employeeId = overtimeData['employeeId'];
+    QuerySnapshot overtimeSnapshot = await FirebaseFirestore.instance
+        .collection('Payslip')
+        .where('employeeId', isEqualTo: employeeId)
+        .get();
+
+    List<DocumentSnapshot> userOvertimeDocs = overtimeSnapshot.docs;
+
+    // Loop through documents and move each one to ArchivesOvertime collection
+    for (DocumentSnapshot doc in userOvertimeDocs) {
+      Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+      if (data != null) {
+        await FirebaseFirestore.instance
+            .collection('ArchivesPayslip')
             .add(data); // Adding document data to ArchivesOvertime collection
       }
       await doc.reference

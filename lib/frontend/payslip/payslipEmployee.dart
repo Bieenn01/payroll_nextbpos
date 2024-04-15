@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:project_payroll_nextbpo/frontend/payslip/payslip_page.dart';
@@ -74,7 +75,12 @@ class _PayslipEmployeeState extends State<PayslipEmployee> {
 
   Widget _buildDataTable() {
     return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection('User').snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('ArchivesPayslip')
+          .where('userId',
+              isEqualTo: FirebaseAuth
+                  .instance.currentUser!.uid) // Filter payslip data by user ID
+          .snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
@@ -83,12 +89,12 @@ class _PayslipEmployeeState extends State<PayslipEmployee> {
         } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return Center(child: Text('No data available yet'));
         } else {
-          List<DocumentSnapshot> payrollDocs = snapshot.data!.docs;
+          List<DocumentSnapshot> payslipDocs = snapshot.data!.docs;
 
           // Filter payrollDocs based on search text
           List<DocumentSnapshot> filteredPayrollDocs = _searchController
                   .text.isNotEmpty
-              ? payrollDocs.where((doc) {
+              ? payslipDocs.where((doc) {
                   final Map<String, dynamic> data =
                       doc.data() as Map<String, dynamic>;
                   return (data['employeeId'] != null &&
@@ -107,13 +113,7 @@ class _PayslipEmployeeState extends State<PayslipEmployee> {
                               .contains(_searchController.text.toLowerCase()));
                 }).toList()
               : List.from(
-                  payrollDocs); // Copying the list if no search text to maintain original data
-
-          if (selectedDepartment != 'All') {
-            filteredPayrollDocs = filteredPayrollDocs
-                .where((doc) => doc['department'] == selectedDepartment)
-                .toList();
-          }
+                  payslipDocs); // Copying the list if no search text to maintain original data
 
           return SizedBox(
             height: 700,
@@ -133,24 +133,24 @@ class _PayslipEmployeeState extends State<PayslipEmployee> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               DataTable(
-                                columns: const [
-                                  DataColumn(
+                                columns: [
+                                  const DataColumn(
                                       label: Text('#',
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold))),
-                                  DataColumn(
+                                  const DataColumn(
                                       label: Text('Employee Id',
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold))),
-                                  DataColumn(
+                                  const DataColumn(
                                       label: Text('Name',
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold))),
-                                  DataColumn(
-                                      label: Text('Date Generated',
+                                  const DataColumn(
+                                      label: Text('Department',
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold))),
-                                  DataColumn(
+                                  const DataColumn(
                                       label: Text('Action',
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold))),
@@ -164,25 +164,561 @@ class _PayslipEmployeeState extends State<PayslipEmployee> {
                                   final fullname =
                                       '${payrollData['fname']} ${payrollData['mname']} ${payrollData['lname']}';
 
-                                  // Checking if the employeeId exists in _generateClickedList to highlight the row
-
                                   return DataRow(
                                     cells: [
                                       DataCell(Text('${index + 1}')),
-                                      DataCell(
-                                        Text(payrollData['employeeId'] ??
-                                            'Not Available Yet'),
-                                      ),
-                                      DataCell(
-                                        Text(fullname ?? 'Not Available Yet'),
-                                      ),
-                                      DataCell(Text("04-08-2024")),
+                                      DataCell(Text(payrollData['employeeId'] ??
+                                          'Not Available Yet')),
+                                      DataCell(Text(payrollData['fullname'] ??
+                                          'Not Available Yet')),
+                                      DataCell(Text(payrollData['department'] ??
+                                          'Not Available Yet')),
                                       DataCell(Row(
                                         children: [
                                           IconButton(
-                                              icon: Icon(Icons.visibility,
-                                                  color: Colors.blue),
-                                              onPressed: () {}),
+                                            icon: Icon(Icons.visibility,
+                                                color: Colors.blue),
+                                            onPressed: () {
+                                              showDialog(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return AlertDialog(
+                                                    title:
+                                                        Text('Payroll Details'),
+                                                    content:
+                                                        SingleChildScrollView(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Row(
+                                                            children: [
+                                                              Container(
+                                                                child:
+                                                                    DataTable(
+                                                                  columns: const [
+                                                                    DataColumn(
+                                                                      label:
+                                                                          Text(
+                                                                        'EARNINGS',
+                                                                        style: TextStyle(
+                                                                            fontSize:
+                                                                                18,
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
+                                                                            letterSpacing: 1),
+                                                                      ),
+                                                                    ),
+                                                                    DataColumn(
+                                                                        label: Text(
+                                                                            'Hours')),
+                                                                    DataColumn(
+                                                                        label: Text(
+                                                                            'Amount')),
+                                                                  ],
+                                                                  rows: [
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Basic Salary')),
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['monthly_salary'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                          Text(
+                                                                              'Night Differential'),
+                                                                        ),
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['night_differential'] ?? 0)
+                                                                              .toString(),
+                                                                        )),
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Overtime')),
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['overAllOTPay'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('RDOT')),
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['restdayOTPay'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Regular Holiday')),
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['holidayPay'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Special Holiday')),
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['specialHPay'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Standy Allowance')),
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['standy_allowance'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Other PRemium Pay')),
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['other_prem_pay'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Allowance')),
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['allowance'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Salary Adjustment')),
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['salary_adjustment'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('OT Adjustment')),
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['ot_adjustment'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Referral Bonus')),
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['referral_bonus'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Signing Bonus')),
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['signing_bonus'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(Text(
+                                                                            'GROSS PAY',
+                                                                            style:
+                                                                                TextStyle(fontWeight: FontWeight.bold))),
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['grossPay'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              Container(
+                                                                margin: EdgeInsets
+                                                                    .fromLTRB(
+                                                                        10,
+                                                                        0,
+                                                                        10,
+                                                                        0),
+                                                                height: 700,
+                                                                width:
+                                                                    1, // Adjust the width as needed
+                                                                color: Colors
+                                                                    .black,
+                                                              ),
+                                                              Container(
+                                                                child:
+                                                                    DataTable(
+                                                                  columns: const [
+                                                                    DataColumn(
+                                                                        label:
+                                                                            Text(
+                                                                      'DEDUCTIONS',
+                                                                      style: TextStyle(
+                                                                          fontWeight: FontWeight
+                                                                              .bold,
+                                                                          fontSize:
+                                                                              18,
+                                                                          letterSpacing:
+                                                                              1),
+                                                                    )),
+                                                                    DataColumn(
+                                                                      label: Text(
+                                                                          'Amount'),
+                                                                    ),
+                                                                  ],
+                                                                  rows: [
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('LWOP / Tardiness')),
+                                                                        DataCell(
+                                                                            Text('0'))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('SSS Contribution')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['sss_contribution'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Pag-ibig Contribution')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['pagibig_contribution'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('PHIC Contribution')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['phic_contribution'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Witholding Tax')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['witholding_tax'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('SSS Loan')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['sss_loan'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Pag-ibig Loan')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['pagibig_loan'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Advances: Eyecrafter')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['advances_eyecrafter'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Advances: Amesco')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['advances_amesco'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Advances: Insular')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['advances_insular'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Vitalab / BMCDC')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['vitalab_bmcdc'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('Other Advances')),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['other_advanaces'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(
+                                                                            Text('')),
+                                                                        DataCell(
+                                                                            Text(''))
+                                                                      ],
+                                                                    ),
+                                                                    DataRow(
+                                                                      cells: [
+                                                                        DataCell(Text(
+                                                                            'TOTAL DEDUCTIONS',
+                                                                            style:
+                                                                                TextStyle(fontWeight: FontWeight.bold))),
+                                                                        DataCell(
+                                                                            Text(
+                                                                          (payrollData['total_deduction'] ?? 0)
+                                                                              .toString(),
+                                                                        ))
+                                                                      ],
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              Container(
+                                                                margin: EdgeInsets
+                                                                    .fromLTRB(
+                                                                        10,
+                                                                        0,
+                                                                        10,
+                                                                        0),
+                                                                height: 700,
+                                                                width:
+                                                                    1, // Adjust the width as needed
+                                                                color: Colors
+                                                                    .black,
+                                                              ),
+                                                              Container(
+                                                                width: 250,
+                                                                child: Column(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .start,
+                                                                  crossAxisAlignment:
+                                                                      CrossAxisAlignment
+                                                                          .start,
+                                                                  children: [
+                                                                    SizedBox(
+                                                                      height:
+                                                                          20,
+                                                                    ),
+                                                                    Text(
+                                                                        'SUMMARY',
+                                                                        style:
+                                                                            TextStyle(
+                                                                          fontSize:
+                                                                              18,
+                                                                          fontWeight:
+                                                                              FontWeight.bold,
+                                                                          letterSpacing:
+                                                                              1,
+                                                                        )),
+                                                                    SizedBox(
+                                                                        height:
+                                                                            10),
+                                                                    Row(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .spaceBetween,
+                                                                      children: [
+                                                                        Text(
+                                                                          'Gross Pay: ',
+                                                                          style:
+                                                                              TextStyle(fontWeight: FontWeight.bold),
+                                                                        ),
+                                                                        Text(
+                                                                          (payrollData['grossPay'] ?? 0)
+                                                                              .toString(),
+                                                                          style:
+                                                                              TextStyle(fontWeight: FontWeight.bold),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                    Row(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .spaceBetween,
+                                                                      children: [
+                                                                        Text(
+                                                                          'Total Deductions: ',
+                                                                          style:
+                                                                              TextStyle(fontWeight: FontWeight.bold),
+                                                                        ),
+                                                                        Text(
+                                                                          (payrollData['total_deduction'] ?? 0)
+                                                                              .toString(),
+                                                                          style:
+                                                                              TextStyle(fontWeight: FontWeight.bold),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                    Divider(),
+                                                                    Row(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .spaceBetween,
+                                                                      children: [
+                                                                        Text(
+                                                                          'NET PAY: ',
+                                                                          style:
+                                                                              TextStyle(fontWeight: FontWeight.bold),
+                                                                        ),
+                                                                        Text(
+                                                                          (payrollData['netPay'] ?? 0)
+                                                                              .toString(),
+                                                                          style:
+                                                                              TextStyle(fontWeight: FontWeight.bold),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                    SizedBox(
+                                                                        height:
+                                                                            580),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+
+                                                          // Add more details as needed
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    actions: <Widget>[
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        },
+                                                        child: Text('Close'),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            },
+                                          ),
                                         ],
                                       )),
                                     ],

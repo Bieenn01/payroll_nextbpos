@@ -8,7 +8,7 @@ import 'package:project_payroll_nextbpo/backend/dashboardFunc/main_calendar.dart
 import 'package:project_payroll_nextbpo/frontend/dashboard/userTimeInToday.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:project_payroll_nextbpo/frontend/mobileHomeScreen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 class DashboardMobile extends StatefulWidget {
   const DashboardMobile({super.key});
@@ -28,7 +28,7 @@ class _DashboardMobileState extends State<DashboardMobile> {
     super.initState();
     fetchEmployeeCount();
     _fetchRole();
-    fetchLateCount();//.then((lateCount) {
+    fetchLateCount(); //.then((lateCount) {
     //   setState(() {
     //     _lateCount = lateCount;
     //   });
@@ -92,15 +92,13 @@ class _DashboardMobileState extends State<DashboardMobile> {
     DateTime startOfDay = DateTime(now.year, now.month, now.day);
     DateTime endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('Records')
-          .where('lateTime', isGreaterThanOrEqualTo: startOfDay)
-          .where('lateTime', isLessThanOrEqualTo: endOfDay)
-          .get();
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('Records')
+        .where('lateTime', isGreaterThanOrEqualTo: startOfDay)
+        .where('lateTime', isLessThanOrEqualTo: endOfDay)
+        .get();
 
-
-      return querySnapshot.size;
-
+    return querySnapshot.size;
   }
 
   Future<void> _resetLateCount() async {
@@ -124,6 +122,7 @@ class _DashboardMobileState extends State<DashboardMobile> {
       print('Error resetting late count: $e');
     }
   }
+
   Future<int> countDocumentsForToday() async {
     DateTime now = DateTime.now();
     DateTime startOfDay = DateTime(now.year, now.month, now.day);
@@ -261,7 +260,7 @@ class _DashboardMobileState extends State<DashboardMobile> {
                     flex: 1,
                     child: Container(
                       height: 120,
-                      padding: EdgeInsets.all(8),
+                      padding: EdgeInsets.fromLTRB(15, 8, 8, 8),
                       decoration: container1Decoration(),
                       child: smallContainerRow(
                         '$totalEmployees',
@@ -311,7 +310,7 @@ class _DashboardMobileState extends State<DashboardMobile> {
                           height: 120,
                           padding: EdgeInsets.all(8),
                           decoration: container1Decoration(),
-                          child: smallContainer(
+                          child: smallContainerRow(
                             '${snapshot.data ?? 0}', // Display late count retrieved from snapshot, with fallback value of 0
                             Icons.more_time_sharp,
                             'Late Arrival',
@@ -399,12 +398,26 @@ class _DashboardMobileState extends State<DashboardMobile> {
                   children: [
                     Flexible(
                       flex: 1,
-                      child: Container(
-                        height: 90,
-                        padding: EdgeInsets.all(8),
-                        decoration: container1Decoration(),
-                        child: smallContainer(
-                            '62', Icons.more_time_sharp, 'Late Arrival'),
+                      child: FutureBuilder<int>(
+                        future: fetchLateCount(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return Center(
+                              child: Text('Error: ${snapshot.error}'),
+                            );
+                          } else {
+                            return Container(
+                              height: 90,
+                              padding: EdgeInsets.all(8),
+                              decoration: container1Decoration(),
+                              child: smallContainer(
+                                '${snapshot.data ?? 0}', // Display late count retrieved from snapshot, with fallback value of 0
+                                Icons.more_time_sharp,
+                                'Late Arrival',
+                              ),
+                            );
+                          }
+                        },
                       ),
                     ),
                     SizedBox(
