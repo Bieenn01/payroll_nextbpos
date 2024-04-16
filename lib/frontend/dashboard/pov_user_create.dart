@@ -735,34 +735,6 @@ class _UserState extends State<PovUser> {
                       child: FittedBox(
                         fit: BoxFit.fill,
                         child: Switch(
-                          value: isATM,
-                          activeColor: Colors.blue,
-                          onChanged: (value) async {
-                            if (!value) {
-                              bool verificationResult =
-                                  await passwordVerification(context);
-                              if (verificationResult) {
-                                updateATM(userId, value);
-                                showToast("User Deactivated");
-                              } else {
-                                // Handle unsuccessful or canceled verification
-                              }
-                            } else {
-                              updateATM(userId, value);
-                              showToast("User Activated");
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                  DataCell(
-                    SizedBox(
-                      width: 50,
-                      height: 30,
-                      child: FittedBox(
-                        fit: BoxFit.fill,
-                        child: Switch(
                           value: isActive,
                           activeColor: Colors.green,
                           onChanged: (value) async {
@@ -777,6 +749,34 @@ class _UserState extends State<PovUser> {
                               }
                             } else {
                               updateAccountStatus(userId, value);
+                              showToast("User Activated");
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    SizedBox(
+                      width: 50,
+                      height: 30,
+                      child: FittedBox(
+                        fit: BoxFit.fill,
+                        child: Switch(
+                          value: isATM,
+                          activeColor: Colors.blue,
+                          onChanged: (value) async {
+                            if (!value) {
+                              bool verificationResult =
+                                  await passwordVerification(context);
+                              if (verificationResult) {
+                                updateATM(userId, value);
+                                showToast("User Deactivated");
+                              } else {
+                                // Handle unsuccessful or canceled verification
+                              }
+                            } else {
+                              updateATM(userId, value);
                               showToast("User Activated");
                             }
                           },
@@ -1161,7 +1161,7 @@ class _UserState extends State<PovUser> {
     TextEditingController taxCodeController =
         TextEditingController(text: userData['taxCode'].toString());
     TextEditingController salaryController =
-        TextEditingController(text: userData['salary'].toString());
+        TextEditingController(text: userData['monthly_salary'].toString());
     DateTime? startShift = userData['startShift'] != null
         ? (userData['startShift'] as Timestamp).toDate()
         : null;
@@ -1170,7 +1170,7 @@ class _UserState extends State<PovUser> {
         : null;
 
     List<String> departmentChoices = ['IT', 'HR', 'ACCOUNTING', 'SERVICING'];
-    List<String> roleChoices = ['Employee', 'Admin'];
+    List<String> roleChoices = ['Employee', 'Admin', 'Superadmin'];
     List<String> employeeTypeChoices = ['Regular', 'Contractual'];
 
     showDialog(
