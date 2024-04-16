@@ -3308,6 +3308,32 @@ class _PayslipPageState extends State<PayslipPage> {
       pdf.addPage(
         pw.Page(
           build: (pw.Context context) {
+            var currencyFormatter = NumberFormat.currency(
+              locale: 'en_PH',
+              symbol: 'PHP ',
+              decimalDigits: 2,
+            );
+            pw.Row createRow(String description, String amount) {
+              return pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(description),
+                  pw.Text(amount),
+                ],
+              );
+            }
+
+            pw.Row createRowSum(String description, String amount) {
+              return pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(description),
+                  pw.Text(amount,
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                ],
+              );
+            }
+
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
@@ -3315,16 +3341,17 @@ class _PayslipPageState extends State<PayslipPage> {
                     style: pw.TextStyle(
                         fontSize: 20, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 10),
-                pw.Text('Employee ID: ${data['employeeId']}'),
-                pw.Text(
-                    'Name: ${data['fname']} ${data['mname']} ${data['lname']}'),
-                pw.Text('Department: ${data['department']}'),
+                createRow('Employee ID: ', '${data['employeeId']}'),
+                createRow('Name:',
+                    ' ${data['fname']} ${data['mname']} ${data['lname']}'),
+                createRow('Department: ', '${data['department']}'),
                 pw.SizedBox(height: 20),
                 pw.Row(
                   children: [
                     pw.Expanded(
                       flex: 1,
                       child: pw.Column(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Text('EARNINGS',
@@ -3332,24 +3359,28 @@ class _PayslipPageState extends State<PayslipPage> {
                                   fontSize: 18,
                                   fontWeight: pw.FontWeight.bold)),
                           pw.SizedBox(height: 10),
-                          pw.Text('Basic Salary: $monthlySalary'),
-                          pw.Text('Night Differential: $nightDifferential'),
-                          pw.Text('Overall OT Pay: $overallOTPay'),
-                          pw.Text('Restday OT Pay: $restdayOTPay'),
-                          pw.Text('Holiday Pay: $holidayPay'),
-                          pw.Text('Special Holiday Pay: $specialHPay'),
-                          pw.Text('Standy Allowance: $standyAllowance'),
-                          pw.Text('Other Premium Pay: $otherPremiumPay'),
-                          pw.Text('Allowance: $allowance'),
-                          pw.Text('Salary Adjustment: $salaryAdjustment'),
-                          pw.Text('OT Adjustment: $otAdjustment'),
-                          pw.Text('Referral Bonus: $referralBonus'),
-                          pw.Text('Signing Bonus: $signingBonus'),
+                          createRow('Basic Salary:', ' $monthlySalary'),
+                          createRow(
+                              'Night Differential:', ' $nightDifferential'),
+                          createRow('Overall OT Pay:', ' $overallOTPay'),
+                          createRow('Restday OT Pay: ', '$restdayOTPay'),
+                          createRow('Holiday Pay: ', '$holidayPay'),
+                          createRow('Special Holiday Pay: ', '$specialHPay'),
+                          createRow('Standy Allowance: ', '$standyAllowance'),
+                          createRow('Other Premium Pay:', ' $otherPremiumPay'),
+                          createRow('Allowance:', ' $allowance'),
+                          createRow('Salary Adjustment:', ' $salaryAdjustment'),
+                          createRow('OT Adjustment: ', '$otAdjustment'),
+                          createRow('Referral Bonus: ', '$referralBonus'),
+                          createRow('Signing Bonus: ', '$signingBonus'),
                           pw.Divider(),
-                          pw.Text('Gross Pay: $grossPay'),
+                          createRow('Gross Pay: ', '$grossPay'),
                         ],
                       ),
                     ),
+                    pw.SizedBox(width: 10),
+                    // pw.Container(height: 280, width: 1, color: PdfColors.black),
+                    pw.SizedBox(width: 10),
                     pw.Expanded(
                       flex: 1,
                       child: pw.Column(
@@ -3360,18 +3391,19 @@ class _PayslipPageState extends State<PayslipPage> {
                                   fontSize: 18,
                                   fontWeight: pw.FontWeight.bold)),
                           pw.SizedBox(height: 10),
-                          pw.Text('SSS Contribution: $sssContribution'),
-                          pw.Text(
-                              'Pag-ibig Contribution: $pagibigContribution'),
-                          pw.Text('PHIC Contribution: $phicContribution'),
-                          pw.Text('Withholding Tax: $withHoldingTax'),
-                          pw.Text('SSS Loan: $sssLoan'),
-                          pw.Text('Pag-ibig Loan: $pagibigLoan'),
-                          pw.Text('Advances Eye Crafter: $advancesEyeCrafter'),
-                          pw.Text('Advances Amesco: $advancesAmesco'),
-                          pw.Text('Advances Insular: $advancesInsular'),
-                          pw.Text('Vitalab / BMCDC: $vitalabBMCDC'),
-                          pw.Text('Other Advances: $otherAdvances'),
+                          createRow('SSS Contribution:', ' $sssContribution'),
+                          createRow('Pag-ibig Contribution: ',
+                              '$pagibigContribution'),
+                          createRow('PHIC Contribution: ', '$phicContribution'),
+                          createRow('Withholding Tax:', ' $withHoldingTax'),
+                          createRow('SSS Loan: ', ' $sssLoan'),
+                          createRow('Pag-ibig Loan:', ' $pagibigLoan'),
+                          createRow(
+                              'Advances Eye Crafter:', ' $advancesEyeCrafter'),
+                          createRow('Advances Amesco: ', '$advancesAmesco'),
+                          createRow('Advances Insular:', ' $advancesInsular'),
+                          createRow('Vitalab / BMCDC:', ' $vitalabBMCDC'),
+                          createRow('Other Advances: ', '$otherAdvances'),
                           pw.Text(
                             'S',
                             style: pw.TextStyle(color: PdfColors.white),
@@ -3381,7 +3413,7 @@ class _PayslipPageState extends State<PayslipPage> {
                             style: pw.TextStyle(color: PdfColors.white),
                           ),
                           pw.Divider(),
-                          pw.Text('Total Deductions: $totalDeduction'),
+                          createRow('Total Deductions:', ' $totalDeduction'),
                         ],
                       ),
                     ),
@@ -3392,10 +3424,13 @@ class _PayslipPageState extends State<PayslipPage> {
                     style: pw.TextStyle(
                         fontSize: 18, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 10),
-                pw.Text('Gross Pay: $grossPay'),
-                pw.Text('Total Deductions: $totalDeduction'),
+                createRowSum('Gross Pay:',
+                    ' ${currencyFormatter.format(grossPay ?? 0.0)}'),
+                createRowSum('Total Deductions: ',
+                    '${currencyFormatter.format(totalDeduction ?? 0.0)}'),
                 pw.Divider(),
-                pw.Text('Net Pay: $netPay'),
+                createRowSum(
+                    'Net Pay:', ' ${currencyFormatter.format(netPay ?? 0.0)}'),
               ],
             );
           },
