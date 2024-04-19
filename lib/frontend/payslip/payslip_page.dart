@@ -3431,6 +3431,13 @@ class _PayslipPageState extends State<PayslipPage> {
                 pw.Divider(),
                 createRowSum(
                     'Net Pay:', ' ${currencyFormatter.format(netPay ?? 0.0)}'),
+                       pw.Container(
+                margin: pw.EdgeInsets.only(top: 100),
+                child: pw.Text(
+                  'Generated on: ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}',
+                  style: pw.TextStyle(fontSize: 10),
+                ),
+              ),
               ],
             );
           },

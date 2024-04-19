@@ -4,7 +4,27 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:project_payroll_nextbpo/frontend/payslip/payslip_page.dart';
 import 'package:shimmer/shimmer.dart' as ShimmerPackage;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
+import 'package:project_payroll_nextbpo/frontend/payslip/contribution.dart';
+import 'package:shimmer/shimmer.dart' as ShimmerPackage;
+import 'package:intl/intl.dart';
+import 'dart:typed_data';
+import 'dart:io';
+
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:universal_html/html.dart' as html;
+
+import 'package:project_payroll_nextbpo/frontend/modal.dart';
 class PayslipEmployee extends StatefulWidget {
   PayslipEmployee({super.key});
 
@@ -690,8 +710,21 @@ class _PayslipEmployeeState extends State<PayslipEmployee> {
                                                                           style:
                                                                               TextStyle(fontWeight: FontWeight.bold),
                                                                         ),
-                                                                      ],
+   ElevatedButton(
+      onPressed: () async {
+        // Call the _exportPdf function when the button is pressed
+        await _exportPdf(context, payrollData);
+      },
+      style: ElevatedButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      child: Text('Export PDF'),
+    ),
+                                                ],
                                                                     ),
+                                                                    
                                                                     SizedBox(
                                                                         height:
                                                                             580),
@@ -739,6 +772,106 @@ class _PayslipEmployeeState extends State<PayslipEmployee> {
       },
     );
   }
+Future<void> _exportPdf(BuildContext context, Map<String, dynamic> payrollData) async {
+  try {
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return;
+    }
+    final userDocSnapshot = await FirebaseFirestore.instance
+        .collection('User')
+        .doc(user.uid)
+        .get();
+    if (!userDocSnapshot.exists) {
+      return;
+    }
+    final employeeId = userDocSnapshot['employeeId'];
+
+    final pdf = pw.Document();
+
+    // Add a page to the PDF document
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          // Build the content of the page
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Add payslip details to the PDF content
+              pw.Text('Payslip Details',
+                  style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 10),
+              // Add other payslip details using fetched data
+              pw.Text('Employee ID: $employeeId'),
+                 pw.Divider(), 
+              pw.Text('Basic Salary: ${payrollData['monthly_salary'] ?? 0}'),
+              pw.Text('Night Differential: ${payrollData['night_differential'] ?? 0}'),
+              pw.Text('Overtime: ${payrollData['overAllOTPay'] ?? 0}'),
+              pw.Text('RDOT: ${payrollData['restdayOTPay'] ?? 0}'),
+              pw.Text('Regular Holiday: ${payrollData['holidayPay'] ?? 0}'),
+              pw.Text('Special Holiday: ${payrollData['specialHPay'] ?? 0}'),
+              pw.Text('Standy Allowance: ${payrollData['standy_allowance'] ?? 0}'),
+              pw.Text('Other Premium Pay: ${payrollData['other_prem_pay'] ?? 0}'),
+              pw.Text('Allowance: ${payrollData['allowance'] ?? 0}'),
+              pw.Text('Salary Adjustment: ${payrollData['salary_adjustment'] ?? 0}'),
+              pw.Text('OT Adjustment: ${payrollData['ot_adjustment'] ?? 0}'),
+              pw.Text('Referral Bonus: ${payrollData['referral_bonus'] ?? 0}'),
+              pw.Text('Signing Bonus: ${payrollData['signing_bonus'] ?? 0}'),
+                 pw.Divider(), 
+              pw.Text('Gross Pay: ${payrollData['grossPay'] ?? 0}'),
+                 pw.Divider(), 
+              pw.Text('SSS Contribution: ${payrollData['sss_contribution'] ?? 0}'),
+              pw.Text('Pag-ibig Contribution: ${payrollData['pagibig_contribution'] ?? 0}'),
+              pw.Text('PHIC Contribution: ${payrollData['phic_contribution'] ?? 0}'),
+              pw.Text('Withholding Tax: ${payrollData['witholding_tax'] ?? 0}'),
+              pw.Text('SSS Loan: ${payrollData['sss_loan'] ?? 0}'),
+              pw.Text('Pag-ibig Loan: ${payrollData['pagibig_loan'] ?? 0}'),
+              pw.Text('Advances (Eyecrafter): ${payrollData['advances_eyecrafter'] ?? 0}'),
+              pw.Text('Advances (Amesco): ${payrollData['advances_amesco'] ?? 0}'),
+              pw.Text('Advances (Insular): ${payrollData['advances_insular'] ?? 0}'),
+              pw.Text('Vitalab / BMCDC: ${payrollData['vitalab_bmcdc'] ?? 0}'),
+              pw.Text('Other Advances: ${payrollData['other_advanaces'] ?? 0}'),
+              pw.Divider(), // Divider between earnings and deductions
+              pw.Text('Total Deductions: ${payrollData['total_deduction'] ?? 0}'),
+                 pw.Divider(), 
+              pw.Text('Net Pay: ${payrollData['netPay'] ?? 0}'),
+            pw.Container(
+                margin: pw.EdgeInsets.only(top: 100),
+                child: pw.Text(
+                  'Generated on: ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}',
+                  style: pw.TextStyle(fontSize: 10),
+                ),
+              ),
+            ],
+          );
+        },
+      
+      ),
+    );
+
+    final pdfBytes = await pdf.save();
+
+    if (kIsWeb) {
+      // If running on the web platform
+      final pdfBlob = html.Blob([Uint8List.fromList(pdfBytes)]);
+      final pdfUrl = html.Url.createObjectUrlFromBlob(pdfBlob);
+      html.AnchorElement(href: pdfUrl)
+        ..setAttribute("download", "Payslip_Report.pdf")
+        ..click();
+      html.Url.revokeObjectUrl(pdfUrl);
+    } else {
+      // If running on mobile platforms
+      final String directoryPath = (await getExternalStorageDirectory())?.path ?? '';
+      final String filePath = '$directoryPath/Payslip_Report.pdf';
+      final File file = File(filePath);
+      await file.writeAsBytes(pdfBytes);
+      OpenFile.open(filePath);
+    }
+  } catch (e) {
+    print("Error: $e");
+    // Handle error appropriately
+  }
+}
 
   Row Pagination() {
     int pageNum = _currentPage + 1;
